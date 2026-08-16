@@ -1,0 +1,506 @@
+{
+  "schemaVersion": 2,
+  "contract": "naspet-motion-v2",
+  "id": "chibiru",
+  "name": "Chibiru",
+  "species": "child-cat",
+  "stage": "early-growth",
+  "description": "Naspet official chibi-body child-cat mascot who gently supports nurses through shifts and daily life.",
+  "frameSize": {
+    "width": 192,
+    "height": 208
+  },
+  "atlas": {
+    "version": 2,
+    "contract": "naspet-motion-v2",
+    "image": "spritesheet.webp",
+    "columns": 8,
+    "rows": 29,
+    "width": 1536,
+    "height": 6032,
+    "format": "webp",
+    "alpha": true
+  },
+  "animations": {
+    "idle_front": {
+      "row": 0,
+      "frames": [0, 1, 2, 3, 4, 5],
+      "durationsMs": [620, 420, 320, 420, 380, 820],
+      "loop": true,
+      "layer": "focus"
+    },
+    "idle_blink": {
+      "row": 1,
+      "frames": [0, 1, 2, 3, 4, 5],
+      "durationsMs": [620, 380, 220, 220, 420, 820],
+      "loop": true,
+      "layer": "focus"
+    },
+    "life_walk_left": {
+      "row": 2,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [120, 120, 120, 120, 120, 120, 120, 220],
+      "loop": false,
+      "layer": "life"
+    },
+    "life_walk_right": {
+      "row": 3,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [120, 120, 120, 120, 120, 120, 120, 220],
+      "loop": false,
+      "layer": "life"
+    },
+    "life_sit_tail": {
+      "row": 4,
+      "frames": [0, 1, 2, 3, 4, 5],
+      "durationsMs": [520, 360, 280, 320, 380, 720],
+      "loop": true,
+      "layer": "life"
+    },
+    "life_lie_relax": {
+      "row": 5,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [620, 420, 300, 240, 260, 340, 460, 760],
+      "loop": false,
+      "layer": "life"
+    },
+    "life_stretch": {
+      "row": 6,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [130, 130, 130, 130, 130, 130, 130, 280],
+      "loop": false,
+      "layer": "life"
+    },
+    "life_jump": {
+      "row": 7,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [95, 95, 95, 95, 95, 95, 95, 220],
+      "loop": false,
+      "layer": "life"
+    },
+    "life_self_care": {
+      "row": 8,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [140, 140, 140, 140, 140, 140, 140, 300],
+      "loop": false,
+      "layer": "life"
+    },
+    "life_sense_react": {
+      "row": 9,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [120, 120, 120, 120, 120, 120, 120, 260],
+      "loop": false,
+      "layer": "life"
+    },
+    "hungry_wait": {
+      "row": 10,
+      "frames": [0, 1, 2, 3, 4, 5],
+      "durationsMs": [560, 360, 280, 360, 300, 760],
+      "loop": true,
+      "layer": "state"
+    },
+    "hungry_ask": {
+      "row": 11,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [130, 130, 130, 130, 130, 130, 130, 300],
+      "loop": false,
+      "layer": "state"
+    },
+    "mood_low_wait": {
+      "row": 12,
+      "frames": [0, 1, 2, 3, 4, 5],
+      "durationsMs": [780, 560, 420, 520, 620, 980],
+      "loop": true,
+      "layer": "state"
+    },
+    "mood_low_sigh": {
+      "row": 13,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [150, 150, 150, 150, 150, 150, 150, 360],
+      "loop": false,
+      "layer": "state"
+    },
+    "mood_high_bounce": {
+      "row": 14,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [105, 105, 105, 105, 105, 105, 105, 240],
+      "loop": false,
+      "layer": "state"
+    },
+    "mood_high_love": {
+      "row": 15,
+      "frames": [0, 1, 2, 3, 4, 5],
+      "durationsMs": [240, 160, 160, 220, 160, 360],
+      "loop": true,
+      "layer": "state"
+    },
+    "eat_side_three_bites": {
+      "row": 16,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [120, 120, 120, 120, 120, 120, 120, 260],
+      "loop": false,
+      "layer": "care"
+    },
+    "petting": {
+      "row": 17,
+      "frames": [0, 1, 2, 3, 4, 5],
+      "durationsMs": [130, 130, 160, 160, 180, 260],
+      "loop": false,
+      "layer": "care"
+    },
+    "petting_love": {
+      "row": 18,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [120, 120, 120, 120, 120, 120, 120, 320],
+      "loop": false,
+      "layer": "care"
+    },
+    "hoi_look_up": {
+      "row": 19,
+      "frames": [0, 1, 2, 3, 4, 5],
+      "durationsMs": [110, 110, 110, 110, 110, 240],
+      "loop": false,
+      "layer": "game"
+    },
+    "hoi_look_down": {
+      "row": 20,
+      "frames": [0, 1, 2, 3, 4, 5],
+      "durationsMs": [110, 110, 110, 110, 110, 240],
+      "loop": false,
+      "layer": "game"
+    },
+    "hoi_look_left": {
+      "row": 21,
+      "frames": [0, 1, 2, 3, 4, 5],
+      "durationsMs": [110, 110, 110, 110, 110, 240],
+      "loop": false,
+      "layer": "game"
+    },
+    "hoi_look_right": {
+      "row": 22,
+      "frames": [0, 1, 2, 3, 4, 5],
+      "durationsMs": [110, 110, 110, 110, 110, 240],
+      "loop": false,
+      "layer": "game"
+    },
+    "react_happy": {
+      "row": 23,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [110, 110, 110, 110, 110, 110, 110, 240],
+      "loop": false,
+      "layer": "reaction"
+    },
+    "react_surprised": {
+      "row": 24,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [95, 95, 95, 95, 95, 95, 95, 260],
+      "loop": false,
+      "layer": "reaction"
+    },
+    "react_dislike": {
+      "row": 25,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [130, 130, 130, 130, 130, 130, 130, 280],
+      "loop": false,
+      "layer": "reaction"
+    },
+    "react_angry_cute": {
+      "row": 26,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [120, 120, 120, 120, 120, 120, 120, 260],
+      "loop": false,
+      "layer": "reaction"
+    },
+    "react_affection_up": {
+      "row": 27,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [120, 120, 120, 120, 120, 120, 120, 300],
+      "loop": false,
+      "layer": "reaction"
+    },
+    "react_sleepy": {
+      "row": 28,
+      "frames": [0, 1, 2, 3, 4, 5, 6, 7],
+      "durationsMs": [150, 150, 150, 150, 150, 150, 150, 360],
+      "loop": false,
+      "layer": "reaction"
+    }
+  },
+  "eventMap": {
+    "idle": "idle_blink",
+    "focus": "idle_front",
+    "chatFocus": "idle_front",
+    "statusFocus": "idle_front",
+    "ambientDefault": "idle_blink",
+    "ambientBase": [
+      "life_walk_left",
+      "life_walk_right",
+      "life_sit_tail",
+      "life_lie_relax",
+      "life_stretch",
+      "life_jump",
+      "life_self_care",
+      "life_sense_react",
+      "idle_blink"
+    ],
+    "ambientHungry": ["hungry_wait", "hungry_ask", "idle_blink", "life_lie_relax"],
+    "ambientMoodLow": ["mood_low_wait", "mood_low_sigh", "life_lie_relax", "idle_blink"],
+    "ambientMoodHigh": ["mood_high_bounce", "mood_high_love", "life_jump", "life_sit_tail"],
+    "hungry": "hungry_wait",
+    "askFood": "hungry_ask",
+    "moodLow": "mood_low_wait",
+    "moodHigh": "mood_high_love",
+    "eat": "eat_side_three_bites",
+    "eatLikedFood": "react_happy",
+    "eatNormalFood": "idle_blink",
+    "eatDislikedFood": "react_dislike",
+    "petting": "petting",
+    "pettingLove": "petting_love",
+    "careSuccess": "react_happy",
+    "careFailureCute": "react_angry_cute",
+    "affectionUp": "react_affection_up",
+    "sleepy": "react_sleepy",
+    "hoiLookUp": "hoi_look_up",
+    "hoiLookDown": "hoi_look_down",
+    "hoiLookLeft": "hoi_look_left",
+    "hoiLookRight": "hoi_look_right",
+    "hoiUserWin": "react_surprised",
+    "hoiPetWin": "react_happy"
+  },
+  "stateRules": [
+    {
+      "id": "focus",
+      "priority": 120,
+      "when": {
+        "focused": true
+      },
+      "animation": "idle_front"
+    },
+    {
+      "id": "interaction",
+      "priority": 110,
+      "when": {
+        "interacting": true
+      },
+      "animation": "idle_front"
+    },
+    {
+      "id": "hungry-critical",
+      "priority": 90,
+      "when": {
+        "hungerLte": 30
+      },
+      "animation": "hungry_wait"
+    },
+    {
+      "id": "mood-low",
+      "priority": 80,
+      "when": {
+        "moodLte": 30
+      },
+      "animation": "mood_low_wait"
+    },
+    {
+      "id": "mood-high",
+      "priority": 60,
+      "when": {
+        "moodGte": 80
+      },
+      "animation": "mood_high_love"
+    },
+    {
+      "id": "default",
+      "priority": 0,
+      "when": {
+        "always": true
+      },
+      "animation": "idle_blink"
+    }
+  ],
+  "ambientPools": {
+    "base": [
+      "life_walk_left",
+      "life_walk_right",
+      "life_sit_tail",
+      "life_lie_relax",
+      "life_stretch",
+      "life_jump",
+      "life_self_care",
+      "life_sense_react",
+      "idle_blink"
+    ],
+    "hungry": ["hungry_wait", "hungry_ask", "idle_blink", "life_lie_relax"],
+    "moodLow": ["mood_low_wait", "mood_low_sigh", "life_lie_relax", "idle_blink"],
+    "moodHigh": ["mood_high_bounce", "mood_high_love", "life_jump", "life_sit_tail"]
+  },
+  "foodItems": [
+    {
+      "id": "food_fish",
+      "label": "???????",
+      "category": "food",
+      "eatAnimation": "eat_side_three_bites",
+      "reaction": "react_happy",
+      "preference": "liked",
+      "hungerDelta": 35,
+      "moodDelta": 5,
+      "bondExpDelta": 1,
+      "evolutionDelta": {
+        "fish": 3,
+        "agile": 1
+      },
+      "personalityDelta": {
+        "curious": 1
+      },
+      "foodStages": ["food_fish_0.png", "food_fish_1.png", "food_fish_2.png", "food_fish_3.png"]
+    },
+    {
+      "id": "food_meat",
+      "label": "??????",
+      "category": "food",
+      "eatAnimation": "eat_side_three_bites",
+      "reaction": "react_happy",
+      "preference": "liked",
+      "hungerDelta": 40,
+      "moodDelta": 3,
+      "bondExpDelta": 1,
+      "evolutionDelta": {
+        "power": 3,
+        "wild": 1
+      },
+      "personalityDelta": {
+        "brave": 1
+      },
+      "foodStages": ["food_meat_0.png", "food_meat_1.png", "food_meat_2.png", "food_meat_3.png"]
+    },
+    {
+      "id": "food_veggie",
+      "label": "??????",
+      "category": "food",
+      "eatAnimation": "eat_side_three_bites",
+      "reaction": "idle_blink",
+      "preference": "normal",
+      "hungerDelta": 30,
+      "moodDelta": 4,
+      "bondExpDelta": 1,
+      "evolutionDelta": {
+        "calm": 2,
+        "balance": 2
+      },
+      "personalityDelta": {
+        "calm": 1
+      },
+      "foodStages": [
+        "food_veggie_0.png",
+        "food_veggie_1.png",
+        "food_veggie_2.png",
+        "food_veggie_3.png"
+      ]
+    }
+  ],
+  "snackItems": [
+    {
+      "id": "snack_cookie",
+      "label": "????",
+      "category": "snack",
+      "eatAnimation": "eat_side_three_bites",
+      "reaction": "react_happy",
+      "preference": "liked",
+      "hungerDelta": 5,
+      "moodDelta": 10,
+      "bondExpDelta": 1,
+      "evolutionDelta": {
+        "sweet": 3,
+        "affectionate": 1
+      },
+      "personalityDelta": {
+        "sweet": 2,
+        "affectionate": 1
+      },
+      "foodStages": [
+        "snack_cookie_0.png",
+        "snack_cookie_1.png",
+        "snack_cookie_2.png",
+        "snack_cookie_3.png"
+      ]
+    },
+    {
+      "id": "snack_candy",
+      "label": "?????",
+      "category": "snack",
+      "eatAnimation": "eat_side_three_bites",
+      "reaction": "react_happy",
+      "preference": "liked",
+      "hungerDelta": 3,
+      "moodDelta": 12,
+      "bondExpDelta": 1,
+      "evolutionDelta": {
+        "magical": 3,
+        "playful": 1
+      },
+      "personalityDelta": {
+        "playful": 1,
+        "curious": 1
+      },
+      "foodStages": [
+        "snack_candy_0.png",
+        "snack_candy_1.png",
+        "snack_candy_2.png",
+        "snack_candy_3.png"
+      ]
+    },
+    {
+      "id": "snack_biscuit",
+      "label": "?????",
+      "category": "snack",
+      "eatAnimation": "eat_side_three_bites",
+      "reaction": "idle_blink",
+      "preference": "normal",
+      "hungerDelta": 8,
+      "moodDelta": 7,
+      "bondExpDelta": 2,
+      "evolutionDelta": {
+        "balance": 2,
+        "calm": 1
+      },
+      "personalityDelta": {
+        "calm": 1,
+        "affectionate": 1
+      },
+      "foodStages": [
+        "snack_biscuit_0.png",
+        "snack_biscuit_1.png",
+        "snack_biscuit_2.png",
+        "snack_biscuit_3.png"
+      ]
+    }
+  ],
+  "foodLayer": {
+    "mode": "external-staged-assets",
+    "eatAnimation": "eat_side_three_bites",
+    "stages": 4,
+    "biteFrameIndexes": [2, 4, 6],
+    "notes": "Food is rendered separately from the pet frames and swapped as the pet eats."
+  },
+  "game": {
+    "atchiMuiteHoi": {
+      "userRole": "pointsDirectionInUi",
+      "petRole": "looksDirectionOnly",
+      "directions": ["up", "down", "left", "right"],
+      "animations": {
+        "up": "hoi_look_up",
+        "down": "hoi_look_down",
+        "left": "hoi_look_left",
+        "right": "hoi_look_right"
+      },
+      "userWinReaction": "react_surprised",
+      "petWinReaction": "react_happy"
+    }
+  },
+  "tags": ["naspet", "mini-pet", "naspet-motion-v2"],
+  "metadata": {
+    "generator": "hatch-naspet-pet",
+    "contract": "naspet-motion-v2",
+    "runtimeFoodAssetBase": "/assets/pets/common/foods",
+    "foodCatalog": "generic-shared-v1"
+  }
+}

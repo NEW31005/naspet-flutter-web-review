@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "kind": "naspet-egg-animation-pack",
+  "petId": "chibiru",
+  "frameSize": {
+    "width": 192,
+    "height": 208
+  },
+  "atlas": {
+    "columns": 8,
+    "rows": 1
+  },
+  "animations": {
+    "egg_idle": {
+      "asset": "assets/pets/chibiru/egg/egg_idle_spritesheet.webp",
+      "preview": "assets/pets/chibiru/egg/egg_idle_preview.gif",
+      "atlas": {
+        "columns": 8,
+        "rows": 1
+      },
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        360,
+        150,
+        170,
+        240,
+        170,
+        150,
+        220,
+        520
+      ],
+      "loop": true,
+      "description": "Corrected egg-only lively squash and stretch loop before hatching, no cracks or stray frame artifacts."
+    },
+    "egg_hatch": {
+      "asset": "assets/pets/chibiru/egg/egg_hatch_spritesheet.webp",
+      "preview": "assets/pets/chibiru/egg/egg_hatch_preview.gif",
+      "contactSheet": "assets/pets/chibiru/egg/egg_hatch_contact_sheet.png",
+      "atlas": {
+        "columns": 8,
+        "rows": 3
+      },
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "durationsMs": [
+        300,
+        260,
+        260,
+        300,
+        270,
+        270,
+        300,
+        370,
+        300,
+        300,
+        330,
+        370,
+        330,
+        330,
+        360,
+        400,
+        360,
+        360,
+        390,
+        450,
+        420,
+        450,
+        500,
+        800
+      ],
+      "loop": false,
+      "description": "Corrected 24-frame slow hatch: cracks persist from frame 1, no cropped head, no ribbon/accessory, no shell cap in final frames."
+    }
+  }
+}

@@ -1,0 +1,1054 @@
+{
+  "schemaVersion": 2,
+  "contract": "naspet-motion-v2",
+  "runtimeMotionSheetsVersion": 1,
+  "id": "mimiria",
+  "name": "Mimiria",
+  "species": "rabbit",
+  "stage": "adult",
+  "description": "Adult rabbit Naspet motion package.",
+  "frameSize": {
+    "width": 192,
+    "height": 208
+  },
+  "atlas": {
+    "version": 2,
+    "contract": "naspet-motion-v2",
+    "image": "spritesheet.webp",
+    "columns": 8,
+    "rows": 29,
+    "width": 1536,
+    "height": 6032,
+    "format": "webp",
+    "alpha": true
+  },
+  "motionSheets": {
+    "idle_blink": {
+      "image": "motion_idle_blink.webp",
+      "columns": 24,
+      "rows": 1,
+      "width": 4608,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "life_lie_relax": {
+      "image": "motion_life_lie_relax.webp",
+      "columns": 8,
+      "rows": 1,
+      "width": 1536,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "wake_up_greet": {
+      "image": "motion_wake_up_greet.webp",
+      "columns": 8,
+      "rows": 1,
+      "width": 1536,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "hungry_wait": {
+      "image": "motion_hungry_wait.webp",
+      "columns": 6,
+      "rows": 1,
+      "width": 1152,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "mood_low_wait": {
+      "image": "motion_mood_low_wait.webp",
+      "columns": 6,
+      "rows": 1,
+      "width": 1152,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "mood_high_love": {
+      "image": "motion_mood_high_love.webp",
+      "columns": 6,
+      "rows": 1,
+      "width": 1152,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "eat_side_three_bites": {
+      "image": "motion_eat_side_three_bites.webp",
+      "columns": 8,
+      "rows": 1,
+      "width": 1536,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "petting": {
+      "image": "motion_petting.webp",
+      "columns": 6,
+      "rows": 1,
+      "width": 1152,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "react_happy": {
+      "image": "motion_react_happy.webp",
+      "columns": 6,
+      "rows": 1,
+      "width": 1152,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "react_dislike": {
+      "image": "motion_react_dislike.webp",
+      "columns": 8,
+      "rows": 1,
+      "width": 1536,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "react_angry_cute": {
+      "image": "motion_react_angry_cute.webp",
+      "columns": 8,
+      "rows": 1,
+      "width": 1536,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "react_sleepy": {
+      "image": "motion_react_sleepy.webp",
+      "columns": 8,
+      "rows": 1,
+      "width": 1536,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "hoi_look_up": {
+      "image": "motion_hoi_look_up.webp",
+      "columns": 1,
+      "rows": 1,
+      "width": 192,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "hoi_look_down": {
+      "image": "motion_hoi_look_down.webp",
+      "columns": 1,
+      "rows": 1,
+      "width": 192,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "hoi_look_left": {
+      "image": "motion_hoi_look_left.webp",
+      "columns": 1,
+      "rows": 1,
+      "width": 192,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    },
+    "hoi_look_right": {
+      "image": "motion_hoi_look_right.webp",
+      "columns": 1,
+      "rows": 1,
+      "width": 192,
+      "height": 208,
+      "format": "webp",
+      "alpha": true
+    }
+  },
+  "animations": {
+    "idle_front": {
+      "row": 0,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "durationsMs": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "loop": true,
+      "layer": "focus",
+      "sourceMotion": "idle_blink"
+    },
+    "idle_blink": {
+      "row": 1,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23
+      ],
+      "durationsMs": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "loop": true,
+      "layer": "focus",
+      "sourceMotion": "idle_blink"
+    },
+    "life_walk_left": {
+      "row": 2,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        220
+      ],
+      "loop": false,
+      "layer": "life",
+      "sourceMotion": "idle_blink"
+    },
+    "life_walk_right": {
+      "row": 3,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        220
+      ],
+      "loop": false,
+      "layer": "life",
+      "sourceMotion": "idle_blink"
+    },
+    "life_sit_tail": {
+      "row": 4,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "durationsMs": [
+        260,
+        180,
+        180,
+        220,
+        180,
+        360
+      ],
+      "loop": true,
+      "layer": "life",
+      "sourceMotion": "idle_blink"
+    },
+    "life_lie_relax": {
+      "row": 5,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        190,
+        190,
+        190,
+        190,
+        190,
+        190,
+        190,
+        190
+      ],
+      "loop": true,
+      "layer": "life",
+      "sourceMotion": "life_lie_relax"
+    },
+    "life_stretch": {
+      "row": 6,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        280
+      ],
+      "loop": false,
+      "layer": "life",
+      "sourceMotion": "wake_up_greet"
+    },
+    "life_jump": {
+      "row": 7,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        95,
+        95,
+        95,
+        95,
+        95,
+        95,
+        95,
+        220
+      ],
+      "loop": false,
+      "layer": "life",
+      "sourceMotion": "react_happy"
+    },
+    "life_self_care": {
+      "row": 8,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        140,
+        300
+      ],
+      "loop": false,
+      "layer": "life",
+      "sourceMotion": "idle_blink"
+    },
+    "life_sense_react": {
+      "row": 9,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        260
+      ],
+      "loop": false,
+      "layer": "life",
+      "sourceMotion": "idle_blink"
+    },
+    "hungry_wait": {
+      "row": 10,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "durationsMs": [
+        190,
+        190,
+        190,
+        190,
+        190,
+        190
+      ],
+      "loop": true,
+      "layer": "state",
+      "sourceMotion": "hungry_wait"
+    },
+    "hungry_ask": {
+      "row": 11,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        300
+      ],
+      "loop": false,
+      "layer": "state",
+      "sourceMotion": "hungry_wait"
+    },
+    "mood_low_wait": {
+      "row": 12,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "durationsMs": [
+        210,
+        210,
+        210,
+        210,
+        210,
+        210
+      ],
+      "loop": true,
+      "layer": "state",
+      "sourceMotion": "mood_low_wait"
+    },
+    "mood_low_sigh": {
+      "row": 13,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        360
+      ],
+      "loop": false,
+      "layer": "state",
+      "sourceMotion": "mood_low_wait"
+    },
+    "mood_high_bounce": {
+      "row": 14,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        105,
+        105,
+        105,
+        105,
+        105,
+        105,
+        105,
+        240
+      ],
+      "loop": false,
+      "layer": "state",
+      "sourceMotion": "mood_high_love"
+    },
+    "mood_high_love": {
+      "row": 15,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "durationsMs": [
+        170,
+        170,
+        170,
+        170,
+        170,
+        170
+      ],
+      "loop": true,
+      "layer": "state",
+      "sourceMotion": "mood_high_love"
+    },
+    "eat_side_three_bites": {
+      "row": 16,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        120
+      ],
+      "loop": false,
+      "layer": "care",
+      "sourceMotion": "eat_side_three_bites"
+    },
+    "petting": {
+      "row": 17,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "durationsMs": [
+        140,
+        140,
+        140,
+        140,
+        140,
+        140
+      ],
+      "loop": false,
+      "layer": "care",
+      "sourceMotion": "petting"
+    },
+    "petting_love": {
+      "row": 18,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        320
+      ],
+      "loop": false,
+      "layer": "care",
+      "sourceMotion": "petting"
+    },
+    "hoi_look_up": {
+      "row": 19,
+      "frames": [
+        0
+      ],
+      "durationsMs": [
+        240
+      ],
+      "loop": false,
+      "layer": "game",
+      "sourceMotion": "hoi_look_up"
+    },
+    "hoi_look_down": {
+      "row": 20,
+      "frames": [
+        0
+      ],
+      "durationsMs": [
+        240
+      ],
+      "loop": false,
+      "layer": "game",
+      "sourceMotion": "hoi_look_down"
+    },
+    "hoi_look_left": {
+      "row": 21,
+      "frames": [
+        0
+      ],
+      "durationsMs": [
+        240
+      ],
+      "loop": false,
+      "layer": "game",
+      "sourceMotion": "hoi_look_left"
+    },
+    "hoi_look_right": {
+      "row": 22,
+      "frames": [
+        0
+      ],
+      "durationsMs": [
+        240
+      ],
+      "loop": false,
+      "layer": "game",
+      "sourceMotion": "hoi_look_right"
+    },
+    "react_happy": {
+      "row": 23,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "durationsMs": [
+        125,
+        125,
+        125,
+        125,
+        125,
+        125
+      ],
+      "loop": false,
+      "layer": "reaction",
+      "sourceMotion": "react_happy"
+    },
+    "react_surprised": {
+      "row": 24,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        95,
+        95,
+        95,
+        95,
+        95,
+        95,
+        95,
+        260
+      ],
+      "loop": false,
+      "layer": "reaction",
+      "sourceMotion": "idle_blink"
+    },
+    "react_dislike": {
+      "row": 25,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130,
+        130
+      ],
+      "loop": false,
+      "layer": "reaction",
+      "sourceMotion": "react_dislike"
+    },
+    "react_angry_cute": {
+      "row": 26,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        120
+      ],
+      "loop": false,
+      "layer": "reaction",
+      "sourceMotion": "react_angry_cute"
+    },
+    "react_affection_up": {
+      "row": 27,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        120,
+        300
+      ],
+      "loop": false,
+      "layer": "reaction",
+      "sourceMotion": "react_happy"
+    },
+    "react_sleepy": {
+      "row": 28,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "loop": false,
+      "layer": "reaction",
+      "sourceMotion": "react_sleepy"
+    },
+    "wake_up_greet": {
+      "row": 0,
+      "frames": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "durationsMs": [
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150,
+        150
+      ],
+      "loop": false,
+      "layer": "life",
+      "sourceMotion": "wake_up_greet"
+    }
+  },
+  "eventMap": {
+    "idle": "idle_blink",
+    "focus": "idle_front",
+    "chatFocus": "idle_front",
+    "statusFocus": "idle_front",
+    "ambientDefault": "idle_blink",
+    "hungry": "hungry_wait",
+    "moodLow": "mood_low_wait",
+    "moodHigh": "mood_high_love",
+    "eat": "eat_side_three_bites",
+    "petting": "petting",
+    "careSuccess": "react_happy",
+    "careFailureCute": "react_angry_cute",
+    "sleepy": "react_sleepy",
+    "wake": "wake_up_greet"
+  },
+  "stateRules": [
+    {
+      "id": "focus",
+      "priority": 120,
+      "when": {
+        "focused": true
+      },
+      "animation": "idle_front"
+    },
+    {
+      "id": "hungry-critical",
+      "priority": 90,
+      "when": {
+        "hungerLte": 30
+      },
+      "animation": "hungry_wait"
+    },
+    {
+      "id": "mood-low",
+      "priority": 80,
+      "when": {
+        "moodLte": 30
+      },
+      "animation": "mood_low_wait"
+    },
+    {
+      "id": "mood-high",
+      "priority": 60,
+      "when": {
+        "moodGte": 80
+      },
+      "animation": "mood_high_love"
+    },
+    {
+      "id": "default",
+      "priority": 0,
+      "when": {
+        "always": true
+      },
+      "animation": "idle_blink"
+    }
+  ],
+  "ambientPools": {
+    "base": [
+      "idle_blink"
+    ],
+    "hungry": [
+      "hungry_wait"
+    ],
+    "moodLow": [
+      "mood_low_wait"
+    ],
+    "moodHigh": [
+      "mood_high_love"
+    ]
+  },
+  "foodItems": [],
+  "snackItems": [],
+  "foodLayer": {
+    "mode": "external-staged-assets",
+    "eatAnimation": "eat_side_three_bites",
+    "stages": 4,
+    "biteFrameIndexes": [
+      2,
+      4,
+      6
+    ]
+  },
+  "game": {
+    "atchiMuiteHoi": {
+      "userRole": "pointsDirectionInUi",
+      "petRole": "looksDirectionOnly",
+      "directions": [
+        "up",
+        "down",
+        "left",
+        "right"
+      ],
+      "animations": {
+        "up": "hoi_look_up",
+        "down": "hoi_look_down",
+        "left": "hoi_look_left",
+        "right": "hoi_look_right"
+      },
+      "userWinReaction": "idle_blink",
+      "petWinReaction": "react_happy"
+    }
+  },
+  "tags": [
+    "naspet",
+    "adult",
+    "approved-runtime",
+    "motion-sheets"
+  ],
+  "metadata": {
+    "generator": "build_adult_runtime_pet_sprites.py",
+    "sourceDraft": "adult_runtime_20260713",
+    "identityNote": "Two broad long ear lobes split close to the head; each lobe ends in one smooth rounded tip. Never use a tiny fork at an ear tip.",
+    "idleFrameContract": "24 meaningful frames at 150ms",
+    "bottomInset": 8
+  }
+}

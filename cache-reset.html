@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <base href="./">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-store">
+  <title>ナスペットを更新しています</title>
+  <style>
+    body {
+      align-items: center;
+      background: #fff7fb;
+      color: #102947;
+      display: flex;
+      font-family: system-ui, -apple-system, sans-serif;
+      justify-content: center;
+      margin: 0;
+      min-height: 100vh;
+      text-align: center;
+    }
+    main {
+      padding: 32px;
+    }
+    .paw {
+      color: #ef4aa8;
+      font-size: 40px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="paw" aria-hidden="true">●</div>
+    <h1>ナスペットを更新しています</h1>
+    <p>最新の画面に切り替わるまで、そのままお待ちください。</p>
+  </main>
+  <script>
+    (async function resetNaspetPreview() {
+      const buildId = 'dc14f2e1d9d2e1bd2f7537791191e8cf3494b700';
+      const baseUrl = new URL(document.baseURI);
+      const isNaspetUrl = (url) =>
+        baseUrl.pathname !== '/' &&
+        new URL(url, baseUrl).pathname.startsWith(baseUrl.pathname);
+
+      try {
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(registrations
+            .filter((registration) => {
+              const worker = registration.active ??
+                registration.waiting ?? registration.installing;
+              const scriptPath = new URL(worker?.scriptURL ?? '', baseUrl).pathname;
+              return (
+                isNaspetUrl(registration.scope) &&
+                !scriptPath.endsWith('/naspet-social-chat-push-sw.js')
+              );
+            })
+            .map((registration) => registration.unregister()));
+        }
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(async (key) => {
+            const cache = await caches.open(key);
+            const requests = await cache.keys();
+            await Promise.all(requests
+              .filter((request) => isNaspetUrl(request.url))
+              .map((request) => cache.delete(request)));
+          }));
+        }
+      } finally {
+        const destination = new URL(baseUrl);
+        destination.searchParams.set('v', buildId);
+        destination.searchParams.set('naspet_cache_reset', buildId);
+        window.location.replace(destination);
+      }
+    })();
+  </script>
+</body>
+</html>

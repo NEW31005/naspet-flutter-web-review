@@ -1,0 +1,1315 @@
+{
+  "engineVersion": 5,
+  "chartId": "hydria_master_v1",
+  "chartVersion": 1,
+  "audioAssetId": "user_43a8728d93d7ccd99084544c",
+  "audioAssetVersion": 1,
+  "nominalBpm": 120,
+  "laneCount": 4,
+  "durationMs": 83717,
+  "audioOffsetMs": 0,
+  "approachTimeMs": 2000,
+  "targetGoodClearEventIndex": 209,
+  "calculatedBossHp": 1254,
+  "audioEdit": {
+    "sourceSha256": "43a8728d93d7ccd99084544cf02ceabc3923142dfc3010d0648ca5247479f143",
+    "sourceDurationMs": 83717,
+    "trimStartMs": 0,
+    "trimEndMs": 83717,
+    "fadeOutDurationMs": 2000,
+    "playableDurationMs": 83717
+  },
+  "scoring": {
+    "version": 4,
+    "perfectUnits": 1000,
+    "goodUnits": 600,
+    "missUnits": 0,
+    "breakPerfectUnits": 1500,
+    "breakGoodUnits": 900,
+    "normalizationScale": 10000,
+    "baseMaxScore": 10000,
+    "clearScore": 6000,
+    "breakReadyPerfectCount": 20,
+    "breakDurationMs": 8000,
+    "breakMultiplierPermille": 1500
+  },
+  "legacyDurationMode": false,
+  "needsDurationReview": false,
+  "timingAuthority": "targetTimeMs",
+  "notes": [
+    {
+      "id": "studio_0001",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 1670
+    },
+    {
+      "id": "studio_0002",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 2287
+    },
+    {
+      "id": "studio_0003",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 2961
+    },
+    {
+      "id": "studio_0004",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 3588
+    },
+    {
+      "id": "studio_0005",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 4225
+    },
+    {
+      "id": "studio_0006",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 4553
+    },
+    {
+      "id": "studio_0007",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 4887
+    },
+    {
+      "id": "studio_0008",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 5221
+    },
+    {
+      "id": "studio_0009",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 5557
+    },
+    {
+      "id": "studio_0010",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 5870
+    },
+    {
+      "id": "studio_0011",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 6188
+    },
+    {
+      "id": "studio_0012",
+      "type": "chord",
+      "lanes": [
+        0,
+        3
+      ],
+      "targetTimeMs": 6524
+    },
+    {
+      "id": "studio_0013",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 7204
+    },
+    {
+      "id": "studio_0014",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 7821
+    },
+    {
+      "id": "studio_0015",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 8438
+    },
+    {
+      "id": "studio_0016",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 9148
+    },
+    {
+      "id": "studio_0017",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 9473
+    },
+    {
+      "id": "studio_0018",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 9805
+    },
+    {
+      "id": "studio_0019",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 10125
+    },
+    {
+      "id": "studio_0020",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 10442
+    },
+    {
+      "id": "studio_0021",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 10774
+    },
+    {
+      "id": "studio_0022",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 11039
+    },
+    {
+      "id": "studio_0023",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 11389
+    },
+    {
+      "id": "studio_0024",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 11690
+    },
+    {
+      "id": "studio_0025",
+      "type": "hold",
+      "lane": 0,
+      "targetTimeMs": 12005,
+      "endTimeMs": 12475
+    },
+    {
+      "id": "studio_0026",
+      "type": "hold",
+      "lane": 1,
+      "targetTimeMs": 12657,
+      "endTimeMs": 13195
+    },
+    {
+      "id": "studio_0027",
+      "type": "hold",
+      "lane": 2,
+      "targetTimeMs": 13324,
+      "endTimeMs": 13788
+    },
+    {
+      "id": "studio_0028",
+      "type": "hold",
+      "lane": 3,
+      "targetTimeMs": 13973,
+      "endTimeMs": 14437
+    },
+    {
+      "id": "studio_0029",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 14649
+    },
+    {
+      "id": "studio_0030",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 14940
+    },
+    {
+      "id": "studio_0031",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 15273
+    },
+    {
+      "id": "studio_0032",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 15557
+    },
+    {
+      "id": "studio_0033",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 15860
+    },
+    {
+      "id": "studio_0034",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 16161
+    },
+    {
+      "id": "studio_0035",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 16484
+    },
+    {
+      "id": "studio_0036",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 16807
+    },
+    {
+      "id": "studio_0037",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 17564
+    },
+    {
+      "id": "studio_0038",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 18158
+    },
+    {
+      "id": "studio_0039",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 18790
+    },
+    {
+      "id": "studio_0040",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 19400
+    },
+    {
+      "id": "studio_0041",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 20085
+    },
+    {
+      "id": "studio_0042",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 20767
+    },
+    {
+      "id": "studio_0043",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 21418
+    },
+    {
+      "id": "studio_0044",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 22033
+    },
+    {
+      "id": "studio_0045",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 22677
+    },
+    {
+      "id": "studio_0046",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 23301
+    },
+    {
+      "id": "studio_0047",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 23958
+    },
+    {
+      "id": "studio_0048",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 24564
+    },
+    {
+      "id": "studio_0049",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 25252
+    },
+    {
+      "id": "studio_0050",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 25843
+    },
+    {
+      "id": "studio_0051",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 26262
+    },
+    {
+      "id": "studio_0052",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 26593
+    },
+    {
+      "id": "studio_0053",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 26925
+    },
+    {
+      "id": "studio_0054",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 27260
+    },
+    {
+      "id": "studio_0055",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 27610
+    },
+    {
+      "id": "studio_0056",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 27927
+    },
+    {
+      "id": "studio_0057",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 28226
+    },
+    {
+      "id": "studio_0058",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 28542
+    },
+    {
+      "id": "studio_0059",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 28876
+    },
+    {
+      "id": "studio_0060",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 29175
+    },
+    {
+      "id": "studio_0061",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 29476
+    },
+    {
+      "id": "studio_0062",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 29810
+    },
+    {
+      "id": "studio_0063",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 30142
+    },
+    {
+      "id": "studio_0064",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 30461
+    },
+    {
+      "id": "studio_0065",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 30759
+    },
+    {
+      "id": "studio_0066",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 31076
+    },
+    {
+      "id": "studio_0067",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 31427
+    },
+    {
+      "id": "studio_0068",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 31726
+    },
+    {
+      "id": "studio_0069",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 32077
+    },
+    {
+      "id": "studio_0070",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 32410
+    },
+    {
+      "id": "manual_1785558271994000",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 32711
+    },
+    {
+      "id": "studio_0071",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 33052
+    },
+    {
+      "id": "studio_0072",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 33396
+    },
+    {
+      "id": "studio_0073",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 33678
+    },
+    {
+      "id": "studio_0074",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 34011
+    },
+    {
+      "id": "studio_0075",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 34318
+    },
+    {
+      "id": "studio_0076",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 34627
+    },
+    {
+      "id": "studio_0077",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 34969
+    },
+    {
+      "id": "studio_0078",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 35277
+    },
+    {
+      "id": "studio_0079",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 35615
+    },
+    {
+      "id": "studio_0080",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 35926
+    },
+    {
+      "id": "studio_0081",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 36212
+    },
+    {
+      "id": "studio_0082",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 36493
+    },
+    {
+      "id": "studio_0083",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 36845
+    },
+    {
+      "id": "studio_0084",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 37178
+    },
+    {
+      "id": "studio_0085",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 37498
+    },
+    {
+      "id": "studio_0086",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 38188
+    },
+    {
+      "id": "studio_0087",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 38363
+    },
+    {
+      "id": "studio_0088",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 38812
+    },
+    {
+      "id": "studio_0089",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 39364
+    },
+    {
+      "id": "studio_0090",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 39494
+    },
+    {
+      "id": "studio_0091",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 40046
+    },
+    {
+      "id": "studio_0092",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 40695
+    },
+    {
+      "id": "studio_0093",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 40845
+    },
+    {
+      "id": "studio_0094",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 41380
+    },
+    {
+      "id": "studio_0095",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 41996
+    },
+    {
+      "id": "studio_0096",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 42146
+    },
+    {
+      "id": "studio_0097",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 42705
+    },
+    {
+      "id": "studio_0098",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 43320
+    },
+    {
+      "id": "studio_0099",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 43513
+    },
+    {
+      "id": "studio_0100",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 44005
+    },
+    {
+      "id": "studio_0101",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 44550
+    },
+    {
+      "id": "studio_0102",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 44678
+    },
+    {
+      "id": "studio_0103",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 45017
+    },
+    {
+      "id": "studio_0104",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 45339
+    },
+    {
+      "id": "studio_0105",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 45629
+    },
+    {
+      "id": "studio_0106",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 45963
+    },
+    {
+      "id": "studio_0107",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 46263
+    },
+    {
+      "id": "studio_0108",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 46580
+    },
+    {
+      "id": "studio_0109",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 46887
+    },
+    {
+      "id": "studio_0110",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 47230
+    },
+    {
+      "id": "studio_0111",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 47546
+    },
+    {
+      "id": "studio_0112",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 47817
+    },
+    {
+      "id": "studio_0113",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 48231
+    },
+    {
+      "id": "studio_0114",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 48548
+    },
+    {
+      "id": "studio_0115",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 48846
+    },
+    {
+      "id": "studio_0116",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 49163
+    },
+    {
+      "id": "studio_0117",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 49532
+    },
+    {
+      "id": "studio_0118",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 49813
+    },
+    {
+      "id": "studio_0119",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 50116
+    },
+    {
+      "id": "studio_0120",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 50397
+    },
+    {
+      "id": "studio_0121",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 50732
+    },
+    {
+      "id": "studio_0122",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 51065
+    },
+    {
+      "id": "studio_0123",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 51382
+    },
+    {
+      "id": "studio_0124",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 51698
+    },
+    {
+      "id": "studio_0125",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 51985
+    },
+    {
+      "id": "studio_0126",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 52315
+    },
+    {
+      "id": "studio_0127",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 52682
+    },
+    {
+      "id": "studio_0128",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 52997
+    },
+    {
+      "id": "studio_0129",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 53351
+    },
+    {
+      "id": "studio_0130",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 53699
+    },
+    {
+      "id": "studio_0131",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 54015
+    },
+    {
+      "id": "studio_0132",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 54316
+    },
+    {
+      "id": "studio_0133",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 54622
+    },
+    {
+      "id": "studio_0134",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 54966
+    },
+    {
+      "id": "studio_0135",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 55318
+    },
+    {
+      "id": "studio_0136",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 55615
+    },
+    {
+      "id": "studio_0137",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 55933
+    },
+    {
+      "id": "studio_0138",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 56257
+    },
+    {
+      "id": "studio_0139",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 56517
+    },
+    {
+      "id": "studio_0140",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 56884
+    },
+    {
+      "id": "studio_0141",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 57198
+    },
+    {
+      "id": "studio_0142",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 57566
+    },
+    {
+      "id": "studio_0143",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 57900
+    },
+    {
+      "id": "studio_0144",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 58198
+    },
+    {
+      "id": "studio_0145",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 58500
+    },
+    {
+      "id": "studio_0146",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 58855
+    },
+    {
+      "id": "studio_0147",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 59167
+    },
+    {
+      "id": "studio_0148",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 59449
+    },
+    {
+      "id": "studio_0149",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 59766
+    },
+    {
+      "id": "studio_0150",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 60016
+    },
+    {
+      "id": "studio_0151",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 60420
+    },
+    {
+      "id": "studio_0152",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 60737
+    },
+    {
+      "id": "studio_0153",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 61433
+    },
+    {
+      "id": "studio_0154",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 61586
+    },
+    {
+      "id": "studio_0155",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 62051
+    },
+    {
+      "id": "studio_0156",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 62652
+    },
+    {
+      "id": "studio_0157",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 62800
+    },
+    {
+      "id": "studio_0158",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 63317
+    },
+    {
+      "id": "studio_0159",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 63969
+    },
+    {
+      "id": "studio_0160",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 64134
+    },
+    {
+      "id": "studio_0161",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 64567
+    },
+    {
+      "id": "studio_0162",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 65211
+    },
+    {
+      "id": "studio_0163",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 65350
+    },
+    {
+      "id": "studio_0164",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 65901
+    },
+    {
+      "id": "studio_0165",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 66585
+    },
+    {
+      "id": "studio_0166",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 66767
+    },
+    {
+      "id": "studio_0167",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 67201
+    },
+    {
+      "id": "studio_0168",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 67768
+    },
+    {
+      "id": "studio_0169",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 67917
+    },
+    {
+      "id": "studio_0170",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 68454
+    },
+    {
+      "id": "studio_0171",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 68818
+    },
+    {
+      "id": "studio_0172",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 69173
+    },
+    {
+      "id": "studio_0173",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 69502
+    },
+    {
+      "id": "studio_0174",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 69822
+    },
+    {
+      "id": "studio_0175",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 70177
+    },
+    {
+      "id": "studio_0176",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 70469
+    },
+    {
+      "id": "studio_0177",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 70802
+    },
+    {
+      "id": "studio_0178",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 71052
+    },
+    {
+      "id": "studio_0179",
+      "type": "chord",
+      "lanes": [
+        0,
+        3
+      ],
+      "targetTimeMs": 71412
+    },
+    {
+      "id": "studio_0180",
+      "type": "chord",
+      "lanes": [
+        1,
+        2
+      ],
+      "targetTimeMs": 72037
+    },
+    {
+      "id": "studio_0181",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 72711
+    },
+    {
+      "id": "studio_0182",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 73038
+    },
+    {
+      "id": "studio_0183",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 73370
+    },
+    {
+      "id": "studio_0184",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 73702
+    },
+    {
+      "id": "studio_0185",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 74021
+    },
+    {
+      "id": "studio_0186",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 74353
+    },
+    {
+      "id": "studio_0187",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 74669
+    },
+    {
+      "id": "studio_0188",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 74992
+    },
+    {
+      "id": "studio_0189",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 75286
+    },
+    {
+      "id": "studio_0190",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 75621
+    },
+    {
+      "id": "studio_0191",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 75930
+    },
+    {
+      "id": "studio_0192",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 76221
+    },
+    {
+      "id": "studio_0193",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 76613
+    },
+    {
+      "id": "studio_0194",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 76940
+    },
+    {
+      "id": "studio_0195",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 77237
+    },
+    {
+      "id": "studio_0196",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 77569
+    },
+    {
+      "id": "studio_0197",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 77908
+    },
+    {
+      "id": "studio_0198",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 78220
+    },
+    {
+      "id": "studio_0199",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 78559
+    },
+    {
+      "id": "studio_0200",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 78853
+    },
+    {
+      "id": "studio_0201",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 79188
+    },
+    {
+      "id": "studio_0202",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 79496
+    },
+    {
+      "id": "studio_0203",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 79788
+    },
+    {
+      "id": "studio_0204",
+      "type": "tap",
+      "lane": 0,
+      "targetTimeMs": 80143
+    },
+    {
+      "id": "studio_0205",
+      "type": "tap",
+      "lane": 1,
+      "targetTimeMs": 80437
+    },
+    {
+      "id": "studio_0206",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 80759
+    },
+    {
+      "id": "studio_0207",
+      "type": "tap",
+      "lane": 3,
+      "targetTimeMs": 81087
+    },
+    {
+      "id": "studio_0208",
+      "type": "tap",
+      "lane": 2,
+      "targetTimeMs": 81356
+    },
+    {
+      "id": "studio_0209",
+      "type": "hold",
+      "lane": 1,
+      "targetTimeMs": 81591,
+      "endTimeMs": 82813
+    }
+  ]
+}

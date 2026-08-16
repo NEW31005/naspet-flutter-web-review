@@ -1,0 +1,164 @@
+{
+  "motionContractVersion": 2,
+  "baseAnimation": "eat_side_three_bites",
+  "foodStages": [
+    {
+      "stage": 0,
+      "timing": "before_first_bite"
+    },
+    {
+      "stage": 1,
+      "timing": "after_first_bite"
+    },
+    {
+      "stage": 2,
+      "timing": "after_second_bite"
+    },
+    {
+      "stage": 3,
+      "timing": "after_third_bite"
+    }
+  ],
+  "foodAssets": {
+    "food_mix": {
+      "id": "food_mix",
+      "category": "food",
+      "baseAnimation": "eat_side_three_bites",
+      "stages": {
+        "0": "/assets/pets/common/foods/food_mix_0.png",
+        "1": "/assets/pets/common/foods/food_mix_1.png",
+        "2": "/assets/pets/common/foods/food_mix_2.png",
+        "3": "/assets/pets/common/foods/food_mix_3.png"
+      },
+      "evolutionTags": {
+        "balance": 2,
+        "affectionate": 1
+      },
+      "statusEffects": {
+        "hunger": 35,
+        "mood": 4,
+        "bondExp": 1
+      }
+    },
+    "food_fish": {
+      "id": "food_fish",
+      "category": "food",
+      "baseAnimation": "eat_side_three_bites",
+      "stages": {
+        "0": "/assets/pets/common/foods/food_fish_0.png",
+        "1": "/assets/pets/common/foods/food_fish_1.png",
+        "2": "/assets/pets/common/foods/food_fish_2.png",
+        "3": "/assets/pets/common/foods/food_fish_3.png"
+      },
+      "evolutionTags": {
+        "fish": 3,
+        "agile": 1
+      },
+      "statusEffects": {
+        "hunger": 35,
+        "mood": 5,
+        "bondExp": 1
+      }
+    },
+    "food_meat": {
+      "id": "food_meat",
+      "category": "food",
+      "baseAnimation": "eat_side_three_bites",
+      "stages": {
+        "0": "/assets/pets/common/foods/food_meat_0.png",
+        "1": "/assets/pets/common/foods/food_meat_1.png",
+        "2": "/assets/pets/common/foods/food_meat_2.png",
+        "3": "/assets/pets/common/foods/food_meat_3.png"
+      },
+      "evolutionTags": {
+        "power": 3,
+        "wild": 1
+      },
+      "statusEffects": {
+        "hunger": 40,
+        "mood": 3,
+        "bondExp": 1
+      }
+    },
+    "food_veggie": {
+      "id": "food_veggie",
+      "category": "food",
+      "baseAnimation": "eat_side_three_bites",
+      "stages": {
+        "0": "/assets/pets/common/foods/food_veggie_0.png",
+        "1": "/assets/pets/common/foods/food_veggie_1.png",
+        "2": "/assets/pets/common/foods/food_veggie_2.png",
+        "3": "/assets/pets/common/foods/food_veggie_3.png"
+      },
+      "evolutionTags": {
+        "calm": 2,
+        "balance": 2
+      },
+      "statusEffects": {
+        "hunger": 30,
+        "mood": 4,
+        "bondExp": 1
+      }
+    },
+    "snack_chocolate": {
+      "id": "snack_chocolate",
+      "category": "snack",
+      "baseAnimation": "eat_side_three_bites",
+      "stages": {
+        "0": "/assets/pets/common/foods/snack_chocolate_0.png",
+        "1": "/assets/pets/common/foods/snack_chocolate_1.png",
+        "2": "/assets/pets/common/foods/snack_chocolate_2.png",
+        "3": "/assets/pets/common/foods/snack_chocolate_3.png"
+      },
+      "evolutionTags": {
+        "sweet": 3,
+        "affectionate": 1
+      },
+      "statusEffects": {
+        "hunger": 5,
+        "mood": 10,
+        "bondExp": 1
+      }
+    },
+    "snack_candy": {
+      "id": "snack_candy",
+      "category": "snack",
+      "baseAnimation": "eat_side_three_bites",
+      "stages": {
+        "0": "/assets/pets/common/foods/snack_candy_0.png",
+        "1": "/assets/pets/common/foods/snack_candy_1.png",
+        "2": "/assets/pets/common/foods/snack_candy_2.png",
+        "3": "/assets/pets/common/foods/snack_candy_3.png"
+      },
+      "evolutionTags": {
+        "magical": 3,
+        "playful": 1
+      },
+      "statusEffects": {
+        "hunger": 3,
+        "mood": 12,
+        "bondExp": 1
+      }
+    },
+    "snack_biscuit": {
+      "id": "snack_biscuit",
+      "category": "snack",
+      "baseAnimation": "eat_side_three_bites",
+      "stages": {
+        "0": "/assets/pets/common/foods/snack_biscuit_0.png",
+        "1": "/assets/pets/common/foods/snack_biscuit_1.png",
+        "2": "/assets/pets/common/foods/snack_biscuit_2.png",
+        "3": "/assets/pets/common/foods/snack_biscuit_3.png"
+      },
+      "evolutionTags": {
+        "balance": 2,
+        "calm": 1
+      },
+      "statusEffects": {
+        "hunger": 8,
+        "mood": 7,
+        "bondExp": 2
+      }
+    }
+  }
+}

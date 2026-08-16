@@ -1,0 +1,131 @@
+{
+  "contract": "naspet-home-talk-v1",
+  "schemaVersion": 1,
+  "generatedAt": "2026-08-16",
+  "totalEntries": 9000,
+  "speciesCount": 9,
+  "loadingStrategy": "Load manifest once, then lazy-load only the current species JSON.",
+  "appSpeciesIds": [
+    "chibiru",
+    "mimiru",
+    "hamuru",
+    "rugaru",
+    "kokoru",
+    "mimiria",
+    "hamuria",
+    "rugaria",
+    "kokoria"
+  ],
+  "sourceToAppSpeciesId": {
+    "chibiru": "chibiru",
+    "mimiru": "mimiru",
+    "hamuru": "hamuru",
+    "rugaru": "rugaru",
+    "kokoru": "kokoru",
+    "mimilia": "mimiria",
+    "hamuria": "hamuria",
+    "rugaria": "rugaria",
+    "kokoria": "kokoria"
+  },
+  "species": [
+    {
+      "speciesId": "chibiru",
+      "sourceSpeciesId": "chibiru",
+      "speciesLabel": "チビル",
+      "growthStage": "chibi",
+      "entries": 1000,
+      "asset": "assets/home_talk/v1/chibiru.json",
+      "bytes": 2045725,
+      "sha256": "be117934306cd80112d6f94bc460145dd1969dcd35c20a0e5a6dd24284f65d63",
+      "sourceWorkbookSha256": "852e9a45d395d473e2c2f564d3e43f37ad5ce99700c2c2233a6901be506d2317"
+    },
+    {
+      "speciesId": "mimiru",
+      "sourceSpeciesId": "mimiru",
+      "speciesLabel": "ミミル",
+      "growthStage": "juvenile",
+      "entries": 1000,
+      "asset": "assets/home_talk/v1/mimiru.json",
+      "bytes": 2445052,
+      "sha256": "942edfe4651638930a65b34b636e2a0699ecfb161360af9ee94ee17d99793773",
+      "sourceWorkbookSha256": "7c6d7327f561237094a265be67bab1568fb0ded897f10a48d5d138704aecabcf"
+    },
+    {
+      "speciesId": "hamuru",
+      "sourceSpeciesId": "hamuru",
+      "speciesLabel": "ハムル",
+      "growthStage": "juvenile",
+      "entries": 1000,
+      "asset": "assets/home_talk/v1/hamuru.json",
+      "bytes": 2209406,
+      "sha256": "caa18019e9cca2fecadf4375d7995bd8236e23a45c7faad8faaa3f7dd4c36982",
+      "sourceWorkbookSha256": "03fa2fc328bbae4a80b373ff0ce49ec48f0127e303e1a38ec09d6765818b0c78"
+    },
+    {
+      "speciesId": "rugaru",
+      "sourceSpeciesId": "rugaru",
+      "speciesLabel": "ルガル",
+      "growthStage": "juvenile",
+      "entries": 1000,
+      "asset": "assets/home_talk/v1/rugaru.json",
+      "bytes": 2156862,
+      "sha256": "eb41605d698cc636e1fc418b3ba267de12d1395bd03b9652484964ecb0c325ae",
+      "sourceWorkbookSha256": "f4e66c0b39ebe45bc1681953027387f9ab13bd0cb3b3daedcdd5b7e301d27bfa"
+    },
+    {
+      "speciesId": "kokoru",
+      "sourceSpeciesId": "kokoru",
+      "speciesLabel": "ココル",
+      "growthStage": "juvenile",
+      "entries": 1000,
+      "asset": "assets/home_talk/v1/kokoru.json",
+      "bytes": 2146875,
+      "sha256": "030da5104e7ac424db438d0a47a62a121d0818db123c08e13f9b20d029cb06cc",
+      "sourceWorkbookSha256": "c4f02013b64677013f78cf150f5e36e111f014cfd6f200a6cc51133b7ba623b8"
+    },
+    {
+      "speciesId": "mimiria",
+      "sourceSpeciesId": "mimilia",
+      "speciesLabel": "ミミリア",
+      "growthStage": "adult",
+      "entries": 1000,
+      "asset": "assets/home_talk/v1/mimiria.json",
+      "bytes": 2161242,
+      "sha256": "9067399adbacb4967f4db0a09ce988546d13f7de6305c5a7a43125d500a0580e",
+      "sourceWorkbookSha256": "d218938778465dfd84b977460506947a91353bb655f0ed77e913dfbb76bc0471"
+    },
+    {
+      "speciesId": "hamuria",
+      "sourceSpeciesId": "hamuria",
+      "speciesLabel": "ハムリア",
+      "growthStage": "adult",
+      "entries": 1000,
+      "asset": "assets/home_talk/v1/hamuria.json",
+      "bytes": 2129412,
+      "sha256": "f6b814b3d82a34543966b75fb4dc7e534bf39f9bf72070091f389fdc6eddd736",
+      "sourceWorkbookSha256": "f936c54e4332e3d0aac844ae4bc05be630c55c2b8b032643bcd32a1f29dc40f5"
+    },
+    {
+      "speciesId": "rugaria",
+      "sourceSpeciesId": "rugaria",
+      "speciesLabel": "ルガリア",
+      "growthStage": "adult",
+      "entries": 1000,
+      "asset": "assets/home_talk/v1/rugaria.json",
+      "bytes": 2220856,
+      "sha256": "6313b9f600513fc74483d7b70fa6f04d1c437b88cda2e9186a19afa910806e27",
+      "sourceWorkbookSha256": "917c3ba6236a9a2e8844c99681b66449850a8e9038f925b2c547ab4d4a0fe3d3"
+    },
+    {
+      "speciesId": "kokoria",
+      "sourceSpeciesId": "kokoria",
+      "speciesLabel": "ココリア",
+      "growthStage": "adult",
+      "entries": 1000,
+      "asset": "assets/home_talk/v1/kokoria.json",
+      "bytes": 2109482,
+      "sha256": "f8d157e0e7d7c4d85cf65f4a69be45a791f29bf28035a3d2c6434bc92379a185",
+      "sourceWorkbookSha256": "4751b1b76839981c22957bf1257955d3248dd7cbb98a6448cdc89d97115c84f3"
+    }
+  ]
+}

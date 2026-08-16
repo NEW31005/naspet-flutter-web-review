@@ -1,0 +1,102 @@
+{
+  "speciesId": "rugaria",
+  "sourceDraft": "adult_runtime_20260713/rugaria",
+  "motions": {
+    "idle_blink": {
+      "frameCount": 24,
+      "durationMs": 150,
+      "loop": true,
+      "inputState": "idle_blink_source"
+    },
+    "life_lie_relax": {
+      "frameCount": 8,
+      "durationMs": 190,
+      "loop": true,
+      "inputState": "life_lie_relax"
+    },
+    "wake_up_greet": {
+      "frameCount": 8,
+      "durationMs": 150,
+      "loop": false,
+      "inputState": "wake_up_greet"
+    },
+    "hungry_wait": {
+      "frameCount": 6,
+      "durationMs": 190,
+      "loop": true,
+      "inputState": "hungry_wait"
+    },
+    "mood_low_wait": {
+      "frameCount": 6,
+      "durationMs": 210,
+      "loop": true,
+      "inputState": "mood_low_wait"
+    },
+    "mood_high_love": {
+      "frameCount": 6,
+      "durationMs": 170,
+      "loop": true,
+      "inputState": "mood_high_love"
+    },
+    "eat_side_three_bites": {
+      "frameCount": 8,
+      "durationMs": 120,
+      "loop": false,
+      "inputState": "eat_side_three_bites"
+    },
+    "petting": {
+      "frameCount": 6,
+      "durationMs": 140,
+      "loop": false,
+      "inputState": "petting"
+    },
+    "react_happy": {
+      "frameCount": 6,
+      "durationMs": 125,
+      "loop": false,
+      "inputState": "react_happy"
+    },
+    "react_dislike": {
+      "frameCount": 8,
+      "durationMs": 130,
+      "loop": false,
+      "inputState": "react_dislike"
+    },
+    "react_angry_cute": {
+      "frameCount": 8,
+      "durationMs": 120,
+      "loop": false,
+      "inputState": "react_angry_cute"
+    },
+    "react_sleepy": {
+      "frameCount": 8,
+      "durationMs": 150,
+      "loop": false,
+      "inputState": "react_sleepy"
+    },
+    "hoi_look_up": {
+      "frameCount": 1,
+      "durationMs": 240,
+      "loop": false,
+      "inputState": "hoi_look_up"
+    },
+    "hoi_look_down": {
+      "frameCount": 1,
+      "durationMs": 240,
+      "loop": false,
+      "inputState": "hoi_look_down"
+    },
+    "hoi_look_left": {
+      "frameCount": 1,
+      "durationMs": 240,
+      "loop": false,
+      "inputState": "hoi_look_left"
+    },
+    "hoi_look_right": {
+      "frameCount": 1,
+      "durationMs": 240,
+      "loop": false,
+      "inputState": "hoi_look_right"
+    }
+  }
+}

@@ -1,0 +1,719 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="index,follow" />
+    <title>Naspet（ナスペット）｜シフト管理×育成ペットの無料アプリ</title>
+    <meta
+      name="description"
+      content="Naspet（ナスペット）は、看護師・シフト勤務の方のためのシフト管理アプリ。相棒のナスペットがお世話・冒険・シフト共有で毎日にそっと寄り添います。"
+    />
+    <meta property="og:title" content="Naspet（ナスペット）" />
+    <meta
+      property="og:description"
+      content="シフト管理と育成ペットをひとつに。あなたのシフトに寄り添う相棒。"
+    />
+    <meta
+      property="og:image"
+      content="https://new31005.github.io/naspet/home/img/hero_bg.webp"
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="../favicon.png" />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #4a3428;
+        --ink-soft: #7a6355;
+        --pink: #ef4aa8;
+        --pink-deep: #c92b79;
+        --pink-pale: #ffeaf3;
+        --lavender: #b9a5e8;
+        --lavender-pale: #f3eefc;
+        --cream: #fffaf5;
+        --card: #ffffff;
+        --line: #f2ddd0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN",
+          "Noto Sans JP", "Yu Gothic", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(28rem 28rem at 110% -5%, #fde7f1 0%, transparent 60%),
+          radial-gradient(24rem 24rem at -10% 30%, #f2ecfd 0%, transparent 55%),
+          var(--cream);
+        line-height: 1.75;
+        overflow-x: hidden;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+      }
+      a {
+        color: var(--pink-deep);
+      }
+      .wrap {
+        max-width: 68rem;
+        margin: 0 auto;
+        padding: 0 1.25rem;
+      }
+
+      /* header */
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        backdrop-filter: blur(10px);
+        background: rgba(255, 250, 245, 0.85);
+        border-bottom: 1px solid var(--line);
+      }
+      .nav {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.6rem 1.25rem;
+        max-width: 68rem;
+        margin: 0 auto;
+      }
+      .nav .brand img {
+        height: 2.4rem;
+        width: auto;
+        display: block;
+      }
+      .nav nav {
+        margin-left: auto;
+        display: flex;
+        gap: 1.1rem;
+        font-size: 0.92rem;
+        font-weight: 700;
+      }
+      .nav nav a {
+        color: var(--ink-soft);
+        text-decoration: none;
+      }
+      .nav nav a:hover {
+        color: var(--pink-deep);
+      }
+      @media (max-width: 40rem) {
+        .nav nav {
+          gap: 0.75rem;
+          font-size: 0.8rem;
+        }
+      }
+
+      /* hero */
+      .hero {
+        display: grid;
+        grid-template-columns: 1.15fr 0.85fr;
+        gap: 2.5rem;
+        align-items: center;
+        padding: 3.5rem 0 3rem;
+      }
+      @media (max-width: 48rem) {
+        .hero {
+          grid-template-columns: 1fr;
+          padding-top: 2.2rem;
+          text-align: center;
+        }
+      }
+      .tagline {
+        display: inline-block;
+        background: var(--pink-pale);
+        color: var(--pink-deep);
+        border-radius: 999px;
+        padding: 0.35rem 1.1rem;
+        font-weight: 800;
+        font-size: 0.9rem;
+        letter-spacing: 0.04em;
+      }
+      .hero h1 {
+        font-size: clamp(1.7rem, 4.6vw, 2.7rem);
+        line-height: 1.35;
+        margin: 0.9rem 0 0.6rem;
+        letter-spacing: 0.02em;
+      }
+      .hero h1 .accent {
+        color: var(--pink);
+      }
+      .hero .lead {
+        color: var(--ink-soft);
+        font-size: 1.02rem;
+        margin: 0 0 1.4rem;
+      }
+      .store-buttons {
+        display: flex;
+        gap: 0.8rem;
+        flex-wrap: wrap;
+      }
+      @media (max-width: 48rem) {
+        .store-buttons {
+          justify-content: center;
+        }
+      }
+      .store-button {
+        display: inline-flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.05rem;
+        border-radius: 0.9rem;
+        padding: 0.55rem 1.3rem;
+        background: var(--ink);
+        color: #fff;
+        text-decoration: none;
+        line-height: 1.3;
+        min-width: 11.5rem;
+      }
+      .store-button small {
+        font-size: 0.68rem;
+        opacity: 0.85;
+      }
+      .store-button strong {
+        font-size: 1.02rem;
+        letter-spacing: 0.02em;
+      }
+      .store-button.is-soon {
+        background: #b7a89e;
+        cursor: default;
+      }
+      .store-note {
+        font-size: 0.8rem;
+        color: var(--ink-soft);
+        margin-top: 0.6rem;
+      }
+
+      .hero-visual {
+        position: relative;
+        display: grid;
+        place-items: center;
+      }
+      .phone {
+        width: min(17rem, 78vw);
+        border-radius: 2.4rem;
+        border: 10px solid #4a3428;
+        box-shadow:
+          0 24px 48px rgba(74, 52, 40, 0.28),
+          0 4px 12px rgba(74, 52, 40, 0.16);
+        overflow: hidden;
+        background: #fff;
+        transform: rotate(2.5deg);
+      }
+      .phone img {
+        display: block;
+        width: 100%;
+      }
+      .float-icon {
+        position: absolute;
+        width: 4.6rem;
+        border-radius: 50%;
+        box-shadow: 0 10px 22px rgba(201, 43, 121, 0.25);
+        animation: bob 4.2s ease-in-out infinite;
+      }
+      .float-icon.one {
+        top: 4%;
+        left: 4%;
+        animation-delay: 0s;
+      }
+      .float-icon.two {
+        bottom: 10%;
+        left: 0;
+        width: 3.9rem;
+        animation-delay: 1.2s;
+      }
+      .float-icon.three {
+        top: 14%;
+        right: 2%;
+        width: 4.2rem;
+        animation-delay: 2.1s;
+      }
+      @keyframes bob {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-9px);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .float-icon {
+          animation: none;
+        }
+      }
+
+      /* sections */
+      section {
+        padding: 3.2rem 0;
+      }
+      .section-title {
+        text-align: center;
+        margin: 0 0 0.4rem;
+        font-size: clamp(1.35rem, 3.4vw, 1.9rem);
+      }
+      .section-sub {
+        text-align: center;
+        color: var(--ink-soft);
+        margin: 0 auto 2rem;
+        max-width: 36rem;
+        font-size: 0.95rem;
+      }
+      .paw {
+        color: var(--pink);
+      }
+
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(14.5rem, 1fr));
+        gap: 1.1rem;
+      }
+      .feature {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 1.4rem;
+        padding: 1.5rem 1.4rem 1.3rem;
+        box-shadow: 0 8px 22px rgba(74, 52, 40, 0.06);
+      }
+      .feature .emoji {
+        display: inline-grid;
+        place-items: center;
+        width: 3rem;
+        height: 3rem;
+        font-size: 1.5rem;
+        border-radius: 1rem;
+        background: var(--pink-pale);
+        margin-bottom: 0.7rem;
+      }
+      .feature:nth-child(even) .emoji {
+        background: var(--lavender-pale);
+      }
+      .feature h3 {
+        margin: 0 0 0.4rem;
+        font-size: 1.08rem;
+      }
+      .feature p {
+        margin: 0;
+        color: var(--ink-soft);
+        font-size: 0.92rem;
+      }
+
+      /* pets */
+      .pets-band {
+        background: linear-gradient(180deg, #fff3f9 0%, #f7f2ff 100%);
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+      .pets {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(7.2rem, 1fr));
+        gap: 1.2rem 0.8rem;
+        justify-items: center;
+        max-width: 56rem;
+        margin: 0 auto;
+      }
+      .pet {
+        text-align: center;
+        font-size: 0.85rem;
+        font-weight: 700;
+      }
+      .pet img {
+        display: block;
+        margin: 0 auto 0.45rem;
+        width: 6.2rem;
+        border-radius: 50%;
+        box-shadow: 0 8px 18px rgba(201, 43, 121, 0.16);
+        transition: transform 0.25s ease;
+      }
+      .pet:hover img {
+        transform: translateY(-6px) scale(1.04);
+      }
+      .pet .stage {
+        display: block;
+        font-size: 0.7rem;
+        color: var(--ink-soft);
+        font-weight: 600;
+      }
+
+      /* adventure slots (gpt-image-2) */
+      .adventures {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+        gap: 1.1rem;
+      }
+      .adventure {
+        position: relative;
+        border-radius: 1.4rem;
+        overflow: hidden;
+        min-height: 12.5rem;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+        border: 1px solid var(--line);
+        background-size: cover;
+        background-position: center;
+      }
+      .adventure h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        letter-spacing: 0.06em;
+      }
+      .adventure .label {
+        position: absolute;
+        left: 0.9rem;
+        bottom: 0.7rem;
+        font-size: 0.75rem;
+        opacity: 0.9;
+      }
+      /* CSS-only fallbacks until generated art (gpt-image-2) is dropped in */
+      .adventure[data-slot="crystal_forest"] {
+        background-image: linear-gradient(160deg, #2e7d5b 0%, #79d0a4 60%, #d7f5e0 100%);
+      }
+      .adventure[data-slot="moon_sand_beach"] {
+        background-image: linear-gradient(160deg, #2c3a75 0%, #7f8fd0 55%, #f5e9c8 100%);
+      }
+      .adventure[data-slot="royal_key_castle"] {
+        background-image: linear-gradient(160deg, #5d4a86 0%, #9c8ac4 55%, #f0e6f9 100%);
+      }
+
+      /* screenshots */
+      .shots {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+        gap: 1.1rem;
+        max-width: 48rem;
+        margin: 0 auto;
+      }
+      .shot {
+        aspect-ratio: 9 / 19;
+        border-radius: 1.6rem;
+        border: 6px solid #e8d7cb;
+        background:
+          repeating-linear-gradient(
+            45deg,
+            #fdf3f8 0 14px,
+            #faeaf3 14px 28px
+          );
+        display: grid;
+        place-items: center;
+        color: var(--ink-soft);
+        font-size: 0.85rem;
+        font-weight: 700;
+        text-align: center;
+        padding: 0.6rem;
+      }
+
+      /* faq */
+      .faq {
+        max-width: 44rem;
+        margin: 0 auto;
+        display: grid;
+        gap: 0.7rem;
+      }
+      details {
+        background: var(--card);
+        border: 1px solid var(--line);
+        border-radius: 1.1rem;
+        padding: 0.9rem 1.2rem;
+      }
+      summary {
+        cursor: pointer;
+        font-weight: 800;
+        color: var(--ink);
+      }
+      details p {
+        margin: 0.6rem 0 0.2rem;
+        color: var(--ink-soft);
+        font-size: 0.93rem;
+      }
+
+      /* footer */
+      footer {
+        background: #4a3428;
+        color: #f5e9e0;
+        padding: 2.4rem 0 2rem;
+        margin-top: 2rem;
+      }
+      footer .wrap {
+        display: grid;
+        gap: 1rem;
+      }
+      footer img {
+        height: 2.2rem;
+        width: auto;
+        filter: brightness(0) invert(1);
+        opacity: 0.9;
+      }
+      .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem 1.4rem;
+        font-size: 0.88rem;
+      }
+      .footer-links a {
+        color: #ffd7ea;
+        text-decoration: none;
+      }
+      .footer-links a:hover {
+        text-decoration: underline;
+      }
+      .copyright {
+        font-size: 0.78rem;
+        opacity: 0.75;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="nav">
+        <a class="brand" href="#top" aria-label="Naspet ホーム">
+          <img src="img/naspet_logo.webp" alt="Naspet（ナスペット）" />
+        </a>
+        <nav aria-label="ページ内リンク">
+          <a href="#features">とくちょう</a>
+          <a href="#pets">ナスペットたち</a>
+          <a href="#faq">よくあるしつもん</a>
+          <a href="../support/">サポート</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <div class="wrap">
+        <div class="hero">
+          <div>
+            <span class="tagline">〜あなたのシフトに寄り添う相棒〜</span>
+            <h1>
+              シフト管理と、<br />
+              <span class="accent">育成ペット</span>をひとつに。
+            </h1>
+            <p class="lead">
+              Naspet（ナスペット）は、看護師・シフト勤務の方のための無料スケジュールアプリ。
+              勤務を登録して毎日を整えるほど、相棒のナスペットが育ち、話し、冒険に出かけます。
+            </p>
+            <div class="store-buttons">
+              <span class="store-button is-soon" aria-disabled="true">
+                <small>App Store</small>
+                <strong>近日公開</strong>
+              </span>
+              <span class="store-button is-soon" aria-disabled="true">
+                <small>Google Play</small>
+                <strong>近日公開</strong>
+              </span>
+            </div>
+            <p class="store-note">
+              iOS / Android 版を準備中です。公開までもうしばらくお待ちください。
+            </p>
+          </div>
+          <div class="hero-visual">
+            <img
+              class="float-icon one"
+              src="img/pet_chibiru.webp"
+              alt=""
+              aria-hidden="true"
+            />
+            <img
+              class="float-icon two"
+              src="img/pet_mimiru.webp"
+              alt=""
+              aria-hidden="true"
+            />
+            <img
+              class="float-icon three"
+              src="img/pet_hamuru.webp"
+              alt=""
+              aria-hidden="true"
+            />
+            <div class="phone">
+              <img
+                src="img/hero_bg.webp"
+                alt="Naspetアプリのキービジュアル。部屋の中でナスペットが手を振っている"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section id="features">
+        <div class="wrap">
+          <h2 class="section-title"><span class="paw">🐾</span> Naspetのとくちょう</h2>
+          <p class="section-sub">
+            忙しい毎日でも、ぱっと登録・ぱっと確認。がんばるあなたのそばに、いつも相棒がいます。
+          </p>
+          <div class="features">
+            <div class="feature">
+              <span class="emoji">🗓️</span>
+              <h3>シフト登録がかんたん</h3>
+              <p>
+                日勤・夜勤・明け・休みなど、看護師の勤務に合わせたスタンプですぐ登録。月・週カレンダーと今日ナビで予定がひと目でわかります。
+              </p>
+            </div>
+            <div class="feature">
+              <span class="emoji">💗</span>
+              <h3>相棒のナスペットが育つ</h3>
+              <p>
+                ごはん・なでなで・あそびでお世話。たまごから生まれたチビルが、あなたとの毎日でどの子に進化するかはお楽しみ。
+              </p>
+            </div>
+            <div class="feature">
+              <span class="emoji">👥</span>
+              <h3>シフトをみんなで共有</h3>
+              <p>
+                グループを作って仲間とシフトを共有。予定合わせがカンタンになり、共有ファームでいっしょにアイテムも育てられます。
+              </p>
+            </div>
+            <div class="feature">
+              <span class="emoji">🧭</span>
+              <h3>冒険とファーム</h3>
+              <p>
+                ナスペットは冒険からおみやげを持ち帰ります。個人ファームで素材を育てて、コレクションを集めましょう。
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="pets" class="pets-band">
+        <div class="wrap">
+          <h2 class="section-title"><span class="paw">🐾</span> ナスペットたち</h2>
+          <p class="section-sub">
+            お世話のしかたで性格が変わり、進化先も変わります。あなたの相棒はどの子になるかな？
+          </p>
+          <div class="pets">
+            <div class="pet">
+              <img src="img/pet_chibiru.webp" alt="チビル" loading="lazy" />
+              チビル<span class="stage">ちび体</span>
+            </div>
+            <div class="pet">
+              <img src="img/pet_mimiru.webp" alt="ミミル" loading="lazy" />
+              ミミル<span class="stage">幼体</span>
+            </div>
+            <div class="pet">
+              <img src="img/pet_kokoru.webp" alt="ココル" loading="lazy" />
+              ココル<span class="stage">幼体</span>
+            </div>
+            <div class="pet">
+              <img src="img/pet_hamuru.webp" alt="ハムル" loading="lazy" />
+              ハムル<span class="stage">幼体</span>
+            </div>
+            <div class="pet">
+              <img src="img/pet_rugaru.webp" alt="ルガル" loading="lazy" />
+              ルガル<span class="stage">幼体</span>
+            </div>
+            <div class="pet">
+              <img src="img/pet_mimiria.webp" alt="ミミリア" loading="lazy" />
+              ミミリア<span class="stage">成体</span>
+            </div>
+            <div class="pet">
+              <img src="img/pet_kokoria.webp" alt="ココリア" loading="lazy" />
+              ココリア<span class="stage">成体</span>
+            </div>
+            <div class="pet">
+              <img src="img/pet_hamuria.webp" alt="ハムリア" loading="lazy" />
+              ハムリア<span class="stage">成体</span>
+            </div>
+            <div class="pet">
+              <img src="img/pet_rugaria.webp" alt="ルガリア" loading="lazy" />
+              ルガリア<span class="stage">成体</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="adventure">
+        <div class="wrap">
+          <h2 class="section-title"><span class="paw">🐾</span> 冒険の舞台</h2>
+          <p class="section-sub">
+            ナスペットが向かう3つの目的地。それぞれの土地でしか見つからないおみやげがあります。
+          </p>
+          <div class="adventures">
+            <!-- 背景画像はgpt-image-2生成予定: img/adventure_crystal_forest.webp -->
+            <div class="adventure" data-slot="crystal_forest">
+              <h3>翠晶の樹海</h3>
+              <span class="label">みずみずしい結晶の森</span>
+            </div>
+            <!-- 背景画像はgpt-image-2生成予定: img/adventure_moon_sand_beach.webp -->
+            <div class="adventure" data-slot="moon_sand_beach">
+              <h3>月砂の浜辺</h3>
+              <span class="label">月光がとける静かな砂浜</span>
+            </div>
+            <!-- 背景画像はgpt-image-2生成予定: img/adventure_royal_key_castle.webp -->
+            <div class="adventure" data-slot="royal_key_castle">
+              <h3>王鍵の古城</h3>
+              <span class="label">時を刻む歯車の古城</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="shots">
+        <div class="wrap">
+          <h2 class="section-title"><span class="paw">🐾</span> アプリ画面</h2>
+          <p class="section-sub">実際の画面スクリーンショットを準備中です。</p>
+          <div class="shots">
+            <div class="shot" data-slot="screenshot_calendar">
+              月カレンダー<br />（準備中）
+            </div>
+            <div class="shot" data-slot="screenshot_pet">
+              ペットのお部屋<br />（準備中）
+            </div>
+            <div class="shot" data-slot="screenshot_share">
+              シフト共有<br />（準備中）
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq">
+        <div class="wrap">
+          <h2 class="section-title"><span class="paw">🐾</span> よくあるしつもん</h2>
+          <div class="faq">
+            <details>
+              <summary>無料で使えますか？</summary>
+              <p>
+                はい。シフト管理・ペット育成・シフト共有などの基本機能は無料でお使いいただけます。もっと楽しみたい方向けに、月額プラン（Plus / Pro）と個人ファームの拡張を用意しています。
+              </p>
+            </details>
+            <details>
+              <summary>だれでも使えますか？</summary>
+              <p>
+                看護師さんをはじめ、シフト勤務・交代勤務の方に合わせて設計していますが、どなたでもお使いいただけます。ご利用には利用規約・年齢条件の確認があります。
+              </p>
+            </details>
+            <details>
+              <summary>データはどう扱われますか？</summary>
+              <p>
+                アカウントのデータは安全に管理し、AIチャットの本文を行動分析に使うことはありません。詳しくは<a href="../privacy/">プライバシーポリシー</a>をご覧ください。アカウントと関連データは<a href="../account-deletion/">削除ページ</a>からいつでも削除できます。
+              </p>
+            </details>
+            <details>
+              <summary>機種変更してもデータは引き継げますか？</summary>
+              <p>
+                はい。アカウントにログインすれば、新しい端末でもペットやシフトのデータをそのまま引き継げます。
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <img src="img/naspet_logo.webp" alt="Naspet" />
+        <div class="footer-links">
+          <a href="../terms/">利用規約</a>
+          <a href="../privacy/">プライバシーポリシー</a>
+          <a href="../support/">サポート・お問い合わせ</a>
+          <a href="../account-deletion/">アカウントとデータの削除</a>
+        </div>
+        <p class="copyright">© 2026 Naspet</p>
+      </div>
+    </footer>
+  </body>
+</html>

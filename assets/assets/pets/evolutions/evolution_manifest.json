@@ -1,0 +1,88 @@
+{
+  "schemaVersion": 2,
+  "routes": {
+    "chibiru_to_hamuru": {
+      "fromSpecies": "chibiru",
+      "targetSpecies": "hamuru",
+      "image": "chibiru_to_hamuru_evolution.webp",
+      "frameCount": 36,
+      "durationMs": 240
+    },
+    "chibiru_to_kokoru": {
+      "fromSpecies": "chibiru",
+      "targetSpecies": "kokoru",
+      "image": "chibiru_to_kokoru_evolution.webp",
+      "frameCount": 36,
+      "durationMs": 240
+    },
+    "chibiru_to_rugaru": {
+      "fromSpecies": "chibiru",
+      "targetSpecies": "rugaru",
+      "image": "chibiru_to_rugaru_evolution.webp",
+      "frameCount": 36,
+      "durationMs": 240
+    },
+    "chibiru_to_mimiru": {
+      "fromSpecies": "chibiru",
+      "targetSpecies": "mimiru",
+      "image": "chibiru_to_mimiru_evolution.webp",
+      "frameCount": 36,
+      "durationMs": 240
+    },
+    "mimiru_to_mimiria": {
+      "fromSpecies": "mimiru",
+      "targetSpecies": "mimiria",
+      "image": "mimiru_to_mimiria_evolution.webp",
+      "frameCount": 36,
+      "durationMs": 240
+    },
+    "kokoru_to_kokoria": {
+      "fromSpecies": "kokoru",
+      "targetSpecies": "kokoria",
+      "image": "kokoru_to_kokoria_evolution.webp",
+      "frameCount": 36,
+      "durationMs": 240
+    },
+    "rugaru_to_rugaria": {
+      "fromSpecies": "rugaru",
+      "targetSpecies": "rugaria",
+      "image": "rugaru_to_rugaria_evolution.webp",
+      "frameCount": 36,
+      "durationMs": 240
+    },
+    "hamuru_to_hamuria": {
+      "fromSpecies": "hamuru",
+      "targetSpecies": "hamuria",
+      "image": "hamuru_to_hamuria_evolution.webp",
+      "frameCount": 36,
+      "durationMs": 240
+    }
+  },
+  "fromSpecies": "chibiru",
+  "targets": {
+    "hamuru": {
+      "image": "chibiru_to_hamuru_evolution.webp",
+      "frameCount": 36,
+      "durationMs": 240,
+      "targetScale": 0.8084
+    },
+    "kokoru": {
+      "image": "chibiru_to_kokoru_evolution.webp",
+      "frameCount": 36,
+      "durationMs": 240,
+      "targetScale": 0.9
+    },
+    "rugaru": {
+      "image": "chibiru_to_rugaru_evolution.webp",
+      "frameCount": 36,
+      "durationMs": 240,
+      "targetScale": 0.9
+    },
+    "mimiru": {
+      "image": "chibiru_to_mimiru_evolution.webp",
+      "frameCount": 36,
+      "durationMs": 240,
+      "targetScale": 0.9
+    }
+  }
+}

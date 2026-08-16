@@ -1,0 +1,86 @@
+{
+  "speciesId": "rugaru",
+  "sourcePreviewCharacter": "rugaru_orthodox_v1",
+  "motions": {
+    "idle_blink": {
+      "frameCount": 24,
+      "durationMs": 115,
+      "sheetPng": "rugaru_orthodox_v1/idle_blink/idle_blink_sheet.png"
+    },
+    "life_lie_relax": {
+      "frameCount": 8,
+      "durationMs": 190,
+      "sheetPng": "rugaru_orthodox_v1/life_lie_relax/life_lie_relax_sheet.png"
+    },
+    "wake_up_greet": {
+      "frameCount": 8,
+      "durationMs": 155,
+      "sheetPng": "rugaru_orthodox_v1/wake_up_greet/wake_up_greet_sheet.png"
+    },
+    "hungry_wait": {
+      "frameCount": 6,
+      "durationMs": 190,
+      "sheetPng": "rugaru_orthodox_v1/hungry_wait/hungry_wait_sheet.png"
+    },
+    "mood_low_wait": {
+      "frameCount": 6,
+      "durationMs": 210,
+      "sheetPng": "rugaru_orthodox_v1/mood_low_wait/mood_low_wait_sheet.png"
+    },
+    "mood_high_love": {
+      "frameCount": 6,
+      "durationMs": 170,
+      "sheetPng": "rugaru_orthodox_v1/mood_high_love/mood_high_love_sheet.png"
+    },
+    "eat_side_three_bites": {
+      "frameCount": 8,
+      "durationMs": 120,
+      "sheetPng": "rugaru_orthodox_v1/eat_side_three_bites/eat_side_three_bites_sheet.png"
+    },
+    "petting": {
+      "frameCount": 6,
+      "durationMs": 140,
+      "sheetPng": "rugaru_orthodox_v1/petting/petting_sheet.png"
+    },
+    "react_happy": {
+      "frameCount": 6,
+      "durationMs": 125,
+      "sheetPng": "rugaru_orthodox_v1/react_happy/react_happy_sheet.png"
+    },
+    "react_dislike": {
+      "frameCount": 8,
+      "durationMs": 130,
+      "sheetPng": "rugaru_orthodox_v1/react_dislike/react_dislike_sheet.png"
+    },
+    "react_angry_cute": {
+      "frameCount": 8,
+      "durationMs": 120,
+      "sheetPng": "rugaru_orthodox_v1/react_angry_cute/react_angry_cute_sheet.png"
+    },
+    "react_sleepy": {
+      "frameCount": 8,
+      "durationMs": 150,
+      "sheetPng": "rugaru_orthodox_v1/react_sleepy/react_sleepy_sheet.png"
+    },
+    "hoi_look_up": {
+      "frameCount": 1,
+      "durationMs": 240,
+      "sheetPng": "rugaru_orthodox_v1/hoi_look_up/hoi_look_up_sheet.png"
+    },
+    "hoi_look_down": {
+      "frameCount": 1,
+      "durationMs": 240,
+      "sheetPng": "rugaru_orthodox_v1/hoi_look_down/hoi_look_down_sheet.png"
+    },
+    "hoi_look_left": {
+      "frameCount": 1,
+      "durationMs": 240,
+      "sheetPng": "rugaru_orthodox_v1/hoi_look_left/hoi_look_left_sheet.png"
+    },
+    "hoi_look_right": {
+      "frameCount": 1,
+      "durationMs": 240,
+      "sheetPng": "rugaru_orthodox_v1/hoi_look_right/hoi_look_right_sheet.png"
+    }
+  }
+}

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="/naspet-flutter-web-review/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="シフト管理とペット育成をひとつにした、シフト勤務者のためのナスペットです。">
+  <meta name="author" content="SATONOKO STUDIO">
+  <meta name="application-name" content="ナスペット">
+  <meta name="naspet-build-id" content="dc14f2e1d9d2e1bd2f7537791191e8cf3494b700">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="ナスペット">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>ナスペット</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <script>
+    (function prepareNaspetPreview() {
+      const buildId =
+        document.querySelector('meta[name="naspet-build-id"]')?.content ?? '';
+      const hasStampedBuildId = /^[0-9a-f]{7,64}$/.test(buildId);
+      const baseUrl = new URL(document.baseURI);
+      const buildManifestUrl = new URL('naspet-build.json', baseUrl);
+      const hasDedicatedBasePath = baseUrl.pathname !== '/';
+
+      function isNaspetUrl(url) {
+        return (
+          hasDedicatedBasePath &&
+          new URL(url, baseUrl).pathname.startsWith(baseUrl.pathname)
+        );
+      }
+
+      async function cleanLegacyNaspetCache() {
+        const controller =
+          'serviceWorker' in navigator ? navigator.serviceWorker.controller : null;
+        const controllerScriptPath = new URL(
+          controller?.scriptURL ?? '',
+          baseUrl
+        ).pathname;
+        const hadLegacyController = Boolean(
+          controller &&
+          isNaspetUrl(controller.scriptURL) &&
+          !controllerScriptPath.endsWith('/naspet-social-chat-push-sw.js')
+        );
+
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          const naspetRegistrations = registrations.filter((registration) => {
+            const worker =
+              registration.active ?? registration.waiting ?? registration.installing;
+            const scriptPath = new URL(worker?.scriptURL ?? '', baseUrl).pathname;
+            return (
+              isNaspetUrl(registration.scope) &&
+              !scriptPath.endsWith('/naspet-social-chat-push-sw.js')
+            );
+          });
+          await Promise.all(
+            naspetRegistrations.map((registration) => registration.unregister())
+          );
+        }
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(async (key) => {
+            const cache = await caches.open(key);
+            const requests = await cache.keys();
+            const naspetRequests = requests.filter((request) =>
+              isNaspetUrl(request.url)
+            );
+            await Promise.all(
+              naspetRequests.map((request) => cache.delete(request))
+            );
+          }));
+        }
+
+        return hadLegacyController;
+      }
+
+      function startFlutter() {
+        const script = document.createElement('script');
+        const version = hasStampedBuildId ? buildId : Date.now().toString();
+        script.src = `flutter_bootstrap.js?v=${encodeURIComponent(version)}`;
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      async function refreshWhenBuildChanges() {
+        if (!hasStampedBuildId || document.visibilityState === 'hidden') return;
+        try {
+          const requestUrl = new URL(buildManifestUrl);
+          requestUrl.searchParams.set('check', Date.now().toString());
+          const response = await fetch(requestUrl, { cache: 'no-store' });
+          if (!response.ok) return;
+          const manifest = await response.json();
+          const latestBuildId =
+            typeof manifest.buildId === 'string' ? manifest.buildId : '';
+          if (
+            /^[0-9a-f]{7,64}$/.test(latestBuildId) &&
+            latestBuildId !== buildId
+          ) {
+            const nextUrl = new URL(window.location.href);
+            nextUrl.searchParams.set('v', latestBuildId);
+            nextUrl.searchParams.set('naspet_cache_reset', latestBuildId);
+            window.location.replace(nextUrl);
+          }
+        } catch (error) {
+          console.warn('Naspet update check skipped.', error);
+        }
+      }
+
+      async function bootNaspet() {
+        let hadController = false;
+        try {
+          hadController = await cleanLegacyNaspetCache();
+        } catch (error) {
+          console.warn('Naspet cache cleanup skipped.', error);
+        }
+
+        const currentUrl = new URL(window.location.href);
+        if (
+          hadController &&
+          hasStampedBuildId &&
+          currentUrl.searchParams.get('naspet_cache_reset') !== buildId
+        ) {
+          currentUrl.searchParams.set('v', buildId);
+          currentUrl.searchParams.set('naspet_cache_reset', buildId);
+          window.location.replace(currentUrl);
+          return;
+        }
+
+        startFlutter();
+        // Check once for a stale entrypoint during the initial boot. Do not
+        // reload an already-running app on pageshow/visibility changes: mobile
+        // browsers emit those events whenever the user switches apps, and a
+        // reload would discard Flutter's current navigation stack.
+        void refreshWhenBuildChanges();
+      }
+
+      // A previous Naspet PWA build may still own this path. Clean only
+      // registrations and cached requests below Naspet's own base URL so that
+      // another app hosted on the same origin is never affected.
+      void bootNaspet();
+    })();
+  </script>
+</body>
+</html>

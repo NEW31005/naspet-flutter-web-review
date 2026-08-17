@@ -828,8 +828,12 @@ async function callModel(modelId, messages){
   const ms = Math.round(performance.now() - t0);
   const data = await res.json();
   if(res.status === 401 && !direct) throw new Error(KEY_HELP);
-  if(!res.ok) throw new Error(`HTTP ${res.status}: ${data?.error?.message || data?.error || JSON.stringify(data).slice(0,200)}`);
-  if(data.error) throw new Error(data.error.message || JSON.stringify(data.error).slice(0,200));
+  const upstreamMsg = data?.error?.message || (typeof data?.error === 'string' ? data.error : '');
+  if(res.status === 429 || /rate.?limit/i.test(String(upstreamMsg))){
+    throw new Error(`いま「${modelId}」が提供元で混み合っています（一時的な制限）。数十秒待ってもう一度送るか、上のドロップダウンで別のモデルに切り替えて試してください。`);
+  }
+  if(!res.ok) throw new Error(`HTTP ${res.status}: ${upstreamMsg || JSON.stringify(data).slice(0,200)}`);
+  if(data.error) throw new Error(upstreamMsg || JSON.stringify(data.error).slice(0,200));
   const text = data.choices?.[0]?.message?.content ?? '(空の応答)';
   const u = data.usage || {};
   return {

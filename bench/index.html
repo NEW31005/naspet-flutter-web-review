@@ -292,7 +292,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
           <label for="effort">reasoning</label>
           <select id="effort">
             <option value="">送らない (モデル既定)</option>
-            <option value="none">none</option>
+            <option value="none">none（Luna・gpt-oss系は不可→自動でminimalに切替）</option>
             <option value="minimal" selected>minimal</option>
             <option value="low">low</option>
             <option value="medium">medium</option>
@@ -810,40 +810,58 @@ async function callModel(modelId, messages){
   const raw = $('extra').value.trim();
   if(raw){ try{ deepMerge(body, JSON.parse(raw)); }catch(e){ throw new Error('追加JSONが不正です: ' + e.message); } }
 
-  const t0 = performance.now();
-  let res;
-  try{
-    res = await fetch(direct ? 'https://openrouter.ai/api/v1/chat/completions' : PROXY_URL, {
-      method:'POST',
-      headers: direct
-        ? {'Content-Type':'application/json','Authorization':'Bearer '+key,
-           'HTTP-Referer':'https://new31005.github.io/naspet-flutter-web-review/bench/',
-           'X-Title':'Naspet Dialogue Bench'}
-        : {'Content-Type':'application/json','x-bench-token':key},
-      body: JSON.stringify(body)
-    });
-  }catch(e){
-    throw new Error('ネットワークエラーです。回線とパスコード/キーを確認してください。');
+  /* 自動リカバリー付き送信:
+     - 「Reasoning is mandatory」400 → minimalに切り替えて即再送(設定も直す)
+     - 混雑(429/rate-limit) → 2.5秒→6秒待って最大2回再送 */
+  let healedReasoning = false;
+  let congestionTries = 0;
+  while(true){
+    const t0 = performance.now();
+    let res;
+    try{
+      res = await fetch(direct ? 'https://openrouter.ai/api/v1/chat/completions' : PROXY_URL, {
+        method:'POST',
+        headers: direct
+          ? {'Content-Type':'application/json','Authorization':'Bearer '+key,
+             'HTTP-Referer':'https://new31005.github.io/naspet-flutter-web-review/bench/',
+             'X-Title':'Naspet Dialogue Bench'}
+          : {'Content-Type':'application/json','x-bench-token':key},
+        body: JSON.stringify(body)
+      });
+    }catch(e){
+      throw new Error('ネットワークエラーです。回線とパスコード/キーを確認してください。');
+    }
+    const ms = Math.round(performance.now() - t0);
+    const data = await res.json();
+    if(res.status === 401 && !direct) throw new Error(KEY_HELP);
+    const upstreamMsg = String(data?.error?.message || (typeof data?.error === 'string' ? data.error : '') || '');
+    if(!healedReasoning && /reasoning is mandatory/i.test(upstreamMsg)){
+      healedReasoning = true;
+      if($('effort').value === 'none' || $('effort').value === ''){ $('effort').value = 'minimal'; persist(); }
+      body.reasoning = {effort:'minimal', exclude: $('exclude').checked};
+      continue;
+    }
+    if((res.status === 429 || /rate.?limit/i.test(upstreamMsg)) && congestionTries < 2){
+      congestionTries++;
+      await new Promise(s => setTimeout(s, congestionTries === 1 ? 2500 : 6000));
+      continue;
+    }
+    if(res.status === 429 || /rate.?limit/i.test(upstreamMsg)){
+      throw new Error(`混雑中: 「${modelId}」が提供元で混み合っています。自動で${congestionTries}回再送しても通りませんでした。少し待つか、別のモデルに切り替えてください。`);
+    }
+    if(!res.ok) throw new Error(`HTTP ${res.status}: ${upstreamMsg || JSON.stringify(data).slice(0,200)}`);
+    if(data.error) throw new Error(upstreamMsg || JSON.stringify(data.error).slice(0,200));
+    const text = data.choices?.[0]?.message?.content ?? '(空の応答)';
+    const u = data.usage || {};
+    return {
+      text, ms,
+      in: u.prompt_tokens ?? 0,
+      out: u.completion_tokens ?? 0,
+      reasoning: u.completion_tokens_details?.reasoning_tokens ?? 0,
+      finish: data.choices?.[0]?.finish_reason ?? '',
+      provider: data.provider ?? ''
+    };
   }
-  const ms = Math.round(performance.now() - t0);
-  const data = await res.json();
-  if(res.status === 401 && !direct) throw new Error(KEY_HELP);
-  const upstreamMsg = data?.error?.message || (typeof data?.error === 'string' ? data.error : '');
-  if(res.status === 429 || /rate.?limit/i.test(String(upstreamMsg))){
-    throw new Error(`いま「${modelId}」が提供元で混み合っています（一時的な制限）。数十秒待ってもう一度送るか、上のドロップダウンで別のモデルに切り替えて試してください。`);
-  }
-  if(!res.ok) throw new Error(`HTTP ${res.status}: ${upstreamMsg || JSON.stringify(data).slice(0,200)}`);
-  if(data.error) throw new Error(upstreamMsg || JSON.stringify(data.error).slice(0,200));
-  const text = data.choices?.[0]?.message?.content ?? '(空の応答)';
-  const u = data.usage || {};
-  return {
-    text, ms,
-    in: u.prompt_tokens ?? 0,
-    out: u.completion_tokens ?? 0,
-    reasoning: u.completion_tokens_details?.reasoning_tokens ?? 0,
-    finish: data.choices?.[0]?.finish_reason ?? '',
-    provider: data.provider ?? ''
-  };
 }
 function deepMerge(target, src){
   for(const k in src){

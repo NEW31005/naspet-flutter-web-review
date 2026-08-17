@@ -34,7 +34,7 @@ addEventListener("message", eventListener);
 if (!window._flutter) {
   window._flutter = {};
 }
-_flutter.buildConfig = {"engineRevision":"587c18f873b8ab57330422bce09047420d9c7f42","builds":[{"compileTarget":"dart2js","renderer":"canvaskit","mainJsPath":"main.dart.js?v=ac65d4f79e8d91b4767f58f821d6f1740ac4c0a0"},{}]};
+_flutter.buildConfig = {"engineRevision":"587c18f873b8ab57330422bce09047420d9c7f42","builds":[{"compileTarget":"dart2js","renderer":"canvaskit","mainJsPath":"main.dart.js?v=8172b3981b9b1ed896a744589ab91971600f3357"},{}]};
 
 
 (function bootNaspetWithWebPushBridge() {

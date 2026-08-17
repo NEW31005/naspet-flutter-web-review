@@ -213,8 +213,9 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
       <label for="sysprompt">システムプロンプト <span class="mono" id="tokest"></span></label>
       <textarea id="sysprompt" rows="26" class="mono" style="font-size:12.5px"></textarea>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:14px">
-      <button class="btn-ghost btn-sm" id="regen">本番ロジックで再生成（手動編集を破棄）</button>
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+      <button class="btn btn-sm" id="v3fetch">サーバー正本(v3)を取得して使う</button>
+      <button class="btn-ghost btn-sm" id="regen">旧v2ロジックで再生成（手動編集を破棄）</button>
     </div>
 
     <section class="sect">
@@ -1125,6 +1126,34 @@ Object.keys(panes).forEach(k => $('tab-'+k).addEventListener('click', () => {
     $(panes[j]).hidden = j !== k;
   });
 }));
+
+/* ── サーバー正本v3プロンプトの取得(中継Function経由・パスコード必須) ── */
+$('v3fetch').addEventListener('click', async () => {
+  $('promptmode').innerHTML = 'サーバーからv3プロンプトを取得中…';
+  try{
+    const sp = currentSpecies();
+    const d = await prodCall({
+      action: 'build_prompt',
+      speciesId: sp.id, speciesLabel: sp.label,
+      growthStageLabel: $('v_stage').value,
+      petName: $('v_name').value, userCallName: $('v_user').value,
+      personalityLabel: $('v_person').value,
+      bonding: +$('v_bond').value, hunger: +$('v_hunger').value, mood: +$('v_mood').value,
+      healthCondition: $('v_health').value, replyStyle: $('v_style').value,
+      todayShift: $('v_shift').value, tomorrowShift: $('v_shift2').value,
+      birthdayToday: $('v_bday').checked,
+      entryMode: 'free_input'
+    });
+    $('sysprompt').value = d.prompt;
+    manualPrompt = true;
+    $('promptmode').innerHTML = '<b>サーバー正本モード(v3)</b>: 本番サーバーがいま使う組み立てそのものです(' + esc(d.version) + ')。この欄を編集すれば次の送信から即反映。種族や状態を変えたら、もう一度このボタンで取り直してください。';
+    $('promptmode').classList.remove('bad');
+    drawMeter(); persist();
+  }catch(e){
+    $('promptmode').innerHTML = 'v3取得エラー: ' + esc(e.message);
+    $('promptmode').classList.add('bad');
+  }
+});
 
 /* ── 名前チェックのワンタップ送信 ── */
 function sendPreset(text){

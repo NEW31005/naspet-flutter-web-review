@@ -27,17 +27,22 @@ input,select,textarea{background:var(--slip);border:1px solid var(--rule);border
 textarea{resize:vertical;line-height:1.6}
 input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
-.masthead{border-bottom:2px solid var(--ink);background:var(--slip);padding:14px 20px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.masthead{border-bottom:2px solid var(--ink);background:var(--slip);padding:12px 20px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
 .masthead h1{font-size:18px;font-weight:900;letter-spacing:.06em}
 .masthead .sub{font-family:var(--mono);font-size:11px;color:var(--ink-soft);letter-spacing:.14em;text-transform:uppercase}
 .masthead .keyslot{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.masthead .keyslot input[type=password]{width:210px;font-family:var(--mono);font-size:12px}
+.masthead .keyslot input[type=password]{width:230px;font-family:var(--mono);font-size:12px}
 .lamp{width:9px;height:9px;border-radius:50%;background:var(--rule-hard);flex:0 0 auto}
 .lamp.on{background:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
-.shell{display:grid;grid-template-columns:340px minmax(0,1fr);gap:0;align-items:start}
-.rail{border-right:1px solid var(--rule);background:var(--slip);min-height:calc(100vh - 56px);padding:0 0 40px}
-.main{padding:20px;min-width:0}
-.sect{border-bottom:1px solid var(--rule);padding:16px 18px}
+/* ── top selector strip: 種族とモデルだけ ── */
+.topbar{background:var(--slip);border-bottom:1px solid var(--rule);padding:12px 20px;display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap}
+.topbar .pick{min-width:230px;flex:1;max-width:340px}
+.topbar .pick > label{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:4px}
+.topbar select{font-size:15px;font-weight:700;padding:9px 10px}
+.topbar .ending{font-size:12px;color:var(--ink-soft);padding-bottom:9px;white-space:nowrap}
+.topbar .ending b{font-family:var(--mono);color:var(--teal);font-size:15px}
+.wrap{max-width:960px;margin:0 auto;padding:18px 20px 60px;min-width:0}
+.sect{border:1px solid var(--rule);background:var(--slip);padding:14px 16px;margin-bottom:12px}
 .sect > h2{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:12px;display:flex;align-items:center;gap:8px}
 .sect > h2::after{content:"";flex:1;height:1px;background:var(--rule)}
 .field{margin-bottom:10px}
@@ -48,7 +53,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .inline{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-soft)}
 .inline input[type=checkbox]{width:auto;margin:0}
 .hint{font-size:11px;color:var(--ink-soft);line-height:1.5;margin-top:5px}
-.meter{border:1.5px solid var(--ink);background:var(--slip);margin-bottom:18px}
+.meter{border:1.5px solid var(--ink);background:var(--slip);margin-bottom:12px}
 .meter-head{display:flex;align-items:baseline;gap:10px;padding:10px 14px;border-bottom:1px solid var(--ink)}
 .meter-head .t{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft)}
 .meter-head .v{font-family:var(--mono);font-size:26px;font-weight:600;line-height:1;margin-left:auto}
@@ -59,7 +64,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .meter-cell .k{font-size:10px;color:var(--ink-soft);letter-spacing:.05em}
 .meter-cell .n{font-family:var(--mono);font-size:15px;font-weight:600}
 .meter-foot{padding:7px 14px;border-top:1px solid var(--rule);font-size:11px;color:var(--ink-soft);display:flex;gap:14px;flex-wrap:wrap}
-.tabs{display:flex;gap:0;border-bottom:1px solid var(--rule);margin-bottom:16px}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--rule);margin-bottom:16px;flex-wrap:wrap}
 .tab{background:none;border:0;border-bottom:2px solid transparent;padding:8px 16px;color:var(--ink-soft);font-weight:500}
 .tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--ink);font-weight:700}
 .btn{background:var(--ink);color:#fff;border:0;border-radius:2px;padding:8px 16px;font-weight:700;letter-spacing:.03em}
@@ -67,7 +72,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--rule-hard);border-radius:2px;padding:6px 12px;font-weight:500}
 .btn-ghost:hover{background:var(--paper)}
 .btn-sm{padding:4px 10px;font-size:12px}
-.chatlog{border:1px solid var(--rule);background:var(--slip);min-height:220px;max-height:46vh;overflow-y:auto;padding:14px}
+.chatlog{border:1px solid var(--rule);background:var(--slip);min-height:300px;max-height:56vh;overflow-y:auto;padding:14px}
 .turn{margin-bottom:14px}
 .turn:last-child{margin-bottom:0}
 .turn .who{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:3px}
@@ -117,11 +122,10 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 .badge{display:inline-block;font-family:var(--mono);font-size:10px;padding:1px 7px;border:1px solid var(--rule-hard);border-radius:2px;color:var(--ink-soft)}
 .badge.ok{border-color:var(--teal);color:var(--teal)}
 .badge.ng{border-color:var(--signal);color:var(--signal)}
-@media (max-width:900px){
-  .shell{grid-template-columns:1fr}
-  .rail{border-right:0;border-bottom:1px solid var(--rule);min-height:0}
+@media (max-width:720px){
   .masthead .keyslot{margin-left:0;width:100%}
   .masthead .keyslot input[type=password]{flex:1;width:auto}
+  .topbar .pick{max-width:none}
   .meter-grid{grid-template-columns:1fr}
   .meter-cell{border-right:0;border-bottom:1px solid var(--rule)}
 }
@@ -132,7 +136,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 
 <header class="masthead">
   <h1>ナスペット 対話ベンチ</h1>
-  <span class="sub">Dialogue Bench / OpenRouter</span>
+  <span class="sub">Dialogue Bench</span>
   <div class="keyslot">
     <span class="lamp" id="lamp"></span>
     <input id="apikey" type="password" placeholder="ベンチ用パスコード または sk-or-キー" autocomplete="off">
@@ -140,20 +144,127 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
   </div>
 </header>
 
-<div class="shell">
-  <!-- ══ LEFT RAIL ══ -->
-  <aside class="rail">
+<!-- ══ 種族とモデルはいつでもここで切替 ══ -->
+<div class="topbar">
+  <div class="pick">
+    <label for="v_species">ナスペットの種族（語尾・プロンプトが切り替わる）</label>
+    <select id="v_species"></select>
+  </div>
+  <div class="pick">
+    <label for="model">モデル</label>
+    <select id="model"></select>
+  </div>
+  <div class="pick" id="customwrap" hidden>
+    <label for="customslug">スラッグ手入力</label>
+    <input id="customslug" placeholder="provider/model-name">
+  </div>
+  <div class="ending">語尾 <b id="endingview">にゃ</b></div>
+</div>
+
+<main class="wrap">
+
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tab-chat" role="tab" aria-selected="true">チャット</button>
+    <button class="tab" id="tab-prompt" role="tab" aria-selected="false">プロンプト</button>
+    <button class="tab" id="tab-settings" role="tab" aria-selected="false">くわしい設定</button>
+    <button class="tab" id="tab-batch" role="tab" aria-selected="false">一括テスト</button>
+  </div>
+
+  <!-- ── チャット ── -->
+  <section id="pane-chat">
+    <div class="chatlog" id="chatlog"></div>
+    <div class="composer">
+      <textarea id="msg" placeholder="今日は夜勤つらかった…"></textarea>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <button class="btn" id="send">送信</button>
+        <button class="btn-ghost btn-sm" id="clear">履歴消去</button>
+      </div>
+    </div>
+    <p class="hint">上の種族・モデル、プロンプトタブの編集は、次の送信からすぐ反映されます。直近6発言だけがモデルに渡ります（本番と同じ）。返答には本番と同じ語尾検査を自動でかけ、不合格なら⚠を表示します（本番では不合格の返答は捨てられて定型文になります）。</p>
+  </section>
+
+  <!-- ── プロンプト ── -->
+  <section id="pane-prompt" hidden>
+    <div class="note" id="promptmode">
+      <b>自動生成モード</b>: 種族と「くわしい設定」の値から、本番サーバーと同じロジックでプロンプトを組み立てています。この欄を直接編集すると手動モードに切り替わり、編集内容がそのまま即反映されます。
+    </div>
+    <div class="field">
+      <label for="sysprompt">システムプロンプト <span class="mono" id="tokest"></span></label>
+      <textarea id="sysprompt" rows="26" class="mono" style="font-size:12.5px"></textarea>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="btn-ghost btn-sm" id="regen">本番ロジックで再生成（手動編集を破棄）</button>
+    </div>
 
     <section class="sect">
-      <h2>モデル</h2>
-      <div class="field">
-        <label for="model">モデル</label>
-        <select id="model"></select>
+      <h2>本番反映用に書き出す</h2>
+      <p class="hint" style="margin:0 0 10px">いま選んでいる種族・モデル・プロンプトを1枚のメモにまとめます。これをクロエ（Claude）のチャットにそのまま貼って「本番反映して」と言えば、この内容で本番アプリに反映されます。</p>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-sm" id="exp_copy">📋 コピーする</button>
+        <button class="btn-ghost btn-sm" id="exp_dl">.mdでダウンロード</button>
+        <span class="hint" id="exp_status"></span>
       </div>
-      <div class="field" id="customwrap" hidden>
-        <label for="customslug">スラッグ</label>
-        <input id="customslug" placeholder="provider/model-name">
+    </section>
+
+    <details>
+      <summary class="hint" style="cursor:pointer">追加リクエストJSON（上級者向け）</summary>
+      <div class="field" style="margin-top:8px">
+        <textarea id="extra" rows="3" class="mono" style="font-size:12.5px" placeholder='{ "provider": { "order": ["DeepInfra"] } }'></textarea>
       </div>
+    </details>
+  </section>
+
+  <!-- ── くわしい設定 ── -->
+  <section id="pane-settings" hidden>
+
+    <section class="sect">
+      <h2>ペット状態（プロンプトに反映）</h2>
+      <div class="row2">
+        <div class="field"><label for="v_name">ペットの名前</label><input id="v_name" value="ちびるん"></div>
+        <div class="field"><label for="v_user">ユーザーの呼び名</label><input id="v_user" value="しんちゃん"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="v_stage">成長段階</label>
+          <select id="v_stage"><option>ちび体</option><option>幼体</option><option>成体</option></select>
+        </div>
+        <div class="field"><label for="v_person">性格</label>
+          <select id="v_person"><option>やさしい</option><option selected>甘えん坊</option><option>わんぱく</option><option>好奇心旺盛</option><option>クール</option><option>おっとり</option></select>
+        </div>
+      </div>
+      <div class="row3">
+        <div class="field"><label for="v_bond">なかよし</label><input id="v_bond" class="mono" type="number" value="55" min="0" max="100"></div>
+        <div class="field"><label for="v_hunger">おなか</label><input id="v_hunger" class="mono" type="number" value="70" min="0" max="100"></div>
+        <div class="field"><label for="v_mood">ごきげん</label><input id="v_mood" class="mono" type="number" value="80" min="0" max="100"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="v_health">体調</label><input id="v_health" value="普通"></div>
+        <div class="field"><label for="v_style">返信スタイル目安</label>
+          <select id="v_style"><option selected>standard</option><option>warm</option><option>rich</option></select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="v_shift">今日のシフト名</label><input id="v_shift" value="夜勤"></div>
+        <div class="field"><label for="v_shift2">明日のシフト名</label><input id="v_shift2" value="休み"></div>
+      </div>
+      <div class="inline"><input type="checkbox" id="v_bday"><label for="v_bday">今日はユーザーの誕生日</label></div>
+    </section>
+
+    <section class="sect">
+      <h2>生成パラメータ（本番初期値）</h2>
+      <div class="row3">
+        <div class="field"><label for="temp">temp</label><input id="temp" class="mono" type="number" step="0.05" value="0.8"></div>
+        <div class="field"><label for="topp">top_p</label><input id="topp" class="mono" type="number" step="0.05" value="0.9"></div>
+        <div class="field"><label for="maxtok">max_tok</label><input id="maxtok" class="mono" type="number" value="560"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="pres">presence</label><input id="pres" class="mono" type="number" step="0.1" value="0.2"></div>
+        <div class="field"><label for="freq">frequency</label><input id="freq" class="mono" type="number" step="0.1" value="0.2"></div>
+      </div>
+      <p class="hint">本番は temp0.8 / top_p0.9 / penalty各0.2。max_tokはプランで 560(Free)/680(Plus)/780(MAX)。モデル比較中はpenaltyを0にすると差の原因を切り分けやすくなります。</p>
+    </section>
+
+    <section class="sect">
+      <h2>モデル詳細</h2>
       <div class="row2">
         <div class="field"><label for="pin">入力 $/1M</label><input id="pin" class="mono" type="number" step="0.001"></div>
         <div class="field"><label for="pout">出力 $/1M</label><input id="pout" class="mono" type="number" step="0.001"></div>
@@ -191,155 +302,62 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
     </section>
 
     <section class="sect">
-      <h2>生成パラメータ（本番初期値）</h2>
-      <div class="row3">
-        <div class="field"><label for="temp">temp</label><input id="temp" class="mono" type="number" step="0.05" value="0.8"></div>
-        <div class="field"><label for="topp">top_p</label><input id="topp" class="mono" type="number" step="0.05" value="0.9"></div>
-        <div class="field"><label for="maxtok">max_tok</label><input id="maxtok" class="mono" type="number" value="560"></div>
-      </div>
-      <div class="row2">
-        <div class="field"><label for="pres">presence</label><input id="pres" class="mono" type="number" step="0.1" value="0.2"></div>
-        <div class="field"><label for="freq">frequency</label><input id="freq" class="mono" type="number" step="0.1" value="0.2"></div>
-      </div>
-      <p class="hint">本番は temp0.8 / top_p0.9 / penalty各0.2。max_tokはプランで 560(Free)/680(Plus)/780(MAX)。モデル比較中はpenaltyを0にすると差の原因を切り分けやすくなります。</p>
-    </section>
-
-    <section class="sect">
-      <h2>キャラクター</h2>
-      <div class="field">
-        <label for="v_species">ナスペット（変えると語尾・成長段階・プロンプトが本番ロジックで切り替わります）</label>
-        <select id="v_species"></select>
-      </div>
-      <div class="row2">
-        <div class="field"><label for="v_name">ペットの名前</label><input id="v_name" value="ちびるん"></div>
-        <div class="field"><label for="v_user">ユーザーの呼び名</label><input id="v_user" value="しんちゃん"></div>
-      </div>
-      <div class="row2">
-        <div class="field"><label for="v_stage">成長段階</label>
-          <select id="v_stage"><option>ちび体</option><option>幼体</option><option>成体</option></select>
+      <h2>原価見積り</h2>
+      <div class="meter">
+        <div class="meter-head">
+          <span class="t">1ラリー原価</span>
+          <span class="v mono" id="m_rally">—</span><span class="u">円</span>
         </div>
-        <div class="field"><label for="v_person">性格</label>
-          <select id="v_person"><option>やさしい</option><option selected>甘えん坊</option><option>わんぱく</option><option>好奇心旺盛</option><option>クール</option><option>おっとり</option></select>
+        <div class="meter-grid">
+          <div class="meter-cell"><div class="k">小ヒット 1,500人／月</div><div class="n" id="m_s">—</div></div>
+          <div class="meter-cell"><div class="k">中ヒット 10,000人／月</div><div class="n" id="m_m">—</div></div>
+          <div class="meter-cell"><div class="k">大ヒット 100,000人／月</div><div class="n" id="m_l">—</div></div>
+        </div>
+        <div class="meter-foot" id="m_foot">
+          <span>入力 <b class="mono" id="m_in">—</b> tok</span>
+          <span>出力 <b class="mono" id="m_out">—</b> tok</span>
+          <span id="m_src">見積り（送信前）</span>
         </div>
       </div>
       <div class="row3">
-        <div class="field"><label for="v_bond">なかよし</label><input id="v_bond" class="mono" type="number" value="55" min="0" max="100"></div>
-        <div class="field"><label for="v_hunger">おなか</label><input id="v_hunger" class="mono" type="number" value="70" min="0" max="100"></div>
-        <div class="field"><label for="v_mood">ごきげん</label><input id="v_mood" class="mono" type="number" value="80" min="0" max="100"></div>
-      </div>
-      <div class="row2">
-        <div class="field"><label for="v_health">体調</label><input id="v_health" value="普通"></div>
-        <div class="field"><label for="v_style">返信スタイル目安</label>
-          <select id="v_style"><option selected>standard</option><option>warm</option><option>rich</option></select>
-        </div>
-      </div>
-      <div class="row2">
-        <div class="field"><label for="v_shift">今日のシフト名</label><input id="v_shift" value="夜勤"></div>
-        <div class="field"><label for="v_shift2">明日のシフト名</label><input id="v_shift2" value="休み"></div>
-      </div>
-      <div class="inline"><input type="checkbox" id="v_bday"><label for="v_bday">今日はユーザーの誕生日</label></div>
-      <p class="hint">語尾: <b class="mono" id="endingview">にゃ</b>（種族から自動）。シフト名を空にするとシフトブロックは最小になります。</p>
-    </section>
-
-    <section class="sect">
-      <h2>為替・手数料</h2>
-      <div class="row2">
         <div class="field"><label for="fx">USD/JPY</label><input id="fx" class="mono" type="number" step="0.01" value="155.00"></div>
         <div class="field"><label for="fee">手数料 %</label><input id="fee" class="mono" type="number" step="0.1" value="5.5"></div>
+        <div class="field"><label for="rpd">ラリー/日/人</label><input id="rpd" class="mono" type="number" value="10"></div>
       </div>
-      <div class="field"><label for="rpd">1人あたり ラリー/日</label><input id="rpd" class="mono" type="number" value="10"></div>
     </section>
 
-  </aside>
+  </section>
 
-  <!-- ══ MAIN ══ -->
-  <main class="main">
-
-    <div class="meter">
-      <div class="meter-head">
-        <span class="t">1ラリー原価</span>
-        <span class="v mono" id="m_rally">—</span><span class="u">円</span>
-      </div>
-      <div class="meter-grid">
-        <div class="meter-cell"><div class="k">小ヒット 1,500人／月</div><div class="n" id="m_s">—</div></div>
-        <div class="meter-cell"><div class="k">中ヒット 10,000人／月</div><div class="n" id="m_m">—</div></div>
-        <div class="meter-cell"><div class="k">大ヒット 100,000人／月</div><div class="n" id="m_l">—</div></div>
-      </div>
-      <div class="meter-foot" id="m_foot">
-        <span>入力 <b class="mono" id="m_in">—</b> tok</span>
-        <span>出力 <b class="mono" id="m_out">—</b> tok</span>
-        <span id="m_src">見積り（送信前）</span>
-      </div>
+  <!-- ── 一括テスト ── -->
+  <section id="pane-batch" hidden>
+    <div class="note">
+      採点はブラインドです。全部走り終わるまでモデル名は伏せられます。<strong>A（意味理解）だけで合否を決めて</strong>、B（埋め草）はプロンプト修正の材料に回してください。語尾NGは自動判定です。
     </div>
-
-    <div class="tabs" role="tablist">
-      <button class="tab" id="tab-chat" role="tab" aria-selected="true">対話</button>
-      <button class="tab" id="tab-batch" role="tab" aria-selected="false">一括テスト</button>
-      <button class="tab" id="tab-prompt" role="tab" aria-selected="false">プロンプト</button>
+    <div class="field" style="margin-bottom:14px">
+      <label>比較するモデル</label>
+      <div class="modelpick" id="modelpick"></div>
     </div>
-
-    <!-- ── CHAT ── -->
-    <section id="pane-chat">
-      <div class="chatlog" id="chatlog"></div>
-      <div class="composer">
-        <textarea id="msg" placeholder="今日は夜勤つらかった…"></textarea>
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <button class="btn" id="send">送信</button>
-          <button class="btn-ghost btn-sm" id="clear">履歴消去</button>
-        </div>
-      </div>
-      <p class="hint">直近6発言だけがモデルに渡ります（本番と同じ）。返答には本番の語尾検査（全文が「語尾+句点」で終わるか）を自動でかけ、不合格なら⚠を表示します。本番では不合格の返答は捨てられて定型文になります。</p>
-    </section>
-
-    <!-- ── BATCH ── -->
-    <section id="pane-batch" hidden>
-      <div class="note">
-        採点はブラインドです。全部走り終わるまでモデル名は伏せられます。<strong>A（意味理解）だけで合否を決めて</strong>、B（埋め草）はプロンプト修正の材料に回してください。語尾NGは自動判定です。
-      </div>
-      <div class="field" style="margin-bottom:14px">
-        <label>比較するモデル</label>
-        <div class="modelpick" id="modelpick"></div>
-      </div>
-      <div class="row3" style="margin-bottom:14px">
-        <div class="field"><label for="repeats">反復回数</label><input id="repeats" class="mono" type="number" value="2" min="1" max="5"></div>
-        <div class="field"><label for="delay">間隔 ms</label><input id="delay" class="mono" type="number" value="400"></div>
-        <div class="field" style="display:flex;align-items:flex-end"><button class="btn" id="runbatch" style="width:100%">実行</button></div>
-      </div>
-      <div class="field" style="margin-bottom:14px">
-        <label>テストケース</label>
-        <div class="caselist" id="caselist"></div>
-      </div>
-      <div class="progress" id="progwrap" hidden><i id="prog" style="width:0"></i></div>
-      <div id="tallywrap" hidden>
-        <div class="tally" id="tally"></div>
-        <div style="display:flex;gap:8px;margin-bottom:14px">
-          <button class="btn-ghost btn-sm" id="reveal">モデル名を開示</button>
-          <button class="btn-ghost btn-sm" id="csv">CSVで書き出す</button>
-        </div>
-      </div>
-      <div id="slips"></div>
-    </section>
-
-    <!-- ── PROMPT ── -->
-    <section id="pane-prompt" hidden>
-      <div class="note" id="promptmode">
-        <b>自動生成モード</b>: 左のキャラクター設定から、本番サーバーと同じロジックでプロンプトを組み立てています。この欄を直接編集すると手動モードに切り替わり、編集内容がそのまま即反映されます。
-      </div>
-      <div class="field">
-        <label for="sysprompt">システムプロンプト <span class="mono" id="tokest"></span></label>
-        <textarea id="sysprompt" rows="26" class="mono" style="font-size:12.5px"></textarea>
-      </div>
+    <div class="row3" style="margin-bottom:14px">
+      <div class="field"><label for="repeats">反復回数</label><input id="repeats" class="mono" type="number" value="2" min="1" max="5"></div>
+      <div class="field"><label for="delay">間隔 ms</label><input id="delay" class="mono" type="number" value="400"></div>
+      <div class="field" style="display:flex;align-items:flex-end"><button class="btn" id="runbatch" style="width:100%">実行</button></div>
+    </div>
+    <div class="field" style="margin-bottom:14px">
+      <label>テストケース</label>
+      <div class="caselist" id="caselist"></div>
+    </div>
+    <div class="progress" id="progwrap" hidden><i id="prog" style="width:0"></i></div>
+    <div id="tallywrap" hidden>
+      <div class="tally" id="tally"></div>
       <div style="display:flex;gap:8px;margin-bottom:14px">
-        <button class="btn-ghost btn-sm" id="regen">本番ロジックで再生成（手動編集を破棄）</button>
+        <button class="btn-ghost btn-sm" id="reveal">モデル名を開示</button>
+        <button class="btn-ghost btn-sm" id="csv">CSVで書き出す</button>
       </div>
-      <div class="field">
-        <label for="extra">追加リクエストJSON（マージされます・上級者向け）</label>
-        <textarea id="extra" rows="3" class="mono" style="font-size:12.5px" placeholder='{ "provider": { "order": ["DeepInfra"] } }'></textarea>
-      </div>
-    </section>
+    </div>
+    <div id="slips"></div>
+  </section>
 
-  </main>
-</div>
+</main>
 
 <script>
 /* ════════════════════════════════════════════════════════════════
@@ -360,7 +378,6 @@ const ALL_ENDINGS = ['にゃ','ミミ','ココ','ハム','ルガ'];
 
 /* ════════════════════════════════════════════════════════════════
    本番 naspet-chat/index.ts buildSystemPrompt の忠実移植
-   （文言は index.ts と同一。変えたい時はプロンプトタブで編集）
    ════════════════════════════════════════════════════════════════ */
 function isChibiruStage(speciesId, growth){ return speciesId === 'chibiru' || growth.includes('ちび'); }
 
@@ -544,7 +561,6 @@ function endingCheck(text, ending){
   for(let i = 0; i < chars.length; i++){
     if(!TERMINALS.includes(chars[i])) continue;
     let body = chars.slice(start, i).join('').trim();
-    // strip trailing decorations（… 〜 ♡ など）
     body = body.replace(/[…〜～♡♥🐾\s]+$/u, '');
     if(!body.endsWith(ending)) return {ok:false, why:`「${body.slice(-8)}」が語尾${ending}で終わっていない`};
     const before = body.slice(0, -ending.length);
@@ -643,14 +659,14 @@ function activePrompt(){ return $('sysprompt').value; }
 function regeneratePrompt(){
   manualPrompt = false;
   $('sysprompt').value = buildProductionPrompt();
-  $('promptmode').innerHTML = '<b>自動生成モード</b>: 左のキャラクター設定から、本番サーバーと同じロジックでプロンプトを組み立てています。この欄を直接編集すると手動モードに切り替わり、編集内容がそのまま即反映されます。';
+  $('promptmode').innerHTML = '<b>自動生成モード</b>: 種族と「くわしい設定」の値から、本番サーバーと同じロジックでプロンプトを組み立てています。この欄を直接編集すると手動モードに切り替わり、編集内容がそのまま即反映されます。';
   $('promptmode').classList.remove('bad');
   drawMeter();
 }
 function markManual(){
   if(manualPrompt) return;
   manualPrompt = true;
-  $('promptmode').innerHTML = '<b>手動編集モード</b>: この内容がそのまま送られます。キャラクターや状態を変えても自動では反映されません。「本番ロジックで再生成」で自動モードに戻ります。';
+  $('promptmode').innerHTML = '<b>手動編集モード</b>: この内容がそのまま送られます。種族を切り替えると、確認のうえ自動生成に戻ります。「本番ロジックで再生成」でも戻せます。';
   $('promptmode').classList.add('bad');
 }
 $('sysprompt').addEventListener('input', () => { markManual(); drawMeter(); persist(); });
@@ -662,8 +678,18 @@ function onCharacterChanged(changedSpecies){
     $('v_stage').value = sp.stage;
     $('v_name').value = sp.name;
     $('endingview').textContent = sp.ending;
+    if(manualPrompt){
+      if(confirm('プロンプトを手動編集中です。破棄して、この種族用のプロンプトを作り直しますか？')){
+        regeneratePrompt();
+      }
+    } else {
+      regeneratePrompt();
+    }
+  } else if(!manualPrompt){
+    regeneratePrompt();
+  } else {
+    drawMeter();
   }
-  if(!manualPrompt) regeneratePrompt(); else drawMeter();
   persist();
 }
 speciesSel.addEventListener('change', () => onCharacterChanged(true));
@@ -773,7 +799,7 @@ async function callModel(modelId, messages){
   }
   const ms = Math.round(performance.now() - t0);
   const data = await res.json();
-  if(!res.ok) throw new Error(`HTTP ${res.status}: ${data?.error?.message || JSON.stringify(data).slice(0,200)}`);
+  if(!res.ok) throw new Error(`HTTP ${res.status}: ${data?.error?.message || data?.error || JSON.stringify(data).slice(0,200)}`);
   if(data.error) throw new Error(data.error.message || JSON.stringify(data.error).slice(0,200));
   const text = data.choices?.[0]?.message?.content ?? '(空の応答)';
   const u = data.usage || {};
@@ -803,7 +829,7 @@ function endingBadge(text){
 }
 function renderChat(){
   const log = $('chatlog');
-  if(!history.length){ log.innerHTML = '<p style="color:var(--ink-soft);margin:0">右上にAPIキーを入れて、下に一言送ってください。直近6発言だけがモデルに渡ります（本番と同じ）。キャラクターやプロンプトはいつ変えても、次の送信からすぐ反映されます。</p>'; return; }
+  if(!history.length){ log.innerHTML = '<p style="color:var(--ink-soft);margin:0">右上にパスコードを入れて、下に一言送ってください。上の種族・モデルはいつでも切替OK。プロンプトを見たい・変えたい時は「プロンプト」タブへ。</p>'; return; }
   log.innerHTML = history.map(t => {
     const cls = t.role === 'user' ? 'u' : (t.error ? 'e' : 'a');
     const who = t.role === 'user' ? 'ユーザー' : (t.error ? 'エラー' : (t.model || 'ナスペット'));
@@ -836,7 +862,7 @@ async function send(){
   renderChat();
   $('send').disabled = true;
   const recent = history.filter(t => !t.error).slice(-6).map(t => ({role:t.role, content:t.content}));
-  const msgs = [{role:'system', content:activePrompt()}, ...recent.slice(0,-1), {role:'user', content:text}];
+  const msgs = [{role:'system', content:activePrompt()}, ...recent];
   try{
     const r = await callModel(currentModel().id, msgs);
     history.push({role:'assistant', content:r.text, model:currentModel().label, usage:r});
@@ -1030,7 +1056,7 @@ $('csv').addEventListener('click', () => {
 });
 
 /* ── tabs ── */
-const panes = {chat:'pane-chat', batch:'pane-batch', prompt:'pane-prompt'};
+const panes = {chat:'pane-chat', prompt:'pane-prompt', settings:'pane-settings', batch:'pane-batch'};
 Object.keys(panes).forEach(k => $('tab-'+k).addEventListener('click', () => {
   Object.keys(panes).forEach(j => {
     $('tab-'+j).setAttribute('aria-selected', String(j===k));
@@ -1078,6 +1104,80 @@ $('prod_apply').addEventListener('click', async () => {
     const d = await prodCall({action:'set_production_model', primary:p, fallback:f});
     $('prod_status').textContent = `✅ 反映しました: ${d.primary} ／ fallback: ${d.fallback}`;
   }catch(e){ $('prod_status').textContent = 'エラー: ' + e.message; }
+});
+
+/* ── 本番反映用の書き出し（種族・モデル・プロンプトを1枚に） ── */
+function buildExportMarkdown(){
+  const sp = currentSpecies();
+  const m = currentModel();
+  const auto = buildProductionPrompt();
+  const prompt = activePrompt();
+  const manual = manualPrompt && prompt.trim() !== auto.trim();
+  const eff = $('effort').value || '(送らない)';
+  const now = new Date();
+  const payload = {
+    benchExport: 1,
+    exportedAt: now.toISOString(),
+    species: {id: sp.id, label: sp.label, ending: sp.ending},
+    model: {id: m.id, label: m.label, reasoning: $('effort').value || null, reasoningExclude: $('exclude').checked},
+    params: {
+      temperature: +$('temp').value, top_p: +$('topp').value, max_tokens: +$('maxtok').value,
+      presence_penalty: +$('pres').value, frequency_penalty: +$('freq').value
+    },
+    petState: {
+      name: $('v_name').value, userCallName: $('v_user').value, stage: $('v_stage').value,
+      personality: $('v_person').value, bond: +$('v_bond').value, hunger: +$('v_hunger').value,
+      mood: +$('v_mood').value, health: $('v_health').value,
+      todayShift: $('v_shift').value, tomorrowShift: $('v_shift2').value,
+      birthday: $('v_bday').checked, replyStyle: $('v_style').value
+    },
+    promptMode: manual ? 'manual' : 'auto',
+    prompt,
+    ...(manual ? {autoBaselinePrompt: auto} : {})
+  };
+  return [
+    '# ナスペット本番反映依頼（対話ベンチ書き出し）',
+    `書き出し: ${now.toLocaleString('ja-JP')}`,
+    '',
+    'この内容で本番アプリに反映してください。',
+    '',
+    '## 設定サマリー',
+    `- 種族: ${sp.label}（${sp.id}／語尾「${sp.ending}」）`,
+    `- モデル: ${m.label}（\`${m.id}\`）／ reasoning: ${eff}`,
+    `- パラメータ: temp ${$('temp').value} / top_p ${$('topp').value} / max_tok ${$('maxtok').value} / presence ${$('pres').value} / frequency ${$('freq').value}`,
+    `- プロンプト: ${manual ? '手動編集あり（自動生成から変更→差分をコードに反映してほしい）' : '自動生成のまま（本番ロジックと同一・プロンプト変更なし）'}`,
+    '',
+    '## システムプロンプト全文',
+    '```text',
+    prompt,
+    '```',
+    '',
+    '## 機械可読データ（クロエ用・編集不要）',
+    '```json',
+    JSON.stringify(payload, null, 2),
+    '```',
+    ''
+  ].join('\n');
+}
+$('exp_copy').addEventListener('click', async () => {
+  const md = buildExportMarkdown();
+  try{
+    await navigator.clipboard.writeText(md);
+    $('exp_status').textContent = '✅ コピーしました。クロエのチャットに貼ってください。';
+  }catch(e){
+    $('exp_status').textContent = 'コピーできない端末です。ダウンロードを使ってください。';
+  }
+});
+$('exp_dl').addEventListener('click', () => {
+  const md = buildExportMarkdown();
+  const blob = new Blob(['﻿' + md], {type:'text/markdown;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const t = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  a.download = `naspet-honban-${t.getFullYear()}${pad(t.getMonth()+1)}${pad(t.getDate())}-${pad(t.getHours())}${pad(t.getMinutes())}.md`;
+  a.click();
+  $('exp_status').textContent = '✅ ダウンロードしました。ファイルごとクロエに渡してOKです。';
 });
 
 $('extra').addEventListener('input', persist);

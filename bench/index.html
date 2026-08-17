@@ -135,7 +135,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
   <span class="sub">Dialogue Bench / OpenRouter</span>
   <div class="keyslot">
     <span class="lamp" id="lamp"></span>
-    <input id="apikey" type="password" placeholder="OpenRouter APIキー (sk-or-...)" autocomplete="off">
+    <input id="apikey" type="password" placeholder="ベンチ用パスコード または sk-or-キー" autocomplete="off">
     <span class="inline"><input type="checkbox" id="savekey"><label for="savekey">この端末に保存</label></span>
   </div>
 </header>
@@ -163,8 +163,8 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
           <label for="effort">reasoning</label>
           <select id="effort">
             <option value="">送らない (モデル既定)</option>
-            <option value="none" selected>none</option>
-            <option value="minimal">minimal</option>
+            <option value="none">none</option>
+            <option value="minimal" selected>minimal</option>
             <option value="low">low</option>
             <option value="medium">medium</option>
             <option value="high">high</option>
@@ -176,7 +176,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
         </div>
       </div>
       <div class="inline"><input type="checkbox" id="zdr" checked><label for="zdr">本番と同じ制約 (ZDR必須・学習拒否)</label></div>
-      <p class="hint">価格は目安です。OpenRouterの実価格を確認して上書きしてください。reasoning未指定だと多くのモデルがmediumで走り、原価と待ち時間に直撃します。</p>
+      <p class="hint">価格は目安です。OpenRouterの実価格を確認して上書きしてください。reasoning未指定だと多くのモデルがmediumで走り、原価と待ち時間に直撃します。gpt-oss系は none を拒否するので minimal 推奨。</p>
     </section>
 
     <section class="sect">
@@ -553,15 +553,15 @@ function endingCheck(text, ending){
    モデルカタログ（価格は目安・編集可）
    ════════════════════════════════════════════════════════════════ */
 const MODELS = [
-  {id:'openai/gpt-oss-20b',           label:'gpt-oss-20b（現行）',        in:0.04, out:0.15},
-  {id:'openai/gpt-oss-120b',          label:'gpt-oss-120b',               in:0.07, out:0.30},
-  {id:'google/gemini-2.5-flash-lite', label:'Gemini 2.5 Flash Lite（現行fallback）', in:0.10, out:0.40},
-  {id:'google/gemini-2.5-flash',      label:'Gemini 2.5 Flash',           in:0.30, out:2.50},
-  {id:'openai/gpt-5-nano',            label:'GPT-5 nano',                 in:0.05, out:0.40},
-  {id:'openai/gpt-5-mini',            label:'GPT-5 mini',                 in:0.25, out:2.00},
-  {id:'anthropic/claude-haiku-4.5',   label:'Claude Haiku 4.5（物差し）',  in:1.00, out:5.00},
-  {id:'deepseek/deepseek-chat-v3.1',  label:'DeepSeek V3.1',              in:0.20, out:0.80},
-  {id:'__custom__',                   label:'— 手入力 —',                  in:0,    out:0},
+  {id:'openai/gpt-5.6-luna',            label:'GPT-5.6 Luna（第一候補）',   in:0.10,  out:0.60},
+  {id:'openai/gpt-oss-120b',            label:'gpt-oss-120b',              in:0.03,  out:0.17},
+  {id:'openai/gpt-oss-20b',             label:'gpt-oss-20b（現行）',        in:0.029, out:0.14},
+  {id:'deepseek/deepseek-v4-flash-0731',label:'DeepSeek V4 Flash',         in:0.09,  out:0.18},
+  {id:'google/gemini-3.1-flash-lite',   label:'Gemini 3.1 Flash Lite',     in:0.25,  out:1.50},
+  {id:'google/gemini-3.5-flash-lite',   label:'Gemini 3.5 Flash Lite',     in:0.30,  out:2.50},
+  {id:'google/gemini-3.7-flash',        label:'Gemini 3.7 Flash',          in:0.375, out:1.875},
+  {id:'anthropic/claude-haiku-4.5',     label:'Claude Haiku 4.5（物差し）', in:1.00,  out:5.00},
+  {id:'__custom__',                     label:'— 手入力 —',                 in:0,     out:0},
 ];
 
 /* ════════════════════════════════════════════════════════════════
@@ -609,7 +609,7 @@ speciesSel.value = 'chibiru';
 
 const modelSel = $('model');
 MODELS.forEach(m => { const o = document.createElement('option'); o.value = m.id; o.textContent = m.label; modelSel.appendChild(o); });
-modelSel.value = 'openai/gpt-oss-20b';
+modelSel.value = 'openai/gpt-5.6-luna';
 
 function currentSpecies(){ return SPECIES.find(s => s.id === speciesSel.value) || SPECIES[0]; }
 function currentEnding(){ return currentSpecies().ending; }
@@ -717,11 +717,16 @@ function drawMeter(){
 ['pin','pout','fx','fee','rpd','temp','topp','maxtok','pres','freq'].forEach(id =>
   $(id).addEventListener('input', () => { drawMeter(); persist(); }));
 
-/* ── OpenRouter call（本番と同じprovider制約） ── */
+/* ── モデル呼び出し ──
+   sk-or- で始まる値: OpenRouterへ直接。
+   それ以外の値: ベンチ用パスコードとして、ナスペットの中継Function経由で
+   本番envの OPENROUTER_API_KEY を使う（キーはブラウザに来ません）。 ── */
+const PROXY_URL = 'https://viqeghtpluzxevxqafam.supabase.co/functions/v1/naspet-bench-chat';
 async function callModel(modelId, messages){
   const key = $('apikey').value.trim();
-  if(!key) throw new Error('APIキーが空です。右上に OpenRouter のキーを入れてください。');
+  if(!key) throw new Error('右上が空です。ベンチ用パスコード（または sk-or- キー）を入れてください。');
   if(!modelId) throw new Error('モデルのスラッグが空です。');
+  const direct = key.startsWith('sk-or-');
   const body = {
     model: modelId,
     messages,
@@ -743,15 +748,17 @@ async function callModel(modelId, messages){
   const t0 = performance.now();
   let res;
   try{
-    res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    res = await fetch(direct ? 'https://openrouter.ai/api/v1/chat/completions' : PROXY_URL, {
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key,
-               'HTTP-Referer':'https://new31005.github.io/naspet-flutter-web-review/bench/',
-               'X-Title':'Naspet Dialogue Bench'},
+      headers: direct
+        ? {'Content-Type':'application/json','Authorization':'Bearer '+key,
+           'HTTP-Referer':'https://new31005.github.io/naspet-flutter-web-review/bench/',
+           'X-Title':'Naspet Dialogue Bench'}
+        : {'Content-Type':'application/json','x-bench-token':key},
       body: JSON.stringify(body)
     });
   }catch(e){
-    throw new Error('ネットワークエラーです。回線とAPIキーを確認してください。');
+    throw new Error('ネットワークエラーです。回線とパスコード/キーを確認してください。');
   }
   const ms = Math.round(performance.now() - t0);
   const data = await res.json();
@@ -831,7 +838,7 @@ async function send(){
 }
 
 /* ── batch pane ── */
-const picked = new Set(['openai/gpt-oss-20b','google/gemini-2.5-flash-lite','google/gemini-2.5-flash']);
+const picked = new Set(['openai/gpt-5.6-luna','openai/gpt-oss-120b','openai/gpt-oss-20b']);
 function renderPick(){
   $('modelpick').innerHTML = MODELS.filter(m => m.id !== '__custom__').map(m =>
     `<button class="chip" data-id="${m.id}" data-on="${picked.has(m.id)?1:0}">${esc(m.label)}</button>`).join('');

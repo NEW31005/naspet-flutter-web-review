@@ -180,6 +180,17 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
     </section>
 
     <section class="sect">
+      <h2>本番モデル（実アプリを切替）</h2>
+      <div class="field"><label for="prod_primary">メインモデル</label><select id="prod_primary"></select></div>
+      <div class="field"><label for="prod_fallback">フォールバック</label><select id="prod_fallback"></select></div>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+        <button class="btn-ghost btn-sm" id="prod_load">現在値を読む</button>
+        <button class="btn btn-sm" id="prod_apply">本番に反映</button>
+      </div>
+      <p class="hint" id="prod_status">パスコードを入れてから「現在値を読む」。反映すると約30秒で実アプリの全ユーザーに効きます。</p>
+    </section>
+
+    <section class="sect">
       <h2>生成パラメータ（本番初期値）</h2>
       <div class="row3">
         <div class="field"><label for="temp">temp</label><input id="temp" class="mono" type="number" step="0.05" value="0.8"></div>
@@ -1026,6 +1037,48 @@ Object.keys(panes).forEach(k => $('tab-'+k).addEventListener('click', () => {
     $(panes[j]).hidden = j !== k;
   });
 }));
+
+/* ── 本番モデル管理（パスコード必須・sk-or-直挿しでは操作不可） ── */
+const PROD_MODEL_CHOICES = MODELS.filter(m => m.id !== '__custom__').concat([
+  {id:'google/gemini-2.5-flash-lite', label:'Gemini 2.5 Flash Lite（旧fallback）'},
+  {id:'google/gemini-2.5-flash',      label:'Gemini 2.5 Flash'},
+]);
+for(const sel of [$('prod_primary'), $('prod_fallback')]){
+  PROD_MODEL_CHOICES.forEach(m => {
+    const o = document.createElement('option'); o.value = m.id; o.textContent = m.label; sel.appendChild(o);
+  });
+}
+$('prod_fallback').value = 'google/gemini-2.5-flash-lite';
+async function prodCall(payload){
+  const key = $('apikey').value.trim();
+  if(!key || key.startsWith('sk-or-')) throw new Error('本番モデルの操作はベンチ用パスコードでだけ可能です。');
+  const res = await fetch(PROXY_URL, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-bench-token':key},
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  if(!res.ok) throw new Error(data?.error || ('HTTP ' + res.status));
+  return data;
+}
+$('prod_load').addEventListener('click', async () => {
+  $('prod_status').textContent = '読込中…';
+  try{
+    const d = await prodCall({action:'get_production_model'});
+    if(d.primary && [...$('prod_primary').options].some(o => o.value === d.primary)) $('prod_primary').value = d.primary;
+    if(d.fallback && [...$('prod_fallback').options].some(o => o.value === d.fallback)) $('prod_fallback').value = d.fallback;
+    $('prod_status').textContent = `現在の本番: ${d.primary ?? '未設定'} ／ fallback: ${d.fallback ?? '未設定'}`;
+  }catch(e){ $('prod_status').textContent = 'エラー: ' + e.message; }
+});
+$('prod_apply').addEventListener('click', async () => {
+  const p = $('prod_primary').value, f = $('prod_fallback').value;
+  if(!confirm(`本番アプリのモデルを変更します。\n\nメイン: ${p}\nフォールバック: ${f}\n\n全ユーザーに約30秒で反映されます。よろしいですか？`)) return;
+  $('prod_status').textContent = '反映中…';
+  try{
+    const d = await prodCall({action:'set_production_model', primary:p, fallback:f});
+    $('prod_status').textContent = `✅ 反映しました: ${d.primary} ／ fallback: ${d.fallback}`;
+  }catch(e){ $('prod_status').textContent = 'エラー: ' + e.message; }
+});
 
 $('extra').addEventListener('input', persist);
 renderChat();

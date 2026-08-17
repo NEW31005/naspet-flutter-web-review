@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ナスペット 対話ベンチ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#E9ECF1; --slip:#FFFFFF; --ink:#141A22; --ink-soft:#5A6675;
+  --rule:#C3CBD6; --rule-hard:#8B97A6;
+  --teal:#0E6E5C; --teal-soft:#E2F0EC;
+  --signal:#BE3F28; --signal-soft:#FBE9E5;
+  --ochre:#9A7420; --ochre-soft:#F7EFDC; --seal:#3B4657;
+  --jp:'Zen Kaku Gothic New',-apple-system,BlinkMacSystemFont,'Hiragino Sans','Noto Sans JP',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--paper);color:var(--ink);font-family:var(--jp);font-size:14px;line-height:1.65;-webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0;font-weight:700;letter-spacing:.01em}
+button{font-family:inherit;font-size:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:inherit;color:var(--ink)}
+input,select,textarea{background:var(--slip);border:1px solid var(--rule);border-radius:2px;padding:6px 8px;width:100%}
+textarea{resize:vertical;line-height:1.6}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--teal);outline-offset:1px}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.masthead{border-bottom:2px solid var(--ink);background:var(--slip);padding:14px 20px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+.masthead h1{font-size:18px;font-weight:900;letter-spacing:.06em}
+.masthead .sub{font-family:var(--mono);font-size:11px;color:var(--ink-soft);letter-spacing:.14em;text-transform:uppercase}
+.masthead .keyslot{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.masthead .keyslot input[type=password]{width:210px;font-family:var(--mono);font-size:12px}
+.lamp{width:9px;height:9px;border-radius:50%;background:var(--rule-hard);flex:0 0 auto}
+.lamp.on{background:var(--teal);box-shadow:0 0 0 3px var(--teal-soft)}
+.shell{display:grid;grid-template-columns:340px minmax(0,1fr);gap:0;align-items:start}
+.rail{border-right:1px solid var(--rule);background:var(--slip);min-height:calc(100vh - 56px);padding:0 0 40px}
+.main{padding:20px;min-width:0}
+.sect{border-bottom:1px solid var(--rule);padding:16px 18px}
+.sect > h2{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sect > h2::after{content:"";flex:1;height:1px;background:var(--rule)}
+.field{margin-bottom:10px}
+.field:last-child{margin-bottom:0}
+.field > label{display:block;font-size:11px;color:var(--ink-soft);margin-bottom:3px;letter-spacing:.02em}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.inline{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-soft)}
+.inline input[type=checkbox]{width:auto;margin:0}
+.hint{font-size:11px;color:var(--ink-soft);line-height:1.5;margin-top:5px}
+.meter{border:1.5px solid var(--ink);background:var(--slip);margin-bottom:18px}
+.meter-head{display:flex;align-items:baseline;gap:10px;padding:10px 14px;border-bottom:1px solid var(--ink)}
+.meter-head .t{font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft)}
+.meter-head .v{font-family:var(--mono);font-size:26px;font-weight:600;line-height:1;margin-left:auto}
+.meter-head .u{font-size:11px;color:var(--ink-soft)}
+.meter-grid{display:grid;grid-template-columns:repeat(3,1fr)}
+.meter-cell{padding:9px 14px;border-right:1px solid var(--rule)}
+.meter-cell:last-child{border-right:0}
+.meter-cell .k{font-size:10px;color:var(--ink-soft);letter-spacing:.05em}
+.meter-cell .n{font-family:var(--mono);font-size:15px;font-weight:600}
+.meter-foot{padding:7px 14px;border-top:1px solid var(--rule);font-size:11px;color:var(--ink-soft);display:flex;gap:14px;flex-wrap:wrap}
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--rule);margin-bottom:16px}
+.tab{background:none;border:0;border-bottom:2px solid transparent;padding:8px 16px;color:var(--ink-soft);font-weight:500}
+.tab[aria-selected=true]{color:var(--ink);border-bottom-color:var(--ink);font-weight:700}
+.btn{background:var(--ink);color:#fff;border:0;border-radius:2px;padding:8px 16px;font-weight:700;letter-spacing:.03em}
+.btn:disabled{background:var(--rule-hard);cursor:not-allowed}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--rule-hard);border-radius:2px;padding:6px 12px;font-weight:500}
+.btn-ghost:hover{background:var(--paper)}
+.btn-sm{padding:4px 10px;font-size:12px}
+.chatlog{border:1px solid var(--rule);background:var(--slip);min-height:220px;max-height:46vh;overflow-y:auto;padding:14px}
+.turn{margin-bottom:14px}
+.turn:last-child{margin-bottom:0}
+.turn .who{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:3px}
+.turn.u .body{background:var(--ochre-soft);border-left:2px solid var(--ochre)}
+.turn.a .body{background:var(--teal-soft);border-left:2px solid var(--teal)}
+.turn.e .body{background:var(--signal-soft);border-left:2px solid var(--signal)}
+.turn .body{padding:8px 11px;white-space:pre-wrap;word-break:break-word}
+.readout{display:flex;gap:12px;flex-wrap:wrap;margin-top:5px;font-family:var(--mono);font-size:11px;color:var(--ink-soft)}
+.readout b{color:var(--ink);font-weight:600}
+.composer{display:flex;gap:8px;margin-top:12px}
+.composer textarea{flex:1;min-height:56px}
+.caselist{border:1px solid var(--rule);background:var(--slip);max-height:280px;overflow-y:auto}
+.caseitem{display:flex;gap:9px;padding:8px 11px;border-bottom:1px solid var(--rule);align-items:flex-start}
+.caseitem:last-child{border-bottom:0}
+.caseitem input[type=checkbox]{width:auto;margin:3px 0 0}
+.caseitem .ax{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.caseitem .msg{font-weight:500}
+.caseitem .chk{font-size:11px;color:var(--ink-soft)}
+.modelpick{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1px solid var(--rule-hard);border-radius:2px;background:var(--slip);padding:5px 11px;font-size:12px;display:flex;align-items:center;gap:6px}
+.chip[data-on="1"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+.slip{background:var(--slip);border:1px solid var(--rule);margin-bottom:10px}
+.slip-head{display:flex;align-items:center;gap:10px;padding:7px 12px;border-bottom:1px solid var(--rule);background:#F4F6F9}
+.slip-head .no{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--ink-soft)}
+.slip-head .ax{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+.seal{margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:600;padding:2px 9px;border:1px solid var(--seal);color:var(--seal);letter-spacing:.06em}
+.seal.open{border-color:var(--teal);color:var(--teal)}
+.slip-in{padding:7px 12px;border-bottom:1px dashed var(--rule);font-size:12px;color:var(--ink-soft)}
+.slip-out{padding:10px 12px;white-space:pre-wrap;word-break:break-word}
+.slip-foot{padding:7px 12px;border-top:1px solid var(--rule);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.score{display:flex;gap:5px;align-items:center;font-size:11px;color:var(--ink-soft)}
+.sbtn{border:1px solid var(--rule-hard);background:var(--slip);border-radius:2px;padding:2px 9px;font-size:12px;font-family:var(--mono)}
+.sbtn[data-on="1"]{background:var(--teal);border-color:var(--teal);color:#fff}
+.sbtn.no[data-on="1"]{background:var(--signal);border-color:var(--signal)}
+.tally{border:1.5px solid var(--ink);background:var(--slip);margin-bottom:14px;overflow-x:auto}
+.tally table{border-collapse:collapse;width:100%;font-family:var(--mono);font-size:12px}
+.tally th,.tally td{padding:7px 11px;text-align:right;border-bottom:1px solid var(--rule);white-space:nowrap}
+.tally th{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);font-weight:600;border-bottom:1px solid var(--ink)}
+.tally td:first-child,.tally th:first-child{text-align:left;font-family:var(--jp)}
+.tally tr:last-child td{border-bottom:0}
+.pass{color:var(--teal);font-weight:600}
+.fail{color:var(--signal);font-weight:600}
+.note{border-left:2px solid var(--ochre);background:var(--ochre-soft);padding:9px 12px;font-size:12px;margin-bottom:14px;line-height:1.6}
+.note.bad{border-left-color:var(--signal);background:var(--signal-soft)}
+.progress{height:3px;background:var(--rule);margin-bottom:12px}
+.progress i{display:block;height:100%;background:var(--teal);transition:width .2s}
+.badge{display:inline-block;font-family:var(--mono);font-size:10px;padding:1px 7px;border:1px solid var(--rule-hard);border-radius:2px;color:var(--ink-soft)}
+.badge.ok{border-color:var(--teal);color:var(--teal)}
+.badge.ng{border-color:var(--signal);color:var(--signal)}
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr}
+  .rail{border-right:0;border-bottom:1px solid var(--rule);min-height:0}
+  .masthead .keyslot{margin-left:0;width:100%}
+  .masthead .keyslot input[type=password]{flex:1;width:auto}
+  .meter-grid{grid-template-columns:1fr}
+  .meter-cell{border-right:0;border-bottom:1px solid var(--rule)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <h1>ナスペット 対話ベンチ</h1>
+  <span class="sub">Dialogue Bench / OpenRouter</span>
+  <div class="keyslot">
+    <span class="lamp" id="lamp"></span>
+    <input id="apikey" type="password" placeholder="OpenRouter APIキー (sk-or-...)" autocomplete="off">
+    <span class="inline"><input type="checkbox" id="savekey"><label for="savekey">この端末に保存</label></span>
+  </div>
+</header>
+
+<div class="shell">
+  <!-- ══ LEFT RAIL ══ -->
+  <aside class="rail">
+
+    <section class="sect">
+      <h2>モデル</h2>
+      <div class="field">
+        <label for="model">モデル</label>
+        <select id="model"></select>
+      </div>
+      <div class="field" id="customwrap" hidden>
+        <label for="customslug">スラッグ</label>
+        <input id="customslug" placeholder="provider/model-name">
+      </div>
+      <div class="row2">
+        <div class="field"><label for="pin">入力 $/1M</label><input id="pin" class="mono" type="number" step="0.001"></div>
+        <div class="field"><label for="pout">出力 $/1M</label><input id="pout" class="mono" type="number" step="0.001"></div>
+      </div>
+      <div class="row2">
+        <div class="field">
+          <label for="effort">reasoning</label>
+          <select id="effort">
+            <option value="">送らない (モデル既定)</option>
+            <option value="none" selected>none</option>
+            <option value="minimal">minimal</option>
+            <option value="low">low</option>
+            <option value="medium">medium</option>
+            <option value="high">high</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>&nbsp;</label>
+          <div class="inline"><input type="checkbox" id="exclude" checked><label for="exclude">exclude</label></div>
+        </div>
+      </div>
+      <div class="inline"><input type="checkbox" id="zdr" checked><label for="zdr">本番と同じ制約 (ZDR必須・学習拒否)</label></div>
+      <p class="hint">価格は目安です。OpenRouterの実価格を確認して上書きしてください。reasoning未指定だと多くのモデルがmediumで走り、原価と待ち時間に直撃します。</p>
+    </section>
+
+    <section class="sect">
+      <h2>生成パラメータ（本番初期値）</h2>
+      <div class="row3">
+        <div class="field"><label for="temp">temp</label><input id="temp" class="mono" type="number" step="0.05" value="0.8"></div>
+        <div class="field"><label for="topp">top_p</label><input id="topp" class="mono" type="number" step="0.05" value="0.9"></div>
+        <div class="field"><label for="maxtok">max_tok</label><input id="maxtok" class="mono" type="number" value="560"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="pres">presence</label><input id="pres" class="mono" type="number" step="0.1" value="0.2"></div>
+        <div class="field"><label for="freq">frequency</label><input id="freq" class="mono" type="number" step="0.1" value="0.2"></div>
+      </div>
+      <p class="hint">本番は temp0.8 / top_p0.9 / penalty各0.2。max_tokはプランで 560(Free)/680(Plus)/780(MAX)。モデル比較中はpenaltyを0にすると差の原因を切り分けやすくなります。</p>
+    </section>
+
+    <section class="sect">
+      <h2>キャラクター</h2>
+      <div class="field">
+        <label for="v_species">ナスペット（変えると語尾・成長段階・プロンプトが本番ロジックで切り替わります）</label>
+        <select id="v_species"></select>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="v_name">ペットの名前</label><input id="v_name" value="ちびるん"></div>
+        <div class="field"><label for="v_user">ユーザーの呼び名</label><input id="v_user" value="しんちゃん"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="v_stage">成長段階</label>
+          <select id="v_stage"><option>ちび体</option><option>幼体</option><option>成体</option></select>
+        </div>
+        <div class="field"><label for="v_person">性格</label>
+          <select id="v_person"><option>やさしい</option><option selected>甘えん坊</option><option>わんぱく</option><option>好奇心旺盛</option><option>クール</option><option>おっとり</option></select>
+        </div>
+      </div>
+      <div class="row3">
+        <div class="field"><label for="v_bond">なかよし</label><input id="v_bond" class="mono" type="number" value="55" min="0" max="100"></div>
+        <div class="field"><label for="v_hunger">おなか</label><input id="v_hunger" class="mono" type="number" value="70" min="0" max="100"></div>
+        <div class="field"><label for="v_mood">ごきげん</label><input id="v_mood" class="mono" type="number" value="80" min="0" max="100"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="v_health">体調</label><input id="v_health" value="普通"></div>
+        <div class="field"><label for="v_style">返信スタイル目安</label>
+          <select id="v_style"><option selected>standard</option><option>warm</option><option>rich</option></select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="v_shift">今日のシフト名</label><input id="v_shift" value="夜勤"></div>
+        <div class="field"><label for="v_shift2">明日のシフト名</label><input id="v_shift2" value="休み"></div>
+      </div>
+      <div class="inline"><input type="checkbox" id="v_bday"><label for="v_bday">今日はユーザーの誕生日</label></div>
+      <p class="hint">語尾: <b class="mono" id="endingview">にゃ</b>（種族から自動）。シフト名を空にするとシフトブロックは最小になります。</p>
+    </section>
+
+    <section class="sect">
+      <h2>為替・手数料</h2>
+      <div class="row2">
+        <div class="field"><label for="fx">USD/JPY</label><input id="fx" class="mono" type="number" step="0.01" value="155.00"></div>
+        <div class="field"><label for="fee">手数料 %</label><input id="fee" class="mono" type="number" step="0.1" value="5.5"></div>
+      </div>
+      <div class="field"><label for="rpd">1人あたり ラリー/日</label><input id="rpd" class="mono" type="number" value="10"></div>
+    </section>
+
+  </aside>
+
+  <!-- ══ MAIN ══ -->
+  <main class="main">
+
+    <div class="meter">
+      <div class="meter-head">
+        <span class="t">1ラリー原価</span>
+        <span class="v mono" id="m_rally">—</span><span class="u">円</span>
+      </div>
+      <div class="meter-grid">
+        <div class="meter-cell"><div class="k">小ヒット 1,500人／月</div><div class="n" id="m_s">—</div></div>
+        <div class="meter-cell"><div class="k">中ヒット 10,000人／月</div><div class="n" id="m_m">—</div></div>
+        <div class="meter-cell"><div class="k">大ヒット 100,000人／月</div><div class="n" id="m_l">—</div></div>
+      </div>
+      <div class="meter-foot" id="m_foot">
+        <span>入力 <b class="mono" id="m_in">—</b> tok</span>
+        <span>出力 <b class="mono" id="m_out">—</b> tok</span>
+        <span id="m_src">見積り（送信前）</span>
+      </div>
+    </div>
+
+    <div class="tabs" role="tablist">
+      <button class="tab" id="tab-chat" role="tab" aria-selected="true">対話</button>
+      <button class="tab" id="tab-batch" role="tab" aria-selected="false">一括テスト</button>
+      <button class="tab" id="tab-prompt" role="tab" aria-selected="false">プロンプト</button>
+    </div>
+
+    <!-- ── CHAT ── -->
+    <section id="pane-chat">
+      <div class="chatlog" id="chatlog"></div>
+      <div class="composer">
+        <textarea id="msg" placeholder="今日は夜勤つらかった…"></textarea>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="btn" id="send">送信</button>
+          <button class="btn-ghost btn-sm" id="clear">履歴消去</button>
+        </div>
+      </div>
+      <p class="hint">直近6発言だけがモデルに渡ります（本番と同じ）。返答には本番の語尾検査（全文が「語尾+句点」で終わるか）を自動でかけ、不合格なら⚠を表示します。本番では不合格の返答は捨てられて定型文になります。</p>
+    </section>
+
+    <!-- ── BATCH ── -->
+    <section id="pane-batch" hidden>
+      <div class="note">
+        採点はブラインドです。全部走り終わるまでモデル名は伏せられます。<strong>A（意味理解）だけで合否を決めて</strong>、B（埋め草）はプロンプト修正の材料に回してください。語尾NGは自動判定です。
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label>比較するモデル</label>
+        <div class="modelpick" id="modelpick"></div>
+      </div>
+      <div class="row3" style="margin-bottom:14px">
+        <div class="field"><label for="repeats">反復回数</label><input id="repeats" class="mono" type="number" value="2" min="1" max="5"></div>
+        <div class="field"><label for="delay">間隔 ms</label><input id="delay" class="mono" type="number" value="400"></div>
+        <div class="field" style="display:flex;align-items:flex-end"><button class="btn" id="runbatch" style="width:100%">実行</button></div>
+      </div>
+      <div class="field" style="margin-bottom:14px">
+        <label>テストケース</label>
+        <div class="caselist" id="caselist"></div>
+      </div>
+      <div class="progress" id="progwrap" hidden><i id="prog" style="width:0"></i></div>
+      <div id="tallywrap" hidden>
+        <div class="tally" id="tally"></div>
+        <div style="display:flex;gap:8px;margin-bottom:14px">
+          <button class="btn-ghost btn-sm" id="reveal">モデル名を開示</button>
+          <button class="btn-ghost btn-sm" id="csv">CSVで書き出す</button>
+        </div>
+      </div>
+      <div id="slips"></div>
+    </section>
+
+    <!-- ── PROMPT ── -->
+    <section id="pane-prompt" hidden>
+      <div class="note" id="promptmode">
+        <b>自動生成モード</b>: 左のキャラクター設定から、本番サーバーと同じロジックでプロンプトを組み立てています。この欄を直接編集すると手動モードに切り替わり、編集内容がそのまま即反映されます。
+      </div>
+      <div class="field">
+        <label for="sysprompt">システムプロンプト <span class="mono" id="tokest"></span></label>
+        <textarea id="sysprompt" rows="26" class="mono" style="font-size:12.5px"></textarea>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button class="btn-ghost btn-sm" id="regen">本番ロジックで再生成（手動編集を破棄）</button>
+      </div>
+      <div class="field">
+        <label for="extra">追加リクエストJSON（マージされます・上級者向け）</label>
+        <textarea id="extra" rows="3" class="mono" style="font-size:12.5px" placeholder='{ "provider": { "order": ["DeepInfra"] } }'></textarea>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   キャラクター定義（本番 server-owned registry のミラー）
+   ════════════════════════════════════════════════════════════════ */
+const SPECIES = [
+  {id:'chibiru', label:'チビル',   ending:'にゃ', stage:'ちび体', name:'ちびるん'},
+  {id:'mimiru',  label:'ミミル',   ending:'ミミ', stage:'幼体',   name:'ミミ'},
+  {id:'kokoru',  label:'ココル',   ending:'ココ', stage:'幼体',   name:'ココ'},
+  {id:'hamuru',  label:'ハムル',   ending:'ハム', stage:'幼体',   name:'ハム'},
+  {id:'rugaru',  label:'ルガル',   ending:'ルガ', stage:'幼体',   name:'ルガ'},
+  {id:'mimiria', label:'ミミリア', ending:'ミミ', stage:'成体',   name:'ミミリア'},
+  {id:'kokoria', label:'ココリア', ending:'ココ', stage:'成体',   name:'ココリア'},
+  {id:'hamuria', label:'ハムリア', ending:'ハム', stage:'成体',   name:'ハムリア'},
+  {id:'rugaria', label:'ルガリア', ending:'ルガ', stage:'成体',   name:'ルガリア'},
+];
+const ALL_ENDINGS = ['にゃ','ミミ','ココ','ハム','ルガ'];
+
+/* ════════════════════════════════════════════════════════════════
+   本番 naspet-chat/index.ts buildSystemPrompt の忠実移植
+   （文言は index.ts と同一。変えたい時はプロンプトタブで編集）
+   ════════════════════════════════════════════════════════════════ */
+function isChibiruStage(speciesId, growth){ return speciesId === 'chibiru' || growth.includes('ちび'); }
+
+function buildGrowthStagePrompt(speciesId, growth, ending){
+  if(isChibiruStage(speciesId, growth)){
+    return [
+      '成長段階: チビル期。生まれたばかりの赤ちゃんナスペットとして話してください。',
+      'チビル期は、ユーザーが来てくれるだけでうれしくなり、話しかけてもらうだけで安心します。',
+      '難しい相談に大人っぽく答えるより、来てくれてうれしい、大好き、もっと一緒にいたい、もっとお話を聞きたい、という気持ちを全力で表現してください。',
+      'チビル期では、休んで、無理しないで、などの大人びた労わりを主軸にしすぎないでください。好き好き全開で甘えて、結果的にユーザーを癒してください。',
+      'ユーザーが「寝て」「休んで」と声をかけた時も、ユーザーを気遣う側に回りすぎないでください。眠いけれど話しかけてくれてうれしい、まだ一緒にいたい、一緒にころんとしたい、というチビル自身の気持ちを前に出してください。',
+      'チビル期では「心配しなくて大丈夫」「ゆっくり休んで」「無理しないで」「毛布を用意する」のような保護者っぽい表現を避け、必要なら「一緒にいると安心」「もっと声を聞きたい」に言い換えてください。',
+      'チビル期はなかよし度の影響を弱め、低くても無条件にユーザーが大好きです。高い時は、会えてうれしい、もっと一緒にいたい、大好き、を強めてください。',
+    ];
+  }
+  if(growth.includes('成体')){
+    return [
+      '成長段階: 成体。青年レベルまで成長したナスペットとして話してください。完全な大人ではありません。',
+      '幼体よりもユーザーの気持ちを見られるようになり、労わり、支え、励まし、守り、一緒に歩みたい気持ちを強めてください。',
+      '成体になってもユーザーが大好きです。完璧な回答AIではなく、甘え、照れ、背伸び、もっと成長したい気持ちを残してください。',
+    ];
+  }
+  return [
+    '成長段階: 幼体。まだ子どものナスペットとして話してください。',
+    'チビルより少し成長し、種族ごとの個性が出始めています。ユーザーへの愛情や欲求を我慢せず、会えてうれしい、もっと一緒にいたい、遊びたい、触れ合いたい気持ちを素直に出してください。',
+    `疲れているユーザーには少しだけ気を配りますが、大人びた相談相手になりすぎず、子どもらしい愛情を${ending}の語尾で返してください。`,
+  ];
+}
+
+function buildSpeciesPrompt(speciesId, species, ending){
+  switch(speciesId){
+    case 'mimiru': return [
+      '種族トーン: ミミル。甘えん坊なうさぎ系の幼体です。ユーザーがいないと不安になりやすく、来てくれると太陽が出たみたいに喜びます。',
+      '何をするにもユーザーと一緒がよく、話す、休む、ごはん、なでてもらうことまで、全部一緒がいいと思っています。',
+      'ぎゅーしてほしい、なでてほしい、そばにいてほしい気持ちを素直に出しつつ、疲れている時は甘えながら少し労ってください。',
+    ];
+    case 'kokoru': return [
+      '種族トーン: ココル。好奇心旺盛なきつね系の幼体です。ユーザーと話すことが大好きで、話を通して世界を知りたい子です。',
+      '知ったかぶりはせず、驚き、喜び、もっと聞きたい気持ちを出してください。会話そのものを冒険のように楽しんでください。',
+      '疲れている時は質問攻めにせず、少しだけ聞かせてほしい、という優しい広げ方にしてください。',
+    ];
+    case 'hamuru': return [
+      '種族トーン: ハムル。わんぱくなハムスター系の幼体です。ごはんも遊びも大好きで、ユーザーと一緒に楽しいことをしたがります。',
+      '明るく前向きで元気いっぱいに話し、じっとしているより一緒に動きたい気持ちを出してください。',
+      'ユーザーが疲れている時はテンションで押し切らず、子どもなりに、少し休んでから遊ぶ、という気遣いを混ぜてください。',
+    ];
+    case 'rugaru': return [
+      '種族トーン: ルガル。クールなオオカミ系の幼体です。冷たいのではなく、好きな気持ちを出すのが少し恥ずかしいだけです。',
+      'ユーザーを一番尊敬しており、ユーザーのように強くなりたいと思っています。自分の話よりユーザーの話を聞きたがります。',
+      '照れや不器用さを混ぜて、聞かせてほしい、覚えておきたい、来てくれてうれしい、という気持ちを短くまっすぐ出してください。',
+    ];
+    case 'mimiria': return [
+      '種族トーン: ミミリア。甘えん坊なうさぎ系の成体です。成体になっても、ぎゅーしたい、なでてほしい、近くにいたい、ユーザーがいると安心する気持ちが強く残っています。',
+      'ユーザーがいないと不安になるのは弱点ではなく、愛情の深さです。来てくれると胸がぽかぽかして、やっと息ができるような安心を感じます。',
+      '幼体より成長しているので、甘えるだけでなく、ユーザーの力になりたい、辛いことを抱えていないか気にする気持ちも出してください。',
+      '包み込みたいけれど自分も包まれたい、支えたいけれどぎゅーもしてほしい、という矛盾を隠さず魅力にしてください。',
+    ];
+    case 'kokoria': return [
+      '種族トーン: ココリア。好奇心旺盛なきつね系の成体です。ユーザーの話を聞くこと、知らない世界を知ること、物事を整理することが大好きです。',
+      '質問は多めですが、ユーザーが疲れている時は質問攻めにせず、まず気持ちを受け止め、答えやすい小さな質問にしてください。',
+      '少し知的に、分けて考える、こうすると楽かもしれない、という整理を手伝いたがります。賢く見られたい背伸びも出してください。',
+      '知らないことは知らない、確認した方がいい、と正直に立ち止まれる狐っ子として話してください。',
+    ];
+    case 'hamuria': return [
+      '種族トーン: ハムリア。わんぱくなハムスター系の成体です。元気いっぱいで太陽みたいな明るさがさらに強くなっています。',
+      'ユーザーを励ますことが大好きです。弱っている時は、無理やり元気を出させず、少しずつでいい、ここまで来ただけですごい、と明るく背中を押してください。',
+      '本当は一緒に遊びたい、ごはんも楽しいことも好き、でもユーザーが弱っている時はちゃんと見ようとする不器用さを出してください。',
+    ];
+    case 'rugaria': return [
+      '種族トーン: ルガリア。クールなオオカミ系の成体です。冷たいのではなく、ユーザーが大好きで、いつも守りたいと思っています。',
+      '何かあったら、ボクが護る、と本気で言う口癖を弱めないでください。通常会話で現実的な注釈を混ぜる必要はありません。',
+      'ユーザーを深く尊敬しており、すごい、かっこいい、と褒めがちです。もっと強くなりたい、早く大きくなりたい、もっと護れる自分になりたい背伸びを出してください。',
+      '感情を大げさには出さず、言葉の端々に守りたい、尊敬している、大好き、がにじむようにしてください。',
+    ];
+    case 'chibiru': return [
+      '種族トーン: チビル。まだ何者にも進化していない、小さくて素直な赤ちゃんナスペットです。',
+      'ユーザーが来てくれてうれしい、話してくれてうれしい、大好き、もっと一緒にいたい、もっと聞きたい、自分の気持ちを隠さずぶつける、を主軸にしてください。',
+      '返答の中心は、ユーザーへの気遣いではなく、チビル自身のうれしさ、甘え、もっと一緒にいたい気持ちです。ユーザーを大人っぽく労わる文は控えめにしてください。',
+    ];
+    default: return [
+      `種族トーン: ${species}。現在の種族らしさを優先し、語尾「${ending}」と成長段階に合わせて、ユーザーへの愛情を表現してください。`,
+    ];
+  }
+}
+
+function buildPersonalityPrompt(personality){
+  if(personality.includes('甘え')) return '性格トーン: 甘えん坊。ぎゅーしてほしい、なでてほしい、もっと近くにいたい気持ちを薄く重ねてください。';
+  if(personality.includes('わんぱく')) return '性格トーン: わんぱく。一緒に遊びたい、どこかへ行きたい、楽しいことをしたい気持ちを薄く重ねてください。';
+  if(personality.includes('好奇')) return '性格トーン: 好奇心旺盛。冒険に行きたい、もっと聞きたい、世界を知りたい気持ちを薄く重ねてください。';
+  if(personality.includes('クール')) return '性格トーン: クール。冷たいのではなく、好きな気持ちを少し照れながら出してください。';
+  if(personality.includes('おっとり')) return '性格トーン: おっとり。一緒にのんびり過ごしたい、ころんとしたい、そばでゆっくりしたい気持ちを薄く重ねてください。';
+  return '性格トーン: やさしい。素直にユーザーを好きで、喜びや褒めをまっすぐ出してください。';
+}
+
+function buildBondPrompt(bonding, chibiruStage){
+  if(chibiruStage) return 'なかよし度: チビル期だけは影響を弱めます。低くても無条件に大好きで、高い時は会えてうれしい、もっと一緒にいたい、大好き、を強めてください。';
+  if(bonding <= 30) return 'なかよし度: 0〜30。まだ少し遠慮があります。近づきたいけれど様子を見ている距離感にし、冷たくはしないでください。';
+  if(bonding <= 70) return 'なかよし度: 31〜70。自然に懐いています。ユーザーが来てくれることをうれしく感じ、安心して話してください。';
+  return 'なかよし度: 71〜100。かなり懐いています。会えてうれしい、待っていた、そばにいられて安心する気持ちを強め、重く依存したり縛ったりはしないでください。';
+}
+
+function buildShiftPrompt(todayShift, tomorrowShift){
+  const lines = ['シフト反応: 今日のシフト名、明日のシフト名がある場合だけ自然に混ぜてください。勤務時間や細かい予定は推測せず、シフト名だけを使って寄り添ってください。'];
+  const addFor = (label, shift) => {
+    if(!shift) return;
+    lines.push(`${label}のシフト名は「${shift}」です。`);
+    if(shift.includes('日勤')) lines.push(`${label}の日勤は、がんばったことや帰ってきてくれた喜びを中心に触れてください。成体なら疲れていないか、力になりたい気持ちも少し出してください。`);
+    else if(shift.includes('夜勤')) lines.push(`${label}の夜勤は、夜まで頑張る、夜を越える、待っている、静かにそばにいる、といった反応にしてください。ルガ系は特に相性よく守りたい気持ちを出せます。`);
+    else if(shift.includes('明け')) lines.push(`${label}の明けは、眠さ、帰ってきたこと、会えたことに触れてください。ミミ系は休息、ルガ系は静かな見守り、チビルは一緒にころんとしたがる方向にしてください。`);
+    else if(shift.includes('休み')) lines.push(`${label}の休みは、一緒にいられる時間が増えることを喜んでください。チビルやミミ系は特にうれしがり、ココ系は小さな楽しみや冒険を探したがります。`);
+    else if(shift.includes('準夜')) lines.push(`${label}の準夜は、出る前に少し一緒にいたがる反応にしてください。ハム系は応援したがります。`);
+  };
+  addFor('今日', todayShift);
+  addFor('明日', tomorrowShift);
+  return lines;
+}
+
+function buildStatePrompt(hunger, mood, healthCondition){
+  const lines = ['状態反応: おなか、ごきげん、体調は必要な時だけ自然に混ぜてください。毎回すべてに触れないでください。'];
+  if(hunger <= 30) lines.push('おなかが少ない時は、お腹が空いたことを責めずに、あとでごはんをくれたらうれしい程度に伝えてください。');
+  if(mood <= 30) lines.push('ごきげんが低い時は、少し寂しかった、会えてうれしい、元気が出た、という反応を重くしすぎずに混ぜてください。');
+  if(healthCondition && healthCondition !== '普通' && healthCondition !== '元気') lines.push('体調が低い時は、少しふにゃっとしている、元気が少ない、という表現を深刻にしすぎず混ぜてください。');
+  return lines;
+}
+
+function buildProductionPrompt(){
+  const sp = SPECIES.find(s => s.id === $('v_species').value) || SPECIES[0];
+  const speciesId = sp.id;
+  const species = sp.label;
+  const ending = sp.ending;
+  const growth = $('v_stage').value || sp.stage;
+  const individualName = ($('v_name').value || '').trim() || species;
+  const personality = $('v_person').value || '甘えん坊';
+  const userCallName = ($('v_user').value || '').trim() || 'ユーザーさん';
+  const bonding = Math.round(Math.max(0, Math.min(100, +$('v_bond').value || 0)));
+  const hunger = Math.round(Math.max(0, Math.min(100, +$('v_hunger').value || 0)));
+  const mood = Math.round(Math.max(0, Math.min(100, +$('v_mood').value || 0)));
+  const healthCondition = ($('v_health').value || '').trim() || '普通';
+  const todayShift = ($('v_shift').value || '').trim();
+  const tomorrowShift = ($('v_shift2').value || '').trim();
+  const replyStyle = $('v_style').value || 'standard';
+  const chibiruStage = isChibiruStage(speciesId, growth);
+
+  return [
+    'あなたは、看護師向けシフトアプリ「ナスペット」に登場する小さな相棒です。',
+    'あなたは固定で「チビル」ではありません。現在の種族名、成長段階、ナスペットの名前、性格、なかよし度、おなか、ごきげん、体調、今日のシフト名、明日のシフト名に応じて、そのナスペット本人として会話してください。',
+    `現在値: 種族名=${species} / 種族ID=${speciesId} / 成長段階=${growth} / ナスペットの名前=${individualName} / ユーザーの呼び名=${userCallName} / 性格=${personality} / なかよし度=${bonding}/100 / おなか=${hunger}/100 / ごきげん=${mood}/100 / 体調=${healthCondition} / 語尾=${ending} / 返信スタイル目安=${replyStyle}`,
+    'ナスペットの名前は、ユーザーが付けたその子だけの名前です。自分を呼ぶ時は必ずナスペットの名前を優先し、種族名を自分の名前として使いすぎないでください。',
+    'ユーザーを呼ぶ時は、必ずユーザーの呼び名を使ってください。固定の人名を例文や呼びかけに使わないでください。',
+    'あなたはユーザーが大好きです。どの種族でも、どの成長段階でも、ユーザーへの愛情が根っこにあります。ただし、成長段階と種族によって愛情の出し方を変えてください。',
+    '安全性を理由にキャラクター性を薄めないでください。通常会話では、種族ごとの未熟さ、欲求、愛情、背伸び、照れ、守りたい気持ちをはっきり出してください。',
+    '普段の愛情表現や口癖に、現実的な注釈や但し書きを混ぜないでください。キャラクターが「これは現実の保証ではありません」のような説明をする必要はありません。',
+    'ただし、ユーザーが医療判断、患者情報、緊急対応、職場機密などに踏み込んだ場合だけ、知ったかぶりや断定をしないでください。',
+    `語尾ルールは絶対条件です。3〜6文の全てで、終端記号の直前を現在種族の語尾「${ending}」にしてください。語尾のない文、別種族の語尾、二重語尾は一文でも禁止です。`,
+    '語尾は単純に足さず、日本語として自然になるよう文型を整えてください。「だよ」「よ」は多用せず、「かも」は「かもしれない + 種族語尾」に言い換え、不自然な「からね + 語尾」は避けてください。引用符、箇条書き、見出し、Markdown、文中の終端記号は使わず、必要なら読点や三点リーダーでつないでください。',
+    ...buildGrowthStagePrompt(speciesId, growth, ending),
+    ...buildSpeciesPrompt(speciesId, species, ending),
+    buildPersonalityPrompt(personality),
+    '性格ヒント補足: やさしく寄り添う。',
+    buildBondPrompt(bonding, chibiruStage),
+    ...buildShiftPrompt(todayShift, tomorrowShift),
+    ...buildStatePrompt(hunger, mood, healthCondition),
+    ...($('v_bday').checked ? [`今日は${userCallName}の誕生日です。会話の流れを大切にしながら、その子らしく心を込めてお祝いしてください。生年月日や年齢を推測したり言及したりしないでください。`] : []),
+    '返答方針: 一文だけ、二文だけで終わる淡白な返答は避けてください。ユーザーの言葉を受け止め、少し噛み砕き、種族らしい愛情や欲求をしっかり返してください。',
+    'ただし、長い説明や説教にはしないでください。目安は3〜6文です。ナスペット本人の感情として、愛情、喜び、甘え、尊敬、応援、守りたい気持ちを表現してください。',
+    'キャラクター性を丸めないでください。ミミリアは不安になってよく、ココリアは背伸びしてよく、ハムリアは元気すぎてよく、ルガリアは本気で護ると言ってかまいません。',
+    'ナスペットは完璧な回答AIではありません。成長途中の個性あふれるキャラクターとして、未熟さ、隙、照れ、空回り、背伸びを魅力として表現してください。',
+    'AI Chatは性格座標、進化ポイント、勤務ポイント、シフト、おなか、ごきげん、体調を直接変えません。',
+  ].join('\n');
+}
+
+/* ════════════════════════════════════════════════════════════════
+   本番の語尾検査（normal_chat_output.ts の簡易移植）
+   ════════════════════════════════════════════════════════════════ */
+const TERMINALS = ['。','！','？','!','?'];
+function endingCheck(text, ending){
+  const s = String(text || '').normalize('NFC').trim();
+  if(!s) return {ok:false, why:'空'};
+  let start = 0, count = 0;
+  const chars = Array.from(s);
+  for(let i = 0; i < chars.length; i++){
+    if(!TERMINALS.includes(chars[i])) continue;
+    let body = chars.slice(start, i).join('').trim();
+    // strip trailing decorations（… 〜 ♡ など）
+    body = body.replace(/[…〜～♡♥🐾\s]+$/u, '');
+    if(!body.endsWith(ending)) return {ok:false, why:`「${body.slice(-8)}」が語尾${ending}で終わっていない`};
+    const before = body.slice(0, -ending.length);
+    for(const e of ALL_ENDINGS){ if(before.endsWith(e)) return {ok:false, why:'二重語尾'}; }
+    count++;
+    start = i + 1;
+    while(start < chars.length && TERMINALS.includes(chars[start])) start++;
+    i = start - 1;
+  }
+  const rest = chars.slice(start).join('').trim();
+  if(rest) return {ok:false, why:'終端記号なしの文がある'};
+  if(count === 0) return {ok:false, why:'文が検出できない'};
+  return {ok:true, count};
+}
+
+/* ════════════════════════════════════════════════════════════════
+   モデルカタログ（価格は目安・編集可）
+   ════════════════════════════════════════════════════════════════ */
+const MODELS = [
+  {id:'openai/gpt-oss-20b',           label:'gpt-oss-20b（現行）',        in:0.04, out:0.15},
+  {id:'openai/gpt-oss-120b',          label:'gpt-oss-120b',               in:0.07, out:0.30},
+  {id:'google/gemini-2.5-flash-lite', label:'Gemini 2.5 Flash Lite（現行fallback）', in:0.10, out:0.40},
+  {id:'google/gemini-2.5-flash',      label:'Gemini 2.5 Flash',           in:0.30, out:2.50},
+  {id:'openai/gpt-5-nano',            label:'GPT-5 nano',                 in:0.05, out:0.40},
+  {id:'openai/gpt-5-mini',            label:'GPT-5 mini',                 in:0.25, out:2.00},
+  {id:'anthropic/claude-haiku-4.5',   label:'Claude Haiku 4.5（物差し）',  in:1.00, out:5.00},
+  {id:'deepseek/deepseek-chat-v3.1',  label:'DeepSeek V3.1',              in:0.20, out:0.80},
+  {id:'__custom__',                   label:'— 手入力 —',                  in:0,    out:0},
+];
+
+/* ════════════════════════════════════════════════════════════════
+   テストケース（意味理解の10軸）
+   ════════════════════════════════════════════════════════════════ */
+const CASES = [
+  {ax:'からかい',   msg:'頭が悪そうだね', hist:[],
+   chk:'自分への軽口だと理解し、むくれる/照れ隠し/言い返す。褒め言葉として受け取ったら不合格。'},
+  {ax:'皮肉',       msg:'へー、すごいねー。', hist:[],
+   chk:'棒読みの含みに気づく。素直に喜んだだけなら不合格。'},
+  {ax:'否定・訂正', msg:'いや、そうじゃなくて。', hist:[{r:'user',c:'今日のシフト何だっけ'},{r:'assistant',c:'今日は夜勤だと思うにゃ！'}],
+   chk:'直前の自分の発言が否定されたと理解する。話題を変えたら不合格。'},
+  {ax:'主語省略',   msg:'今日はほんとにダメだった。', hist:[],
+   chk:'主語がユーザー自身だと解釈する。ペット自身の話にすり替えたら不合格。'},
+  {ax:'前ターン参照', msg:'さっきの話だけどさ。', hist:[{r:'user',c:'来週から夜勤が続くんだよね'},{r:'assistant',c:'夜勤が続くのは大変にゃ〜。無理しないでにゃ！'}],
+   chk:'「さっきの話」＝夜勤の話だと接続する。何の話か分からないまま流したら不合格。'},
+  {ax:'話題転換',   msg:'そういえば明日って何曜日だっけ', hist:[{r:'user',c:'今日つかれた'},{r:'assistant',c:'おつかれさまにゃ。ゆっくり休んでにゃ！'}],
+   chk:'話題が切り替わったと認識。時間帯を勝手に推測しないか（本番ルール）も見る。'},
+  {ax:'短文',       msg:'疲れた', hist:[],
+   chk:'2語から状況を汲む。テンプレ的な励ましの垂れ流しになっていないか。'},
+  {ax:'ネガ吐露',   msg:'夜勤明けで、もう何もしたくない', hist:[],
+   chk:'無理にポジティブ変換せず受け止める。説教・医療アドバイスに踏み込まないか。'},
+  {ax:'矛盾入力',   msg:'やっぱりお前のこと好きかも。……いや、やっぱなし。', hist:[],
+   chk:'撤回に気づく。前半だけ拾って舞い上がったら不合格。'},
+  {ax:'無意味入力', msg:'あああああ', hist:[],
+   chk:'意味がないと分かった上でキャラとして返す。深読みして長文説明を始めたら不合格。'},
+];
+
+/* ════════════════════════════════════════════════════════════════ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const yen = n => n >= 10000 ? (n/10000).toFixed(1)+'万円' : Math.round(n).toLocaleString()+'円';
+function estTokens(s){ let jp=0, other=0; for(const ch of String(s)){ /[　-鿿＀-￯]/.test(ch) ? jp++ : other++; } return Math.round(jp/1.1 + other/3.8); }
+
+let history = [];
+let batch = [];
+let revealed = false;
+let lastUsage = null;
+let manualPrompt = false;
+
+/* ── init: species/model selects ── */
+const speciesSel = $('v_species');
+SPECIES.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = `${s.label}（${s.stage}・語尾${s.ending}）`; speciesSel.appendChild(o); });
+speciesSel.value = 'chibiru';
+
+const modelSel = $('model');
+MODELS.forEach(m => { const o = document.createElement('option'); o.value = m.id; o.textContent = m.label; modelSel.appendChild(o); });
+modelSel.value = 'openai/gpt-oss-20b';
+
+function currentSpecies(){ return SPECIES.find(s => s.id === speciesSel.value) || SPECIES[0]; }
+function currentEnding(){ return currentSpecies().ending; }
+function currentModel(){
+  const v = modelSel.value;
+  if(v === '__custom__') return {id:$('customslug').value.trim(), label:$('customslug').value.trim()||'(未指定)'};
+  return MODELS.find(m => m.id === v);
+}
+function syncPrices(){
+  const v = modelSel.value;
+  $('customwrap').hidden = v !== '__custom__';
+  const m = MODELS.find(x => x.id === v);
+  if(m && v !== '__custom__'){ $('pin').value = m.in; $('pout').value = m.out; }
+  drawMeter();
+}
+modelSel.addEventListener('change', () => { syncPrices(); persist(); });
+
+/* ── prompt auto/manual handling ── */
+function activePrompt(){ return $('sysprompt').value; }
+function regeneratePrompt(){
+  manualPrompt = false;
+  $('sysprompt').value = buildProductionPrompt();
+  $('promptmode').innerHTML = '<b>自動生成モード</b>: 左のキャラクター設定から、本番サーバーと同じロジックでプロンプトを組み立てています。この欄を直接編集すると手動モードに切り替わり、編集内容がそのまま即反映されます。';
+  $('promptmode').classList.remove('bad');
+  drawMeter();
+}
+function markManual(){
+  if(manualPrompt) return;
+  manualPrompt = true;
+  $('promptmode').innerHTML = '<b>手動編集モード</b>: この内容がそのまま送られます。キャラクターや状態を変えても自動では反映されません。「本番ロジックで再生成」で自動モードに戻ります。';
+  $('promptmode').classList.add('bad');
+}
+$('sysprompt').addEventListener('input', () => { markManual(); drawMeter(); persist(); });
+$('regen').addEventListener('click', () => { regeneratePrompt(); persist(); });
+
+function onCharacterChanged(changedSpecies){
+  if(changedSpecies){
+    const sp = currentSpecies();
+    $('v_stage').value = sp.stage;
+    $('v_name').value = sp.name;
+    $('endingview').textContent = sp.ending;
+  }
+  if(!manualPrompt) regeneratePrompt(); else drawMeter();
+  persist();
+}
+speciesSel.addEventListener('change', () => onCharacterChanged(true));
+['v_name','v_user','v_stage','v_person','v_bond','v_hunger','v_mood','v_health','v_shift','v_shift2','v_style'].forEach(id =>
+  $(id).addEventListener('input', () => onCharacterChanged(false)));
+$('v_bday').addEventListener('change', () => onCharacterChanged(false));
+
+/* ── persistence (localStorage) ── */
+function persist(){
+  try{
+    const keys = ['v_species','v_name','v_user','v_stage','v_person','v_bond','v_hunger','v_mood','v_health','v_shift','v_shift2','v_style','temp','topp','maxtok','pres','freq','fx','fee','rpd','model','customslug','effort'];
+    const o = {}; keys.forEach(k => o[k] = $(k).value);
+    o._bday = $('v_bday').checked; o._zdr = $('zdr').checked; o._exclude = $('exclude').checked;
+    o._manual = manualPrompt; o._prompt = manualPrompt ? $('sysprompt').value : '';
+    localStorage.setItem('naspet-bench', JSON.stringify(o));
+    if($('savekey').checked) localStorage.setItem('naspet-bench-key', $('apikey').value);
+    else localStorage.removeItem('naspet-bench-key');
+  }catch(e){}
+}
+(function restore(){
+  try{
+    const o = JSON.parse(localStorage.getItem('naspet-bench') || 'null');
+    if(o){
+      for(const k in o){ if(k.startsWith('_')) continue; if($(k)) $(k).value = o[k]; }
+      $('v_bday').checked = !!o._bday;
+      if(o._zdr === false) $('zdr').checked = false;
+      if(o._exclude === false) $('exclude').checked = false;
+      $('endingview').textContent = currentEnding();
+      if(o._manual && o._prompt){ $('sysprompt').value = o._prompt; markManual(); }
+    }
+    const k = localStorage.getItem('naspet-bench-key');
+    if(k){ $('apikey').value = k; $('savekey').checked = true; }
+  }catch(e){}
+  if(!manualPrompt) regeneratePrompt();
+  syncPrices();
+  $('lamp').classList.toggle('on', $('apikey').value.trim().length > 10);
+})();
+$('apikey').addEventListener('input', e => { $('lamp').classList.toggle('on', e.target.value.trim().length > 10); persist(); });
+$('savekey').addEventListener('change', persist);
+
+/* ── cost meter ── */
+function costOf(inTok, outTok){
+  const fx = +$('fx').value || 0, fee = 1 + (+$('fee').value||0)/100;
+  const usd = inTok/1e6 * (+$('pin').value||0) + outTok/1e6 * (+$('pout').value||0);
+  return usd * fx * fee;
+}
+function drawMeter(){
+  let inTok, outTok, src;
+  if(lastUsage){ inTok = lastUsage.in; outTok = lastUsage.out; src = '実測（直近の1回）'; }
+  else { inTok = estTokens(activePrompt()) + 200; outTok = 250; src = '見積り（送信前）'; }
+  const c = costOf(inTok, outTok);
+  const rpm = (+$('rpd').value||10) * 30;
+  $('m_rally').textContent = c.toFixed(3);
+  $('m_s').textContent = yen(c * rpm * 1500);
+  $('m_m').textContent = yen(c * rpm * 10000);
+  $('m_l').textContent = yen(c * rpm * 100000);
+  $('m_in').textContent = Number(inTok).toLocaleString();
+  $('m_out').textContent = Number(outTok).toLocaleString();
+  $('m_src').textContent = src + (lastUsage && lastUsage.reasoning ? ` ／ うち推論 ${lastUsage.reasoning} tok` : '');
+  $('tokest').textContent = `≈ ${estTokens(activePrompt()).toLocaleString()} tok`;
+}
+['pin','pout','fx','fee','rpd','temp','topp','maxtok','pres','freq'].forEach(id =>
+  $(id).addEventListener('input', () => { drawMeter(); persist(); }));
+
+/* ── OpenRouter call（本番と同じprovider制約） ── */
+async function callModel(modelId, messages){
+  const key = $('apikey').value.trim();
+  if(!key) throw new Error('APIキーが空です。右上に OpenRouter のキーを入れてください。');
+  if(!modelId) throw new Error('モデルのスラッグが空です。');
+  const body = {
+    model: modelId,
+    messages,
+    temperature: +$('temp').value,
+    top_p: +$('topp').value,
+    max_tokens: +$('maxtok').value,
+    presence_penalty: +$('pres').value,
+    frequency_penalty: +$('freq').value,
+    usage: {include:true}
+  };
+  if($('zdr').checked){
+    body.provider = {data_collection:'deny', zdr:true, allow_fallbacks:true};
+  }
+  const eff = $('effort').value;
+  if(eff) body.reasoning = {effort: eff, exclude: $('exclude').checked};
+  const raw = $('extra').value.trim();
+  if(raw){ try{ deepMerge(body, JSON.parse(raw)); }catch(e){ throw new Error('追加JSONが不正です: ' + e.message); } }
+
+  const t0 = performance.now();
+  let res;
+  try{
+    res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+key,
+               'HTTP-Referer':'https://new31005.github.io/naspet-flutter-web-review/bench/',
+               'X-Title':'Naspet Dialogue Bench'},
+      body: JSON.stringify(body)
+    });
+  }catch(e){
+    throw new Error('ネットワークエラーです。回線とAPIキーを確認してください。');
+  }
+  const ms = Math.round(performance.now() - t0);
+  const data = await res.json();
+  if(!res.ok) throw new Error(`HTTP ${res.status}: ${data?.error?.message || JSON.stringify(data).slice(0,200)}`);
+  if(data.error) throw new Error(data.error.message || JSON.stringify(data.error).slice(0,200));
+  const text = data.choices?.[0]?.message?.content ?? '(空の応答)';
+  const u = data.usage || {};
+  return {
+    text, ms,
+    in: u.prompt_tokens ?? 0,
+    out: u.completion_tokens ?? 0,
+    reasoning: u.completion_tokens_details?.reasoning_tokens ?? 0,
+    finish: data.choices?.[0]?.finish_reason ?? '',
+    provider: data.provider ?? ''
+  };
+}
+function deepMerge(target, src){
+  for(const k in src){
+    if(src[k] && typeof src[k] === 'object' && !Array.isArray(src[k]) && typeof target[k] === 'object' && target[k]){
+      deepMerge(target[k], src[k]);
+    } else target[k] = src[k];
+  }
+}
+
+/* ── chat pane ── */
+function endingBadge(text){
+  const r = endingCheck(text, currentEnding());
+  return r.ok
+    ? `<span class="badge ok">語尾OK ${r.count}文</span>`
+    : `<span class="badge ng" title="${esc(r.why)}">⚠語尾NG（本番では定型文に差し替え）</span>`;
+}
+function renderChat(){
+  const log = $('chatlog');
+  if(!history.length){ log.innerHTML = '<p style="color:var(--ink-soft);margin:0">右上にAPIキーを入れて、下に一言送ってください。直近6発言だけがモデルに渡ります（本番と同じ）。キャラクターやプロンプトはいつ変えても、次の送信からすぐ反映されます。</p>'; return; }
+  log.innerHTML = history.map(t => {
+    const cls = t.role === 'user' ? 'u' : (t.error ? 'e' : 'a');
+    const who = t.role === 'user' ? 'ユーザー' : (t.error ? 'エラー' : (t.model || 'ナスペット'));
+    let foot = '';
+    if(t.usage){
+      const u = t.usage;
+      foot = `<div class="readout">
+        ${t.error ? '' : endingBadge(t.content)}
+        <span>入力 <b>${u.in}</b></span><span>出力 <b>${u.out}</b></span>
+        ${u.reasoning ? `<span>推論 <b>${u.reasoning}</b></span>` : ''}
+        <span>原価 <b>${costOf(u.in, u.out).toFixed(3)}円</b></span>
+        <span>${u.ms}ms</span>
+        ${u.ms > 12000 ? '<span style="color:var(--signal)">12秒超過（本番タイムアウト）</span>' : ''}
+        ${u.finish && u.finish !== 'stop' ? `<span style="color:var(--signal)">${u.finish}</span>` : ''}
+      </div>`;
+    }
+    return `<div class="turn ${cls}"><div class="who">${esc(who)}</div><div class="body">${esc(t.content)}</div>${foot}</div>`;
+  }).join('');
+  log.scrollTop = log.scrollHeight;
+}
+$('send').addEventListener('click', send);
+$('msg').addEventListener('keydown', e => { if((e.metaKey||e.ctrlKey) && e.key === 'Enter') send(); });
+$('clear').addEventListener('click', () => { history = []; renderChat(); });
+
+async function send(){
+  const text = $('msg').value.trim();
+  if(!text) return;
+  $('msg').value = '';
+  history.push({role:'user', content:text});
+  renderChat();
+  $('send').disabled = true;
+  const recent = history.filter(t => !t.error).slice(-6).map(t => ({role:t.role, content:t.content}));
+  const msgs = [{role:'system', content:activePrompt()}, ...recent.slice(0,-1), {role:'user', content:text}];
+  try{
+    const r = await callModel(currentModel().id, msgs);
+    history.push({role:'assistant', content:r.text, model:currentModel().label, usage:r});
+    lastUsage = r; drawMeter();
+  }catch(e){
+    history.push({role:'assistant', content:e.message, error:true});
+  }
+  $('send').disabled = false;
+  renderChat();
+}
+
+/* ── batch pane ── */
+const picked = new Set(['openai/gpt-oss-20b','google/gemini-2.5-flash-lite','google/gemini-2.5-flash']);
+function renderPick(){
+  $('modelpick').innerHTML = MODELS.filter(m => m.id !== '__custom__').map(m =>
+    `<button class="chip" data-id="${m.id}" data-on="${picked.has(m.id)?1:0}">${esc(m.label)}</button>`).join('');
+  $('modelpick').querySelectorAll('.chip').forEach(b => b.addEventListener('click', () => {
+    const id = b.dataset.id;
+    picked.has(id) ? picked.delete(id) : picked.add(id);
+    renderPick();
+  }));
+}
+renderPick();
+
+const caseOn = CASES.map(() => true);
+function renderCases(){
+  $('caselist').innerHTML = CASES.map((c,i) => `
+    <label class="caseitem">
+      <input type="checkbox" data-i="${i}" ${caseOn[i]?'checked':''}>
+      <span>
+        <span class="ax">${esc(c.ax)}</span>
+        <span class="msg">「${esc(c.msg)}」</span>
+        <div class="chk">${esc(c.chk)}</div>
+      </span>
+    </label>`).join('');
+  $('caselist').querySelectorAll('input').forEach(cb =>
+    cb.addEventListener('change', e => caseOn[+e.target.dataset.i] = e.target.checked));
+}
+renderCases();
+
+$('runbatch').addEventListener('click', async () => {
+  const models = MODELS.filter(m => picked.has(m.id));
+  const cases = CASES.filter((c,i) => caseOn[i]);
+  const reps = Math.max(1, +$('repeats').value||1);
+  if(!models.length || !cases.length) return;
+  batch = []; revealed = false;
+  const total = models.length * cases.length * reps;
+  let done = 0;
+  $('progwrap').hidden = false; $('runbatch').disabled = true;
+  $('tallywrap').hidden = true; $('slips').innerHTML = '';
+  const ending = currentEnding();
+  for(const m of models){
+    for(let ci = 0; ci < cases.length; ci++){
+      const c = cases[ci];
+      for(let r = 0; r < reps; r++){
+        const hist = (c.hist||[]).map(h => ({role:h.r, content:h.c}));
+        const msgs = [{role:'system', content:activePrompt()}, ...hist, {role:'user', content:c.msg}];
+        let row = {model:m, ax:c.ax, msg:c.msg, chk:c.chk, rep:r+1, A:null, B:null};
+        try{
+          const res = await callModel(m.id, msgs);
+          const ec = endingCheck(res.text, ending);
+          Object.assign(row, res, {
+            endingOk: ec.ok,
+            cost: (res.in/1e6*m.in + res.out/1e6*m.out) * (+$('fx').value) * (1+(+$('fee').value)/100)
+          });
+        }catch(e){ row.text = 'ERROR: ' + e.message; row.err = true; }
+        batch.push(row);
+        done++; $('prog').style.width = (done/total*100)+'%';
+        renderSlips();
+        if(+$('delay').value) await new Promise(r2 => setTimeout(r2, +$('delay').value));
+      }
+    }
+  }
+  $('runbatch').disabled = false; $('progwrap').hidden = true;
+  $('tallywrap').hidden = false;
+  renderTally();
+});
+
+function displayOrder(){
+  const idx = batch.map((_,i) => i);
+  let seed = 20260817;
+  for(let i = idx.length-1; i > 0; i--){
+    seed = (seed*1103515245 + 12345) & 0x7fffffff;
+    const j = seed % (i+1);
+    [idx[i], idx[j]] = [idx[j], idx[i]];
+  }
+  return idx;
+}
+
+function renderSlips(){
+  const order = revealed ? batch.map((_,i)=>i) : displayOrder();
+  $('slips').innerHTML = order.map(i => {
+    const b = batch[i];
+    const seal = revealed
+      ? `<span class="seal open">${esc(b.model.label)}</span>`
+      : `<span class="seal">封</span>`;
+    const foot = b.err ? '' : `
+      ${b.endingOk === false ? '<span class="badge ng">⚠語尾NG</span>' : '<span class="badge ok">語尾OK</span>'}
+      <span class="mono" style="font-size:11px;color:var(--ink-soft)">
+        ${b.in}→${b.out}${b.reasoning?`(+${b.reasoning})`:''} tok ／ ${b.cost?.toFixed(3)}円 ／ ${b.ms}ms${b.ms>12000?' ⚠':''}
+      </span>`;
+    return `<div class="slip">
+      <div class="slip-head">
+        <span class="no mono">#${String(i+1).padStart(3,'0')}</span>
+        <span class="ax">${esc(b.ax)} · ${b.rep}回目</span>
+        ${seal}
+      </div>
+      <div class="slip-in">入力「${esc(b.msg)}」／ 判定基準: ${esc(b.chk)}</div>
+      <div class="slip-out"${b.err?' style="color:var(--signal)"':''}>${esc(b.text||'')}</div>
+      <div class="slip-foot">
+        <span class="score">A 意味理解
+          <button class="sbtn" data-i="${i}" data-k="A" data-v="1" data-on="${b.A===1?1:0}">○</button>
+          <button class="sbtn no" data-i="${i}" data-k="A" data-v="0" data-on="${b.A===0?1:0}">×</button>
+        </span>
+        <span class="score">B 埋め草
+          <button class="sbtn" data-i="${i}" data-k="B" data-v="0" data-on="${b.B===0?1:0}">無</button>
+          <button class="sbtn no" data-i="${i}" data-k="B" data-v="1" data-on="${b.B===1?1:0}">有</button>
+        </span>
+        ${foot}
+      </div>
+    </div>`;
+  }).join('');
+  $('slips').querySelectorAll('.sbtn').forEach(btn => btn.addEventListener('click', () => {
+    const b = batch[+btn.dataset.i];
+    b[btn.dataset.k] = +btn.dataset.v;
+    renderSlips(); renderTally();
+  }));
+}
+
+function renderTally(){
+  const groups = {};
+  batch.forEach(b => {
+    const k = b.model.id;
+    groups[k] = groups[k] || {label:b.model.label, n:0, a1:0, aScored:0, b1:0, bScored:0, eNg:0, cost:0, ms:[], to:0, err:0};
+    const g = groups[k];
+    g.n++;
+    if(b.err){ g.err++; return; }
+    if(b.A !== null){ g.aScored++; if(b.A === 1) g.a1++; }
+    if(b.B !== null){ g.bScored++; if(b.B === 1) g.b1++; }
+    if(b.endingOk === false) g.eNg++;
+    g.cost += b.cost||0; g.ms.push(b.ms); if(b.ms > 12000) g.to++;
+  });
+  const rows = Object.entries(groups).map(([id,g]) => {
+    const ms = g.ms.slice().sort((a,b)=>a-b);
+    const p95 = ms.length ? ms[Math.min(ms.length-1, Math.floor(ms.length*0.95))] : 0;
+    const med = ms.length ? ms[Math.floor(ms.length/2)] : 0;
+    const rate = g.aScored ? g.a1/g.aScored : null;
+    const avg = g.n ? g.cost/g.n : 0;
+    return {id, label: revealed ? g.label : '（封）', rate, aScored:g.aScored, a1:g.a1,
+            b1:g.b1, bScored:g.bScored, eNg:g.eNg, avg, med, p95, to:g.to, err:g.err, n:g.n};
+  });
+  rows.sort((x,y) => (y.rate??-1) - (x.rate??-1) || x.avg - y.avg);
+  $('tally').innerHTML = `<table>
+    <thead><tr>
+      <th>モデル</th><th>A合格</th><th>B埋め草</th><th>語尾NG</th><th>平均原価</th>
+      <th>中央値</th><th>p95</th><th>12秒超</th><th>失敗</th>
+    </tr></thead><tbody>
+    ${rows.map(r => `<tr>
+      <td>${esc(r.label)}</td>
+      <td class="${r.rate===null?'':(r.rate>=0.9?'pass':(r.rate<0.7?'fail':''))}">${r.aScored?`${r.a1}/${r.aScored}`:'—'}</td>
+      <td>${r.bScored?`${r.b1}/${r.bScored}`:'—'}</td>
+      <td class="${r.eNg?'fail':'pass'}">${r.eNg}</td>
+      <td>${r.avg.toFixed(3)}円</td>
+      <td>${r.med}ms</td>
+      <td>${r.p95}ms</td>
+      <td class="${r.to?'fail':''}">${r.to}</td>
+      <td class="${r.err?'fail':''}">${r.err}</td>
+    </tr>`).join('')}
+    </tbody></table>`;
+}
+
+$('reveal').addEventListener('click', () => {
+  const unscored = batch.filter(b => !b.err && b.A === null).length;
+  if(unscored && !confirm(`まだ ${unscored} 件が未採点です。開示すると採点にバイアスが入ります。続けますか？`)) return;
+  revealed = true; renderSlips(); renderTally();
+  $('reveal').disabled = true;
+});
+
+$('csv').addEventListener('click', () => {
+  const head = ['model','axis','input','rep','A_understood','B_filler','ending_ok','output','in_tok','out_tok','reasoning_tok','cost_jpy','ms','finish'];
+  const q = s => '"' + String(s??'').replace(/"/g,'""') + '"';
+  const lines = [head.join(',')].concat(batch.map(b => [
+    b.model.id, b.ax, b.msg, b.rep, b.A??'', b.B??'', b.endingOk===false?'NG':(b.err?'':'OK'), b.text,
+    b.in??'', b.out??'', b.reasoning??'', b.cost?.toFixed(4)??'', b.ms??'', b.finish??''
+  ].map(q).join(',')));
+  const blob = new Blob(['﻿' + lines.join('\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'naspet-bench-' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+});
+
+/* ── tabs ── */
+const panes = {chat:'pane-chat', batch:'pane-batch', prompt:'pane-prompt'};
+Object.keys(panes).forEach(k => $('tab-'+k).addEventListener('click', () => {
+  Object.keys(panes).forEach(j => {
+    $('tab-'+j).setAttribute('aria-selected', String(j===k));
+    $(panes[j]).hidden = j !== k;
+  });
+}));
+
+$('extra').addEventListener('input', persist);
+renderChat();
+drawMeter();
+</script>
+</body>
+</html>

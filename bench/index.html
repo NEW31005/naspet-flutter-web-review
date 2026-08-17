@@ -165,6 +165,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 
   <div class="tabs" role="tablist">
     <button class="tab" id="tab-chat" role="tab" aria-selected="true">チャット</button>
+    <button class="tab" id="tab-names" role="tab" aria-selected="false">名前設定</button>
     <button class="tab" id="tab-prompt" role="tab" aria-selected="false">プロンプト</button>
     <button class="tab" id="tab-settings" role="tab" aria-selected="false">くわしい設定</button>
     <button class="tab" id="tab-batch" role="tab" aria-selected="false">一括テスト</button>
@@ -181,6 +182,26 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
       </div>
     </div>
     <p class="hint">上の種族・モデル、プロンプトタブの編集は、次の送信からすぐ反映されます。直近6発言だけがモデルに渡ります（本番と同じ）。返答には本番と同じ語尾検査を自動でかけ、不合格なら⚠を表示します（本番では不合格の返答は捨てられて定型文になります）。</p>
+  </section>
+
+  <!-- ── 名前設定（アプリと同じ構造） ── -->
+  <section id="pane-names" hidden>
+    <section class="sect">
+      <h2>名前設定（アプリと同じ2項目）</h2>
+      <div class="field"><label for="v_name">ナスペットの名前</label><input id="v_name" value="ちびるん"></div>
+      <p class="hint" style="margin:-4px 0 14px">ナスペットにつけた、その子だけの名前。会話の中で自分をこの名前で呼ぶのが正しい挙動です。</p>
+      <div class="field"><label for="v_user">あなたの呼び名（ナスペットに呼ばれたい名前）</label><input id="v_user" value="しんちゃん"></div>
+      <p class="hint" style="margin:-4px 0 0">ナスペットが、この名前であなたを呼んでくれます。入力すると次の送信からすぐ反映されます（アプリで名前を保存した状態の再現）。</p>
+    </section>
+    <section class="sect">
+      <h2>名前を勝手に変えないかチェック</h2>
+      <p class="hint" style="margin:0 0 10px">チャットの返答には自動で名前検査がかかります: 設定した呼び名で呼べたら「呼び名OK」、「ユーザーさん」と呼んだら⚠、自分の名前でなく種族名を名乗ったら⚠が付きます。下のボタンで、名前を直接聞くテスト質問をその場で送れます。</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn-sm" id="namecheck">「名前おしえて」を送って確認</button>
+        <button class="btn-ghost btn-sm" id="namecheck2">「誰の話か」を送って確認</button>
+      </div>
+      <p class="hint" style="margin-top:8px">2つ目は「今日ね、ちびるんが夜勤で大変だったんだよ」のように、わざと紛らわしい文を送って、ペットが自分と他人の名前を取り違えないかを見るテストです。</p>
+    </section>
   </section>
 
   <!-- ── プロンプト ── -->
@@ -219,10 +240,7 @@ input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid v
 
     <section class="sect">
       <h2>ペット状態（プロンプトに反映）</h2>
-      <div class="row2">
-        <div class="field"><label for="v_name">ペットの名前</label><input id="v_name" value="ちびるん"></div>
-        <div class="field"><label for="v_user">ユーザーの呼び名</label><input id="v_user" value="しんちゃん"></div>
-      </div>
+      <p class="hint" style="margin:0 0 10px">名前2つは「名前設定」タブに移動しました。</p>
       <div class="row2">
         <div class="field"><label for="v_stage">成長段階</label>
           <select id="v_stage"><option>ちび体</option><option>幼体</option><option>成体</option></select>
@@ -615,6 +633,8 @@ const CASES = [
    chk:'撤回に気づく。前半だけ拾って舞い上がったら不合格。'},
   {ax:'無意味入力', msg:'あああああ', hist:[],
    chk:'意味がないと分かった上でキャラとして返す。深読みして長文説明を始めたら不合格。'},
+  {ax:'名前',       msg:'ねえ、私の名前と、あなたの名前を教えて？', hist:[],
+   chk:'ユーザーを設定した呼び名で、自分を設定したペット名で答える。「ユーザーさん」や種族名を名乗ったら不合格。'},
 ];
 
 /* ════════════════════════════════════════════════════════════════ */
@@ -759,8 +779,16 @@ function drawMeter(){
    それ以外の値: ベンチ用パスコードとして、ナスペットの中継Function経由で
    本番envの OPENROUTER_API_KEY を使う（キーはブラウザに来ません）。 ── */
 const PROXY_URL = 'https://viqeghtpluzxevxqafam.supabase.co/functions/v1/naspet-bench-chat';
+/* スマホ入力の揺れを自動補正: 全角→半角、長音「ー」→ハイフン、空白・不可視文字の除去 */
+function benchKey(){
+  return $('apikey').value.normalize('NFKC')
+    .replace(/[​-‍﻿]/g, '')
+    .replace(/[ー―–—−]/g, '-')
+    .replace(/\s+/g, '');
+}
+const KEY_HELP = 'パスコードが一致しません。手打ちだと「-」が「ー」になりがちです。チャットで伝えたパスコードをコピー&ペーストでそのまま入れてください。';
 async function callModel(modelId, messages){
-  const key = $('apikey').value.trim();
+  const key = benchKey();
   if(!key) throw new Error('右上が空です。ベンチ用パスコード（または sk-or- キー）を入れてください。');
   if(!modelId) throw new Error('モデルのスラッグが空です。');
   const direct = key.startsWith('sk-or-');
@@ -799,6 +827,7 @@ async function callModel(modelId, messages){
   }
   const ms = Math.round(performance.now() - t0);
   const data = await res.json();
+  if(res.status === 401 && !direct) throw new Error(KEY_HELP);
   if(!res.ok) throw new Error(`HTTP ${res.status}: ${data?.error?.message || data?.error || JSON.stringify(data).slice(0,200)}`);
   if(data.error) throw new Error(data.error.message || JSON.stringify(data.error).slice(0,200));
   const text = data.choices?.[0]?.message?.content ?? '(空の応答)';
@@ -827,6 +856,16 @@ function endingBadge(text){
     ? `<span class="badge ok">語尾OK ${r.count}文</span>`
     : `<span class="badge ng" title="${esc(r.why)}">⚠語尾NG（本番では定型文に差し替え）</span>`;
 }
+function nameBadges(text){
+  const out = [];
+  const user = ($('v_user').value || '').trim();
+  const pet = ($('v_name').value || '').trim();
+  const spLabel = currentSpecies().label;
+  if(/ユーザー(さん|ちゃん|様|くん)/.test(text)) out.push('<span class="badge ng">⚠「ユーザーさん」呼び</span>');
+  else if(user && text.includes(user)) out.push('<span class="badge ok">呼び名OK</span>');
+  if(pet && pet !== spLabel && text.includes(spLabel)) out.push(`<span class="badge ng" title="自分の名前は「${esc(pet)}」のはずなのに種族名が出ています">⚠種族名「${esc(spLabel)}」を使用</span>`);
+  return out.join('');
+}
 function renderChat(){
   const log = $('chatlog');
   if(!history.length){ log.innerHTML = '<p style="color:var(--ink-soft);margin:0">右上にパスコードを入れて、下に一言送ってください。上の種族・モデルはいつでも切替OK。プロンプトを見たい・変えたい時は「プロンプト」タブへ。</p>'; return; }
@@ -837,7 +876,7 @@ function renderChat(){
     if(t.usage){
       const u = t.usage;
       foot = `<div class="readout">
-        ${t.error ? '' : endingBadge(t.content)}
+        ${t.error ? '' : endingBadge(t.content) + nameBadges(t.content)}
         <span>入力 <b>${u.in}</b></span><span>出力 <b>${u.out}</b></span>
         ${u.reasoning ? `<span>推論 <b>${u.reasoning}</b></span>` : ''}
         <span>原価 <b>${costOf(u.in, u.out).toFixed(3)}円</b></span>
@@ -1056,13 +1095,25 @@ $('csv').addEventListener('click', () => {
 });
 
 /* ── tabs ── */
-const panes = {chat:'pane-chat', prompt:'pane-prompt', settings:'pane-settings', batch:'pane-batch'};
+const panes = {chat:'pane-chat', names:'pane-names', prompt:'pane-prompt', settings:'pane-settings', batch:'pane-batch'};
 Object.keys(panes).forEach(k => $('tab-'+k).addEventListener('click', () => {
   Object.keys(panes).forEach(j => {
     $('tab-'+j).setAttribute('aria-selected', String(j===k));
     $(panes[j]).hidden = j !== k;
   });
 }));
+
+/* ── 名前チェックのワンタップ送信 ── */
+function sendPreset(text){
+  $('tab-chat').click();
+  $('msg').value = text;
+  send();
+}
+$('namecheck').addEventListener('click', () => sendPreset('ねえ、私の名前と、あなたの名前を教えて？'));
+$('namecheck2').addEventListener('click', () => {
+  const pet = ($('v_name').value || 'ちびるん').trim();
+  sendPreset(`今日ね、${pet}が夜勤で大変だったんだよ`);
+});
 
 /* ── 本番モデル管理（パスコード必須・sk-or-直挿しでは操作不可） ── */
 const PROD_MODEL_CHOICES = MODELS.filter(m => m.id !== '__custom__').concat([
@@ -1076,7 +1127,7 @@ for(const sel of [$('prod_primary'), $('prod_fallback')]){
 }
 $('prod_fallback').value = 'google/gemini-2.5-flash-lite';
 async function prodCall(payload){
-  const key = $('apikey').value.trim();
+  const key = benchKey();
   if(!key || key.startsWith('sk-or-')) throw new Error('本番モデルの操作はベンチ用パスコードでだけ可能です。');
   const res = await fetch(PROXY_URL, {
     method:'POST',
@@ -1084,6 +1135,7 @@ async function prodCall(payload){
     body: JSON.stringify(payload)
   });
   const data = await res.json();
+  if(res.status === 401) throw new Error(KEY_HELP);
   if(!res.ok) throw new Error(data?.error || ('HTTP ' + res.status));
   return data;
 }

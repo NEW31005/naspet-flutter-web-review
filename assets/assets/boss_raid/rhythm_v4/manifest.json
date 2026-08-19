@@ -8,7 +8,7 @@
     {
       "bossId": "cerberia",
       "displayName": "ケルベリア",
-      "bossAssetPath": "assets/boss_raid/keruberia.png",
+      "bossAssetPath": "assets/boss_raid/keruberia.webp",
       "songTitle": "ナスペット！きみと明日へ",
       "audio": {
         "audioAssetId": "user_9f7a4d21d459d09b79f2beb1",
@@ -47,7 +47,7 @@
     {
       "bossId": "griffina",
       "displayName": "グリフィーナ",
-      "bossAssetPath": "assets/boss_raid/griffina.png",
+      "bossAssetPath": "assets/boss_raid/griffina.webp",
       "songTitle": "おかえりを言うまで",
       "audio": {
         "audioAssetId": "user_e9948be52e48e7ba58b6545b",
@@ -86,7 +86,7 @@
     {
       "bossId": "hydria",
       "displayName": "ヒュードリア",
-      "bossAssetPath": "assets/boss_raid/hyudoria.png",
+      "bossAssetPath": "assets/boss_raid/hyudoria.webp",
       "songTitle": "足あとが地図になる",
       "audio": {
         "audioAssetId": "user_43a8728d93d7ccd99084544c",
@@ -125,7 +125,7 @@
     {
       "bossId": "phoenixia",
       "displayName": "フェニクシア",
-      "bossAssetPath": "assets/boss_raid/phoenixia.png",
+      "bossAssetPath": "assets/boss_raid/phoenixia.webp",
       "songTitle": "足あとフルスロットル！",
       "audio": {
         "audioAssetId": "user_1b4e7ec9a32d1dbbcc057b29",

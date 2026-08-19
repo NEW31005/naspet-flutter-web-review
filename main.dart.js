@@ -164299,7 +164299,7 @@ if(a7){m=A.cmZ(a4,B.ee)
 if(m!=null)n.push(new A.pt(!1,m,"sparkle_compass_bonus"))}if(a8)n.push(new A.pt(!1,A.bZD(a4,B.ee),"secret_pocket_bonus"))
 if(a9)n.push(new A.pt(!1,A.cmY(a4,B.ee),"treasure_map_bonus"))
 if(a6)n.push(new A.pt(!0,A.bZE(a4,B.ee),"friend_charm_bonus"))
-if(p.p3.a.c>=90&&B.ee.H7()<0.1)n.push(new A.pt(!1,A.bZD(a4,B.ee),"bond_bonus"))
+if(p.p3.a.c>=90&&B.ee.H7()<0.03)n.push(new A.pt(!1,A.bZD(a4,B.ee),"bond_bonus"))
 a2=t.N
 l=A.bP(p.p3.f,a2,t.S)
 k=A.bR(p.p3.r,a2)

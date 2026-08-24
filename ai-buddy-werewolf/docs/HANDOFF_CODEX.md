@@ -18,7 +18,7 @@
 - Web UI(ホーム/バディ設定/ゲーム/結果/リプレイ/Lab/設定編集)、CLIシミュレーター
 - 合言葉付きGitHub Pages Web Lab（ブラウザ内保存、APIキー非配布、noindex）
 - 設定・全プロンプトを本番モバイルへ渡すSHA-256付き固定bundleの書き出し/読み込み
-- 自動テスト38件 / ESLint / strict TypeScript
+- 自動テスト40件（公開Labのブラウザ内完走・復元を含む）/ ESLint / strict TypeScript
 
 ## 未実装の範囲
 

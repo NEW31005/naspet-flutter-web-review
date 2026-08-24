@@ -1,0 +1,89 @@
+{
+  "version": "0.1.0",
+  "menu": [
+    {
+      "kind": "suspicion",
+      "label": "主観的な疑い",
+      "description": "「私は◯◯が怪しいと思う」。確定情報ではなく、信頼度に応じて判断材料になる。",
+      "enabled": true
+    },
+    {
+      "kind": "question",
+      "label": "質問の指定",
+      "description": "「◯◯に△△を聞いて」。実際の質問文はバディの口調で生成される。",
+      "enabled": true
+    },
+    {
+      "kind": "fact_share",
+      "label": "確定情報の共有",
+      "description": "占いなどで得た確定情報をバディへ登録する。事実として扱われる。",
+      "enabled": true
+    },
+    {
+      "kind": "skill_target",
+      "label": "次回スキル対象の提案",
+      "description": "「次は◯◯を調べて」。最終的な対象はバディが決める。",
+      "enabled": true
+    },
+    {
+      "kind": "behavior",
+      "label": "立ち回りの提案",
+      "description": "目立たない・強く追及する等の方針提案。命令ではない。",
+      "enabled": true
+    }
+  ],
+  "questionThemes": [
+    {
+      "id": "vote_reason",
+      "label": "昨日の投票理由",
+      "mockTemplate": "{target}、昨日の投票の理由を聞かせて",
+      "promptHint": "昨日なぜその相手に投票したのかを尋ねる"
+    },
+    {
+      "id": "most_suspicious",
+      "label": "現在最も疑っている相手",
+      "mockTemplate": "{target}は今、誰が一番怪しいと思ってる?",
+      "promptHint": "現時点で最も疑っている相手とその理由を尋ねる"
+    },
+    {
+      "id": "co_plan",
+      "label": "役職を名乗る予定があるか",
+      "mockTemplate": "{target}は自分の役職を明かすつもりはある?",
+      "promptHint": "役職をカミングアウトする予定があるか尋ねる"
+    },
+    {
+      "id": "why_cover",
+      "label": "特定人物を庇った理由",
+      "mockTemplate": "{target}、さっき庇ってたのはどうして?",
+      "promptHint": "特定の人物を庇った理由を尋ねる"
+    },
+    {
+      "id": "why_changed",
+      "label": "発言が変化した理由",
+      "mockTemplate": "{target}、前と言ってることが違わない?",
+      "promptHint": "以前の発言と変わった理由を尋ねる"
+    }
+  ],
+  "behaviorDirectives": [
+    {
+      "id": "low_profile",
+      "label": "目立たないで",
+      "promptHint": "発言のトーンを抑え、注目を集めない立ち回りをする"
+    },
+    {
+      "id": "push_hard",
+      "label": "強く追及して",
+      "promptHint": "疑わしい相手をはっきり名指しして追及する"
+    },
+    {
+      "id": "hide_role",
+      "label": "役職を伏せて",
+      "promptHint": "自分の役職や役職を推測させる情報を出さない"
+    },
+    {
+      "id": "own_judgement",
+      "label": "自分の判断を優先して",
+      "promptHint": "主人の意見より自分自身の推理を優先して構わない"
+    }
+  ]
+}

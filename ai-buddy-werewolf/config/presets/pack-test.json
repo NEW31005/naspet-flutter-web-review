@@ -1,0 +1,21 @@
+{
+  "version": "0.1.0",
+  "presetId": "pack-test",
+  "label": "Pack Test (8組・狼2・占い1・最大4日)",
+  "pairCount": 8,
+  "roleSetup": { "werewolf": 2, "seer": 1 },
+  "maxDays": 4,
+  "discussionRounds": 1,
+  "speechesPerBuddyPerRound": 1,
+  "advicePerDay": 1,
+  "tieBreak": "random",
+  "revealRoleOnDeath": false,
+  "wolfAttackIntegration": { "method": "sumNormalized", "tieBreak": "random" },
+  "trust": {
+    "trialChoice": { "type": "linear", "maxBonus": 25 },
+    "nightProposal": { "type": "linear", "maxBonus": 25 },
+    "skillProposal": { "type": "linear", "maxBonus": 30 },
+    "subjectiveAdvice": { "type": "linear", "maxBonus": 20 }
+  },
+  "otherMastersPolicy": "simple"
+}

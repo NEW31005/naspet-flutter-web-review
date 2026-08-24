@@ -1,0 +1,115 @@
+{
+  "version": "0.1.0",
+  "reasoningUnlocks": [
+    {
+      "at": 0,
+      "id": "face_value",
+      "label": "額面受け取り",
+      "promptHint": "発言をそのまま情報として受け取る。"
+    },
+    {
+      "at": 10,
+      "id": "vote_consistency",
+      "label": "発言と投票の整合",
+      "promptHint": "各参加者の発言内容と実際の投票先の矛盾に注目する。"
+    },
+    {
+      "at": 20,
+      "id": "bandwagon_detect",
+      "label": "便乗の検知",
+      "promptHint": "自分の意見がなく他人の疑いに便乗しているだけの参加者を警戒する。"
+    },
+    {
+      "at": 30,
+      "id": "multi_hypothesis",
+      "label": "複数仮説の並立",
+      "promptHint": "「本当に怪しい」「役職を隠している市民」「疑いを向けられているだけ」など複数の仮説を同時に持ち、一つの説へ安易に収束しない。"
+    },
+    {
+      "at": 40,
+      "id": "co_timing",
+      "label": "役職COタイミング分析",
+      "promptHint": "役職カミングアウトのタイミングや動機の自然さを評価する。"
+    },
+    {
+      "at": 50,
+      "id": "cover_pattern",
+      "label": "庇い方・白囲いの分析",
+      "promptHint": "誰が誰を庇っているか、白囲い(仲間を疑いから外す動き)の可能性を考える。"
+    },
+    {
+      "at": 60,
+      "id": "distancing",
+      "label": "身内切りの想定",
+      "promptHint": "狼同士があえて仲間を疑ってみせる「身内切り」の可能性を考慮する。"
+    },
+    {
+      "at": 70,
+      "id": "manipulation_detect",
+      "label": "誘導意図の検知",
+      "promptHint": "他のバディの発言に含まれる誘導・印象操作の意図を検討する。"
+    },
+    {
+      "at": 80,
+      "id": "meta_timeline",
+      "label": "時系列メタ分析",
+      "promptHint": "発言・投票・死亡の時系列全体から得をした参加者を逆算する。"
+    }
+  ],
+  "deceptionUnlocks": [
+    {
+      "at": 0,
+      "id": "plain_denial",
+      "label": "最低限の否定",
+      "promptHint": "「私は狼憑きではない」という否定はできるが、能動的な作り話はほとんどせず、曖昧で無難な答えを返す。"
+    },
+    {
+      "at": 10,
+      "id": "vagueness",
+      "label": "情報の曖昧化",
+      "promptHint": "都合の悪い話題では核心を伏せ、意図的に曖昧な表現を使う。"
+    },
+    {
+      "at": 20,
+      "id": "partial_truth",
+      "label": "部分的な真実",
+      "promptHint": "本当の情報の一部だけを話し、嘘を真実に混ぜて信憑性を上げる。"
+    },
+    {
+      "at": 30,
+      "id": "plausible_reason",
+      "label": "もっともらしい理由付け",
+      "promptHint": "自分の投票や疑いに、もっともらしい理由を後付けで作る。"
+    },
+    {
+      "at": 40,
+      "id": "consistency_keep",
+      "label": "一貫性の維持",
+      "promptHint": "過去の自分の発言との一貫性を保ち、矛盾を指摘されないようにする。"
+    },
+    {
+      "at": 50,
+      "id": "natural_cover",
+      "label": "自然な庇い",
+      "promptHint": "仲間の狼を不自然にならない範囲で庇う。"
+    },
+    {
+      "at": 60,
+      "id": "distancing_play",
+      "label": "身内切り",
+      "promptHint": "疑いを逸らすため、あえて仲間の狼へ軽い疑いを向ける。"
+    },
+    {
+      "at": 70,
+      "id": "misdirection",
+      "label": "疑いの誘導",
+      "promptHint": "他者の疑いを特定の市民へ誘導する話術を使う。"
+    },
+    {
+      "at": 80,
+      "id": "long_con",
+      "label": "複数ターンの虚構維持",
+      "promptHint": "自分の役職や意図についての虚構を複数日にわたって計画的に維持する。"
+    }
+  ]
+}

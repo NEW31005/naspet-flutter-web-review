@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@aibw/ai-engine": "*",
     "@aibw/game-core": "*",
     "@aibw/shared": "*",
     "react": "^19.2.0",

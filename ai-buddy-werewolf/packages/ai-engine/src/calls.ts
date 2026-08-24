@@ -27,6 +27,8 @@ export function createProvider(
       return new MockProvider(config.simulatedLatencyMs);
     case 'anthropic':
       return new AnthropicProvider(name, config, prompts, env);
+    case 'labProxy':
+      throw new Error('labProxyは公開Web Lab専用です');
   }
 }
 
@@ -38,7 +40,7 @@ export function estimateCostUsd(
   outputTokens: number,
 ): number {
   const provider = models.providers[providerName];
-  if (!provider || provider.type !== 'anthropic') return 0;
+  if (!provider || (provider.type !== 'anthropic' && provider.type !== 'labProxy')) return 0;
   const price = provider.prices[model];
   if (!price) return 0;
   return (

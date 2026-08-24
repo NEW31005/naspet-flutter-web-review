@@ -11,12 +11,14 @@
 - ゲームコア: 役職配布(市民/占い役/狼憑き)・討論・裁判(意思表示→AI投票)・夜(占い/襲撃統合)・勝敗・同票処理・イベントソーシング・リプレイ復元・フェーズ巻き戻し
 - 秘密情報分離(`BuddyContext` / イベント可視性 / 視点別ビュー)+ 漏えい防止テスト
 - モックAI(シード決定論的、能力値で挙動が変わる、日本語発言テンプレート)
-- Live AI(Anthropic、構造化出力+Zod検証、リトライ、タイムアウト、失敗時モックフォールバック)
+- Live AI（ローカルAnthropic / 公開LabはSupabase Edge Function→OpenRouter、二重構造検証、リトライ、タイムアウト、失敗時モックフォールバック）
 - 助言5種(主観疑い/質問指定/確定情報共有/スキル対象提案/立ち回り)、1日1回制限
 - 信頼度補正(linear/quadratic/none、登録制)、狼襲撃の正規化合算統合
 - 計測(トークン/原価/レイテンシー/総時間/AI待機/エラー/リトライ)、JSON永続化、JSON/CSVエクスポート
 - Web UI(ホーム/バディ設定/ゲーム/結果/リプレイ/Lab/設定編集)、CLIシミュレーター
-- 自動テスト34件 / ESLint / strict TypeScript
+- 合言葉付きGitHub Pages Web Lab（ブラウザ内保存、APIキー非配布、noindex）
+- 設定・全プロンプトを本番モバイルへ渡すSHA-256付き固定bundleの書き出し/読み込み
+- 自動テスト38件 / ESLint / strict TypeScript
 
 ## 未実装の範囲
 
@@ -41,11 +43,16 @@
 | `packages/ai-engine/src/runner.ts` | 進行ランナー(`MatchRunner.advanceOnce`)・ポリシー主人 |
 | `packages/ai-engine/src/mock.ts` | モックAI |
 | `packages/ai-engine/src/anthropic.ts` | Anthropicプロバイダー(API仕様はここだけ) |
+| `apps/web/src/runtime/browserBackend.ts` | 公開静的Labのゲーム実行・localStorage保存アダプター |
+| `apps/web/src/runtime/browserAi.ts` | Edge中継、Zod検証、再試行、モックフォールバック |
+| `apps/web/src/runtime/staticConfig.ts` | Web Labの設定編集・モバイルbundle生成/検証 |
+| `supabase/functions/ai-buddy-lab/index.ts` | 合言葉照合・Origin/モデル制限・OpenRouter中継 |
 | `packages/ai-engine/src/promptBuilder.ts` | プロンプト組み立て(プレースホルダー実体) |
 | `apps/server/src/matches.ts` | セッション管理・永続化・巻き戻し・再戦 |
 | `apps/server/src/http.ts` | HTTPルーター(エンドポイント一覧はここを読む) |
 | `apps/server/src/cli/simulate.ts` | 連続シミュレーションCLI |
 | `config/` / `prompts/` | 外部設定(変更ガイド: [CONFIG_AND_PROMPTS.md](CONFIG_AND_PROMPTS.md)) |
+| `docs/MOBILE_HANDOFF.md` | 本番Flutter/バックエンドへ持ち越す固定契約 |
 
 ## ゲームコアを変更する際の入口
 
@@ -66,6 +73,8 @@
 4. `config/models.json` の `providers` にエントリと単価を追加
 5. APIキーは環境変数名を設定に書き、サーバー側でのみ解決する
 
+公開Web Labのモデルを追加する場合は、上記に加えて `LabProxyProviderConfig`、`config/models.json` の `lab-live`、Edge Functionの `ALLOWED_MODELS` を同じIDへ更新する。ブラウザへAPIキーを渡す変更は禁止。
+
 ## 秘密情報漏えいを防ぐルール(絶対)
 
 - LLMコンテキストは `buildBuddyContext` の返り値**のみ**から作る。`MatchState` や `MatchRecord` を直接プロンプトへ渡さない
@@ -80,6 +89,7 @@ npm test           # vitest 全テスト
 npm run lint       # ESLint
 npm run typecheck  # tsc --noEmit (全パッケージ)
 npm run build      # typecheck + Web build
+npm run build:lab  # GitHub Pages用の静的Lab build
 npm run simulate -- --preset quick-test --matches 3   # モック完走の実地確認
 ```
 
@@ -90,6 +100,7 @@ npm run simulate -- --preset quick-test --matches 3   # モック完走の実地
 3. テストを書く(または修正する)→ 実装 → `npm test && npm run lint && npm run build`
 4. `npm run simulate` でモック完走を確認
 5. UIに触れた場合は `npm run dev` で 390×844 表示を目視確認
+6. 公開Labに触れた場合は、無効/有効な合言葉、Live評価/発言各1コール、bundle export/import、GitHub Pages URLを実機確認
 
 ## 変更後に必ず確認する項目
 
@@ -106,7 +117,9 @@ npm run simulate -- --preset quick-test --matches 3   # モック完走の実地
 - 進行中試合の provider は固定(切り替えは再戦で行う)。Labの「再読込」はプロンプト/モデル設定のみ反映
 - `otherMastersPolicy: 'ai'` は自バディの評価を主人の判断として流用する簡易実装
 - 巻き戻しはフェーズ先頭のみ(任意seqへの巻き戻しは未実装)
-- サーバーは単一プロセス・ローカル利用前提(認証なし)
+- Nodeサーバー版は単一プロセス・ローカル利用前提（認証なし）。インターネットへ直接公開しない
+- 公開Web Labの合言葉ゲートは個人検証向け。URLの存在まで隠す強いユーザー認証ではない
+- 公開Labの試合・編集内容は端末ごとのlocalStorage。端末間同期はせず、消去前のJSON/bundle exportが必要
 
 ## 次に実装する候補
 
@@ -129,6 +142,7 @@ npm run simulate -- --preset quick-test --matches 3   # モック完走の実地
 
 - コード: git revert / ブランチ破棄
 - 設定・プロンプト: gitで元に戻す(全てリポジトリ管理下)。UIから壊した場合も `git checkout -- config prompts`
+- 公開Labの調整内容: 設定画面から直前のmobile handoff bundleを読み込む。ブラウザデータ消去後はbundleがない限り復元不可
 - 試合データ: `data/` はgit管理外。壊れたファイルは削除してよい(一覧から消えるだけ)
 - 実験のやり直し: シードを控えておけばモックは完全再現できる
 
@@ -137,6 +151,7 @@ npm run simulate -- --preset quick-test --matches 3   # モック完走の実地
 | 対象 | バージョン |
 |---|---|
 | ルールプリセット(quick-test / pack-test) | 0.1.0 |
-| advice / abilities / models / buddies | 0.1.0 |
+| advice / abilities / buddies | 0.1.0 |
+| models | 0.2.0 |
 | プロンプト | 0.1.0 |
 | 保存スキーマ(`MatchRecord.schemaVersion`) | 1 |

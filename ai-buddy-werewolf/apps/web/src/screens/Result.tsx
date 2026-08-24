@@ -195,9 +195,9 @@ export function Result({ matchId }: { matchId: string }) {
               🔍 リプレイ/内部分析
             </button>
             <button onClick={() => (location.hash = `/match/${matchId}/lab`)}>Lab</button>
-            <a href={`/api/matches/${matchId}/export`} target="_blank" rel="noreferrer">
-              <button className="ghost">JSON書き出し</button>
-            </a>
+            <button className="ghost" onClick={() => void api.downloadRecord(matchId)}>
+              JSON書き出し
+            </button>
           </div>
         </div>
         {error && <ErrorBox error={error} onRetry={load} />}

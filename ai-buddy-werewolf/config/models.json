@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "defaultProvider": "mock",
   "providers": {
     "mock": {
@@ -22,6 +22,22 @@
         "claude-sonnet-5": { "inputPerMTok": 3, "outputPerMTok": 15 },
         "claude-haiku-4-5": { "inputPerMTok": 1, "outputPerMTok": 5 },
         "claude-fable-5": { "inputPerMTok": 10, "outputPerMTok": 50 }
+      }
+    },
+    "lab-live": {
+      "type": "labProxy",
+      "endpoint": "https://viqeghtpluzxevxqafam.supabase.co/functions/v1/ai-buddy-lab",
+      "model": "anthropic/claude-sonnet-5",
+      "temperature": null,
+      "maxTokensEval": 2000,
+      "maxTokensSpeech": 800,
+      "effort": "low",
+      "timeoutMs": 90000,
+      "jsonRetries": 2,
+      "prices": {
+        "anthropic/claude-sonnet-5": { "inputPerMTok": 2, "outputPerMTok": 10 },
+        "anthropic/claude-opus-4.8": { "inputPerMTok": 5, "outputPerMTok": 25 },
+        "anthropic/claude-haiku-4.5": { "inputPerMTok": 1, "outputPerMTok": 5 }
       }
     }
   }

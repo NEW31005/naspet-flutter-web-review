@@ -13,6 +13,7 @@ import type {
   MatchMetrics,
   MatchRecord,
   PairId,
+  SpeechOutput,
 } from '@aibw/shared';
 import { pickOne, rand } from '@aibw/shared';
 import {
@@ -33,8 +34,24 @@ import {
   type MatchState,
   type PendingTask,
 } from '@aibw/game-core';
-import type { AiEngine } from './calls.js';
 import type { CallOpts } from './provider.js';
+
+/** Node/ブラウザ双方のAI実行層が満たす最小契約。 */
+export interface AiEngineLike {
+  evaluate(
+    providerName: string,
+    pairId: PairId,
+    ctx: ReturnType<typeof buildBuddyContext>,
+    opts: CallOpts,
+  ): Promise<{ output: EvalOutput; record: AiCallRecord }>;
+  speak(
+    providerName: string,
+    pairId: PairId,
+    ctx: ReturnType<typeof buildBuddyContext>,
+    evalOutput: EvalOutput,
+    opts: CallOpts,
+  ): Promise<{ output: SpeechOutput; record: AiCallRecord }>;
+}
 
 export interface MatchStore {
   record: MatchRecord;
@@ -77,7 +94,7 @@ export type AdvanceResult =
 export class MatchRunner {
   constructor(
     public store: MatchStore,
-    private ai: AiEngine,
+    private ai: AiEngineLike,
     private now: () => number = () => Date.now(),
   ) {}
 

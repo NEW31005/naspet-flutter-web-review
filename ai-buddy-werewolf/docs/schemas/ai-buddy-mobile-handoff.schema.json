@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://new31005.github.io/schemas/ai-buddy-mobile-handoff.schema.json",
+  "title": "AI Buddy Werewolf Mobile Handoff Bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "kind",
+    "exportedAt",
+    "source",
+    "files",
+    "integrity",
+    "implementationContract"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "kind": { "const": "ai-buddy-werewolf-mobile-handoff" },
+    "exportedAt": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["app", "configVersions"],
+      "properties": {
+        "app": { "const": "ai-buddy-werewolf-phase0-web-lab" },
+        "configVersions": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        }
+      }
+    },
+    "files": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "config/presets/quick-test.json",
+        "config/presets/pack-test.json",
+        "config/advice.json",
+        "config/abilities.json",
+        "config/models.json",
+        "config/buddies.json",
+        "prompts/system.base.md",
+        "prompts/eval.md",
+        "prompts/speech.md",
+        "prompts/role.villager.md",
+        "prompts/role.seer.md",
+        "prompts/role.werewolf.md",
+        "prompts/version.json"
+      ],
+      "properties": {
+        "config/presets/quick-test.json": { "type": "string", "maxLength": 100000 },
+        "config/presets/pack-test.json": { "type": "string", "maxLength": 100000 },
+        "config/advice.json": { "type": "string", "maxLength": 100000 },
+        "config/abilities.json": { "type": "string", "maxLength": 100000 },
+        "config/models.json": { "type": "string", "maxLength": 100000 },
+        "config/buddies.json": { "type": "string", "maxLength": 100000 },
+        "prompts/system.base.md": { "type": "string", "maxLength": 100000 },
+        "prompts/eval.md": { "type": "string", "maxLength": 100000 },
+        "prompts/speech.md": { "type": "string", "maxLength": 100000 },
+        "prompts/role.villager.md": { "type": "string", "maxLength": 100000 },
+        "prompts/role.seer.md": { "type": "string", "maxLength": 100000 },
+        "prompts/role.werewolf.md": { "type": "string", "maxLength": 100000 },
+        "prompts/version.json": { "type": "string", "maxLength": 100000 }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["algorithm", "digest"],
+      "properties": {
+        "algorithm": { "const": "SHA-256" },
+        "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "implementationContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["gameCore", "prompts", "secretsIncluded", "mobileTransport"],
+      "properties": {
+        "gameCore": { "const": "authoritative-event-engine" },
+        "prompts": { "const": "server-side-only" },
+        "secretsIncluded": { "const": false },
+        "mobileTransport": {
+          "enum": ["server-api", "supabase-edge-function"]
+        }
+      }
+    }
+  }
+}

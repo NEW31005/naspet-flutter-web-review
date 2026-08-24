@@ -19,6 +19,30 @@
   margin: 0;
   padding: 0;
 }
+.access-shell {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 50% 15%, rgba(195, 144, 255, 0.18), transparent 34%),
+    var(--bg);
+}
+.access-card {
+  width: min(100%, 390px);
+  padding: 28px 22px;
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  background: var(--panel);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+  text-align: center;
+}
+.access-card .field {
+  text-align: left;
+  margin: 22px 0 14px;
+}
+.access-card .primary { width: 100%; }
+.access-mark { font-size: 46px; color: var(--accent); }
 html,
 body {
   background: var(--bg);

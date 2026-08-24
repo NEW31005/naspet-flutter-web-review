@@ -15,8 +15,8 @@ Phase0の目的は「正しいゲーム」を作ることではなく、以下�
 
 ## 一試合を手動実行する方法
 
-1. `npm run dev` → http://localhost:5173
-2. ホームで「Quick Test / Play Test / mock(またはanthropic)」を選び開始
+1. 公開Web Lab URLを開いて専用の合言葉を入力する（ローカル開発は `npm run dev` → http://localhost:5173）
+2. ホームで「Quick Test / Play Test / mock（公開LabのLiveはlab-live、ローカルはanthropic）」を選び開始
 3. ゲーム画面は既定で自動進行。討論中に「🗣 助言」から1回助言を送る
 4. 裁判になると選択シートが自動で開く。処刑したい相手を選ぶ
 5. 投票結果で「あなたの選択 / バディの投票」の一致・不一致を確認
@@ -31,10 +31,12 @@ Phase0の目的は「正しいゲーム」を作ることではなく、以下�
 
 ## モデル比較方法
 
-1. `config/models.json` の `model` を対象モデルに変更(単価も `prices` へ登録)
-2. 同じシードで試合を作成(プロバイダー: anthropic)
+1. 設定画面の `models.json` で対象Live providerの `model` を変更（単価も `prices` へ登録）。公開LabではEdge Functionのallowlist内だけ利用可能
+2. 同じシードで試合を作成（公開Lab: `lab-live`、ローカル: `anthropic`）
 3. 結果画面の「実験指標」とリプレイを比較。エクスポートJSONの `configSnapshot.models` にどのモデル設定だったかが残る
 4. Live AIは非決定的なので、モデル比較は複数シード×複数回で傾向を見る
+
+採用候補が決まったら、設定・プロンプト画面から「モバイル引継ぎパッケージ」を書き出し、その試合のJSON/CSVと一緒に保管する。bundleのSHA-256を実験メモへ記録すれば、本番へ上げた条件と検証結果を結び付けられる。
 
 ## 能力値比較方法
 

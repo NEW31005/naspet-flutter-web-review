@@ -174,15 +174,13 @@ export function Lab({ matchId }: { matchId: string }) {
             {data.metrics.jsonErrorCount} / fallback {data.metrics.fallbackCount}
           </div>
           <div className="row">
-            <a href={`/api/matches/${matchId}/export`} target="_blank" rel="noreferrer">
-              <button className="ghost">JSON</button>
-            </a>
-            <a href={`/api/matches/${matchId}/export.csv?type=evals`} target="_blank" rel="noreferrer">
-              <button className="ghost">評価CSV</button>
-            </a>
-            <a href={`/api/matches/${matchId}/export.csv?type=calls`} target="_blank" rel="noreferrer">
-              <button className="ghost">コールCSV</button>
-            </a>
+            <button className="ghost" onClick={() => void api.downloadRecord(matchId)}>JSON</button>
+            <button className="ghost" onClick={() => void api.downloadCsv(matchId, 'evals')}>
+              評価CSV
+            </button>
+            <button className="ghost" onClick={() => void api.downloadCsv(matchId, 'calls')}>
+              コールCSV
+            </button>
             <button className="ghost" onClick={() => (location.hash = `/match/${matchId}/replay`)}>
               リプレイ画面
             </button>

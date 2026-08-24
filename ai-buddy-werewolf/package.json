@@ -16,7 +16,8 @@
     "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p packages/game-core && tsc --noEmit -p packages/ai-engine && tsc --noEmit -p apps/server && tsc --noEmit -p apps/web",
     "lint": "eslint .",
     "test": "vitest run",
-    "build": "npm run typecheck && npm run build -w @aibw/web"
+    "build": "npm run typecheck && npm run build -w @aibw/web",
+    "build:lab": "npm run typecheck && npm run build -w @aibw/web -- --mode lab"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

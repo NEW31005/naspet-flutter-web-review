@@ -4,6 +4,7 @@
  * - 外部設定ファイルの検証
  */
 import { z } from 'zod';
+import { MOBILE_HANDOFF_FILE_PATHS } from './types.js';
 
 const score = z.number().min(0).max(100);
 
@@ -170,6 +171,21 @@ export const modelsConfigSchema = z.object({
           z.object({ inputPerMTok: z.number(), outputPerMTok: z.number() }),
         ),
       }),
+      z.object({
+        type: z.literal('labProxy'),
+        endpoint: z.string().url(),
+        model: z.string().min(1),
+        temperature: z.number().min(0).max(1).nullable(),
+        maxTokensEval: z.number().int().min(256),
+        maxTokensSpeech: z.number().int().min(128),
+        effort: z.enum(['low', 'medium', 'high']),
+        timeoutMs: z.number().int().min(1000),
+        jsonRetries: z.number().int().min(0).max(5),
+        prices: z.record(
+          z.string(),
+          z.object({ inputPerMTok: z.number(), outputPerMTok: z.number() }),
+        ),
+      }),
     ]),
   ),
 });
@@ -181,3 +197,38 @@ export const adviceSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('skill_target'), targetId: z.string() }),
   z.object({ kind: z.literal('behavior'), directiveId: z.string() }),
 ]);
+
+/** Web Labで調整した内容を本番モバイル側へ渡す固定フォーマット。 */
+const mobileHandoffFilesSchema = z.record(z.string(), z.string().max(100_000)).superRefine(
+  (files, context) => {
+    const actual = Object.keys(files).sort();
+    const expected = [...MOBILE_HANDOFF_FILE_PATHS].sort();
+    if (actual.length !== expected.length || actual.some((path, index) => path !== expected[index])) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'モバイル引継ぎパッケージのファイル構成が固定契約と一致しません',
+      });
+    }
+  },
+);
+
+export const mobileHandoffBundleSchema = z.object({
+  schemaVersion: z.literal(1),
+  kind: z.literal('ai-buddy-werewolf-mobile-handoff'),
+  exportedAt: z.string().datetime(),
+  source: z.object({
+    app: z.literal('ai-buddy-werewolf-phase0-web-lab'),
+    configVersions: z.record(z.string(), z.string()),
+  }),
+  files: mobileHandoffFilesSchema,
+  integrity: z.object({
+    algorithm: z.literal('SHA-256'),
+    digest: z.string().regex(/^[a-f0-9]{64}$/),
+  }),
+  implementationContract: z.object({
+    gameCore: z.literal('authoritative-event-engine'),
+    prompts: z.literal('server-side-only'),
+    secretsIncluded: z.literal(false),
+    mobileTransport: z.enum(['server-api', 'supabase-edge-function']),
+  }),
+});

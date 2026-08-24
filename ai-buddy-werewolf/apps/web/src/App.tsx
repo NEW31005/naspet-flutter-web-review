@@ -6,8 +6,17 @@ import { Result } from './screens/Result.js';
 import { Replay } from './screens/Replay.js';
 import { Lab } from './screens/Lab.js';
 import { Settings } from './screens/Settings.js';
+import { AccessGate } from './components/AccessGate.js';
 
 export function App() {
+  return (
+    <AccessGate>
+      <Routes />
+    </AccessGate>
+  );
+}
+
+function Routes() {
   const route = useHashRoute();
   const parts = route.split('/').filter(Boolean);
 

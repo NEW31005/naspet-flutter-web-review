@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api, type ConfigResponse, type MatchSummary } from '../api.js';
 import { ErrorBox, TopBar } from '../components.js';
+import { isStaticLab } from '../runtime/access.js';
 
 export function Home() {
   const [config, setConfig] = useState<ConfigResponse | null>(null);
@@ -92,7 +93,9 @@ export function Home() {
                   Object.entries(config.models.providers).map(([name, p]) => (
                     <option key={name} value={name}>
                       {name}
-                      {p.type === 'anthropic'
+                      {p.type === 'labProxy'
+                        ? ` (${p.model} / 専用Live)`
+                        : p.type === 'anthropic'
                         ? ` (${p.model}${p.hasKey ? '' : ' / キー未設定'})`
                         : ' (決定論的)'}
                     </option>
@@ -145,6 +148,12 @@ export function Home() {
             設定バージョン: プロンプト v{config?.promptVersion ?? '…'} / モデル設定 v
             {config?.models.version ?? '…'}
           </div>
+          {isStaticLab && (
+            <div className="notice small">
+              この公開Labの設定・試合はこのブラウザだけに保存されます。調整結果は設定画面から
+              「モバイル引継ぎパッケージ」として書き出してください。
+            </div>
+          )}
         </div>
 
         <div className="card">

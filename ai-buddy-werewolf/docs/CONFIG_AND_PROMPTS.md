@@ -5,7 +5,7 @@
 1. ファイルを直接編集(エディタ)
 2. Web UIの「設定・プロンプト」画面(`#/settings`)から編集(JSON/スキーマ検証付き)
 
-**反映タイミング**: 設定は試合作成時にスナップショットされる。編集後に**新しい試合を開始**すれば反映される(アプリ再起動不要)。進行中の試合のプロンプト/モデル設定だけは Lab画面の「♻️ プロンプト/モデル再読込」で差し替えられる(ルールは差し替え不可)。
+**反映タイミング**: 設定は試合作成時にスナップショットされる。編集後に**新しい試合を開始**すれば反映される(アプリ再起動不要)。Node版では進行中試合のプロンプト/モデル設定だけをLab画面の「♻️ プロンプト/モデル再読込」で差し替えられる(ルールは差し替え不可)。公開Web Labの編集内容は使用中ブラウザの `localStorage` にだけ保存される。
 
 ## どのファイルを変更すると何が変わるか
 
@@ -25,8 +25,8 @@
 | 推論力アンロック | `config/abilities.json` | `reasoningUnlocks[]`(`at`=解放ポイント) |
 | 虚言力アンロック | 同上 | `deceptionUnlocks[]` |
 | バディの人格・能力値 | `config/buddies.json`(またはバディ設定画面) | `persona.*`, `abilities.{reasoning,deception,trust}` |
-| モデル・temperature・トークン上限・タイムアウト・リトライ | `config/models.json` | `providers.anthropic.*` |
-| モデル単価(原価計算) | 同上 | `providers.anthropic.prices` |
+| モデル・temperature・推論強度・トークン上限・タイムアウト・リトライ | `config/models.json` | ローカルは `providers.anthropic.*`、公開Labは `providers.lab-live.*` |
+| モデル単価(原価計算) | 同上 | 各Live providerの `prices` |
 | 既定プロバイダー | 同上 | `defaultProvider` |
 | システム/評価/発言/役職別プロンプト | `prompts/*.md` | 後述 |
 
@@ -55,9 +55,9 @@ Phase0の役職は `villager` / `seer` / `werewolf` の3種。人数は `roleSet
 
 ## モデル変更方法
 
-`config/models.json` の `providers.anthropic.model` を変更(例: `claude-sonnet-5`)。試合作成時のプロバイダー選択で `mock` / `anthropic` を切り替える。別プロバイダー(OpenAI等)の追加手順は [HANDOFF_CODEX.md](HANDOFF_CODEX.md) 参照。
+ローカルNode版は `providers.anthropic.model`、公開Web Labは `providers.lab-live.model` を変更する。公開Labで利用できるモデルは、Edge Functionのallowlistにも同じIDを追加する必要がある。試合作成時のプロバイダー選択で `mock` / `anthropic`（ローカル）または `mock` / `lab-live`（公開Lab）を切り替える。別プロバイダー追加は [HANDOFF_CODEX.md](HANDOFF_CODEX.md) を参照。
 
-注意: Claude 5系モデル(`claude-opus-5`等)は `temperature` 非対応のため `null` のままにする(nullなら送信されない)。
+公開Labの初期allowlistは `anthropic/claude-sonnet-5` / `anthropic/claude-opus-4.8` / `anthropic/claude-haiku-4.5`。既定はSonnet 5、推論強度は `low`。モデルがtemperatureを受け付けない場合は `null` にする（送信しない）。
 
 ## コスト単価変更方法
 
@@ -78,6 +78,17 @@ Phase0の役職は `villager` / `seer` / `werewolf` の3種。人数は `roleSet
 ## プロンプトバージョン管理方法
 
 `prompts/version.json` の `version` を上げてからプロンプトを編集する。試合作成時に `configSnapshot.promptVersion` / `versions.prompts` として記録され、結果画面・エクスポートJSONで確認できる。どのバージョンのプロンプトで実行された試合かを比較実験の軸にする。
+
+## 本番モバイルへ持ち越す方法
+
+設定画面上部の「モバイル引継ぎパッケージを書き出す」を押すと、現在このブラウザで有効な次の内容を1つのJSONへ固定する。
+
+- Quick Test / Pack Test、助言、能力、モデル単価、バディ人格
+- system / eval / speech / 役職別プロンプト / prompt version
+- 各設定バージョン、書き出し時刻、内容全体のSHA-256
+- 本番実装契約（権威あるイベントエンジン、プロンプトはサーバー側、秘密を含めない）
+
+APIキー・平文の合言葉・試合履歴は含まれない。読み込み時はZodスキーマとSHA-256の両方を検証し、全ファイルの検証が完了してから一括反映する。本番Flutter/バックエンド側の受け入れ手順と境界は [MOBILE_HANDOFF.md](MOBILE_HANDOFF.md) を正とする。
 
 ## 設定変更時の注意点
 

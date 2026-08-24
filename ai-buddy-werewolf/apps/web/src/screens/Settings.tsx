@@ -1,5 +1,5 @@
 /** 設定・プロンプト編集画面(ファイルをそのまま編集する管理UI) */
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { api, type ConfigResponse } from '../api.js';
 import { ErrorBox, Spinner, TopBar } from '../components.js';
 
@@ -9,6 +9,7 @@ export function Settings() {
   const [text, setText] = useState('');
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const importRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     api.config().then(setConfig).catch((e) => setError(String(e)));
@@ -38,10 +39,65 @@ export function Settings() {
     }
   };
 
+  const exportForMobile = async () => {
+    setError(null);
+    try {
+      const bundle = await api.exportMobileBundle();
+      const url = URL.createObjectURL(
+        new Blob([JSON.stringify(bundle, null, 2)], { type: 'application/json' }),
+      );
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `ai-buddy-mobile-handoff-${bundle.source.configVersions.prompts}.json`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+      setStatus(`モバイル引継ぎパッケージを書き出しました。SHA-256: ${bundle.integrity.digest}`);
+    } catch (cause) {
+      setError(String(cause));
+    }
+  };
+
+  const importBundle = async (file: File | undefined) => {
+    if (!file) return;
+    setError(null);
+    try {
+      const value: unknown = JSON.parse(await file.text());
+      await api.importMobileBundle(value);
+      setConfig(await api.config());
+      setSelected(null);
+      setStatus('検証済みの引継ぎパッケージを読み込みました。次の新規試合から反映されます。');
+    } catch (cause) {
+      setError(String(cause));
+    } finally {
+      if (importRef.current) importRef.current.value = '';
+    }
+  };
+
   return (
     <>
       <TopBar title="設定・プロンプト" back="/" />
       <div className="page">
+        <div className="card">
+          <h2>📦 本番モバイルへ持ち越す</h2>
+          <div className="muted small">
+            現在のルール・能力・人格・モデル設定・全プロンプトを、バージョンとSHA-256付きの固定形式で書き出します。
+            APIキーや合言葉は含みません。本番ではプロンプトとLLM呼び出しをサーバー側に置いてください。
+          </div>
+          <div className="row">
+            <button className="primary" onClick={() => void exportForMobile()}>
+              モバイル引継ぎパッケージを書き出す
+            </button>
+            <button onClick={() => importRef.current?.click()}>引継ぎパッケージを読み込む</button>
+            <input
+              ref={importRef}
+              type="file"
+              accept="application/json,.json"
+              hidden
+              onChange={(event) => void importBundle(event.target.files?.[0])}
+            />
+          </div>
+          {status && <div className="factbox">{status}</div>}
+        </div>
         <div className="card">
           <h2>📁 設定ファイル</h2>
           <div className="muted small">
@@ -85,7 +141,6 @@ export function Settings() {
             <button className="primary" onClick={save}>
               保存(JSON/スキーマ検証あり)
             </button>
-            {status && <div className="factbox">{status}</div>}
           </div>
         )}
         {error && <ErrorBox error={error} />}

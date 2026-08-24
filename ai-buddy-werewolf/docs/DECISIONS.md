@@ -35,8 +35,11 @@
 | 裁判の意思表示 | 主人選択はAIプロンプトに入れず、エンジンが数値補正として適用(二重計上防止) | engine(コード) |
 | 主人の意思表示の棄権 | ポリシー主人はnull可・人間主人は選択必須(UI上) | UI/engine |
 | モックの能力表現 | 実装済みidのみ分岐(それ以外はLiveプロンプト専用) | `mock.ts` |
-| 既定モデル | `claude-opus-5`(effort: low) | `config/models.json` |
-| Live評価の構造化出力 | Record回避のため配列で受けて変換 | `anthropic.ts` |
+| 既定モデル | ローカルAnthropicは既存値、公開Labは `anthropic/claude-sonnet-5`(effort: low) | `config/models.json` |
+| Live評価の構造化出力 | Record回避のため配列で受けて変換。公開LabはEdgeのJSON Schema指示 + ブラウザZod検証 | `anthropic.ts` / `browserAi.ts` / Edge Function |
+| 公開確認 | GitHub Pagesの固定パス + 個人用合言葉 + noindex | 公開Lab build / Supabase secret |
+| 公開Labの保存 | 試合・設定差分は利用端末のlocalStorageのみ | `browserBackend.ts` / `staticConfig.ts` |
+| 本番持ち越し | 13ファイル固定、設定versionとfiles SHA-256付きbundle | `MobileHandoffBundle` / `docs/MOBILE_HANDOFF.md` |
 
 ## 3. まだ未決定のこと
 
@@ -50,11 +53,11 @@
 
 ## 4. 技術上の仮定
 
-- ローカル単一ユーザー・単一プロセスで十分(認証・スケールアウトなし)
+- Node版はローカル単一ユーザー・単一プロセスで十分。公開Labは個人検証用の合言葉ゲートを持つが、本番ユーザー認証ではない
 - 永続化はJSONファイルで十分(SQLiteは不要と判断。移行するなら`MatchRecord`スキーマをそのままテーブル化)
 - クライアントはポーリング(2.5秒)で十分。リアルタイム性が必要になったらSSE/WebSocketへ
 - LLM呼び出しはサーバー側のみ(APIキー保護)。この境界は本番でも維持
-- プロバイダーはAnthropicのみ実装(抽象化済みのため追加は小さい)
+- Node版はAnthropic、公開LabはOpenRouter経由Claudeを実装（抽象化済み）
 - Node 20+ / TypeScript strict / ESM。tsx実行(サーバーのビルド成果物は作らない)
 - モックの決定論はシード+ラベル導出乱数で担保(呼び出し順非依存)
 

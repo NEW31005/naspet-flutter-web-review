@@ -2,8 +2,12 @@
 import { spawn } from 'node:child_process';
 
 const procs = [
-  spawn('npx', ['tsx', 'watch', 'apps/server/src/index.ts'], { stdio: 'inherit' }),
-  spawn('npm', ['run', 'dev', '-w', '@aibw/web'], { stdio: 'inherit' }),
+  spawn(process.execPath, ['node_modules/tsx/dist/cli.mjs', 'watch', 'apps/server/src/index.ts'], {
+    stdio: 'inherit',
+  }),
+  spawn(process.execPath, ['node_modules/vite/bin/vite.js', 'apps/web', '--config', 'apps/web/vite.config.ts'], {
+    stdio: 'inherit',
+  }),
 ];
 
 const shutdown = () => {

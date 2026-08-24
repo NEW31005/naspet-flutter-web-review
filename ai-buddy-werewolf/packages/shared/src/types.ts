@@ -416,7 +416,25 @@ export interface MockProviderConfig {
   simulatedLatencyMs: number;
 }
 
-export type ProviderConfig = AnthropicProviderConfig | MockProviderConfig;
+/**
+ * 公開Web Lab専用の安全なLLM中継。
+ * APIキーはSupabase Edge Function側だけに置き、ブラウザは合言葉と
+ * 生成条件だけを送る。endpoint自体は秘密情報ではない。
+ */
+export interface LabProxyProviderConfig {
+  type: 'labProxy';
+  endpoint: string;
+  model: string;
+  temperature: number | null;
+  maxTokensEval: number;
+  maxTokensSpeech: number;
+  effort: 'low' | 'medium' | 'high';
+  timeoutMs: number;
+  jsonRetries: number;
+  prices: Record<string, ModelPrice>;
+}
+
+export type ProviderConfig = AnthropicProviderConfig | MockProviderConfig | LabProxyProviderConfig;
 
 export interface ModelsConfig {
   version: string;
@@ -424,9 +442,43 @@ export interface ModelsConfig {
   providers: Record<string, ProviderConfig>;
 }
 
+export const MOBILE_HANDOFF_FILE_PATHS = [
+  'config/presets/quick-test.json',
+  'config/presets/pack-test.json',
+  'config/advice.json',
+  'config/abilities.json',
+  'config/models.json',
+  'config/buddies.json',
+  'prompts/system.base.md',
+  'prompts/eval.md',
+  'prompts/speech.md',
+  'prompts/role.villager.md',
+  'prompts/role.seer.md',
+  'prompts/role.werewolf.md',
+  'prompts/version.json',
+] as const;
+
 export interface BuddiesConfig {
   version: string;
   roster: BuddyConfig[];
+}
+
+export interface MobileHandoffBundle {
+  schemaVersion: 1;
+  kind: 'ai-buddy-werewolf-mobile-handoff';
+  exportedAt: string;
+  source: {
+    app: 'ai-buddy-werewolf-phase0-web-lab';
+    configVersions: Record<string, string>;
+  };
+  files: Record<string, string>;
+  integrity: { algorithm: 'SHA-256'; digest: string };
+  implementationContract: {
+    gameCore: 'authoritative-event-engine';
+    prompts: 'server-side-only';
+    secretsIncluded: false;
+    mobileTransport: 'server-api' | 'supabase-edge-function';
+  };
 }
 
 /** 試合作成時に確定する設定スナップショット(この内容で1試合が動く) */

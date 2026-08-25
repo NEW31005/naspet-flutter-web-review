@@ -18,12 +18,12 @@
 - npm 10以上
 - ローカルでLive AIを使う場合のみ: Anthropic APIキー(モックAIのみなら不要)
 
-## 公開Web Lab（合言葉付き）
+## 公開Web Lab（覚えやすい愛言葉付き）
 
 公開確認先: <https://new31005.github.io/naspet-flutter-web-review/ai-buddy-lab/>
 
-- 入口は合言葉で保護し、合言葉そのものはGitHubやビルド成果物へ含めない
-- 合言葉はタブを閉じるまでの `sessionStorage`、編集した設定・プロンプト・試合データはその端末の `localStorage` にだけ保存
+- 入口は覚えやすい愛言葉で保護し、愛言葉そのものはGitHubやビルド成果物へ含めない
+- 愛言葉は前後空白・大文字小文字・全角英数字を吸収。タブを閉じるまでの `sessionStorage` に保持する
 - Live AIはSupabase Edge Functionを経由し、OpenRouterのAPIキーはサーバー側だけで保持
 - 検索結果への掲載を避けるため `noindex` を指定。ただしURLを知る第三者から完全に存在を隠す認証サービスではない
 - ブラウザデータを消す前に、試合JSONと「モバイル引継ぎパッケージ」を書き出すこと
@@ -76,7 +76,7 @@ npm run dev
 ## テスト方法
 
 ```bash
-npm test        # vitest (役職配布/秘密分離/信頼度補正/襲撃統合/勝敗/リプレイ復元/公開Lab復元/引継ぎ整合性/モック完走 など40件)
+npm test        # vitest (役職配布/秘密分離/信頼度補正/襲撃統合/勝敗/リプレイ復元/公開Lab復元/愛言葉正規化/引継ぎ整合性/モック完走 など41件)
 npm run lint    # ESLint (strict / no-explicit-any)
 ```
 
@@ -84,7 +84,7 @@ npm run lint    # ESLint (strict / no-explicit-any)
 
 ```bash
 npm run build   # 全パッケージの型チェック + Webのproductionビルド
-npm run build:lab  # GitHub Pages用の合言葉付き静的Web Labビルド
+npm run build:lab  # GitHub Pages用の愛言葉付き静的Web Labビルド
 ```
 
 ## 基本的な使い方

@@ -151,7 +151,7 @@ class LabProxyProvider {
     attempt: number,
   ): Promise<ProxyResponse> {
     const accessCode = getLabAccessCode();
-    if (!accessCode) throw new Error('合言葉のセッションがありません。再ログインしてください');
+    if (!accessCode) throw new Error('愛言葉のセッションがありません。再ログインしてください');
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.config.timeoutMs);
     try {

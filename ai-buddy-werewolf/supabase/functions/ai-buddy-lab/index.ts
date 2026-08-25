@@ -99,7 +99,10 @@ function constantTimeEqual(left: string, right: string): boolean {
 
 async function authorized(request: Request): Promise<boolean> {
   const expected = Deno.env.get('AI_BUDDY_LAB_ACCESS_SHA256') ?? '';
-  const supplied = request.headers.get('X-Lab-Access') ?? '';
+  const supplied = (request.headers.get('X-Lab-Access') ?? '')
+    .normalize('NFKC')
+    .trim()
+    .toLowerCase();
   if (!expected || !supplied || supplied.length > 128) return false;
   return constantTimeEqual(await sha256(supplied), expected);
 }
@@ -197,7 +200,9 @@ Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
   if (request.method !== 'POST') return json({ error: 'POSTのみ利用できます' }, 405, origin);
   if (origin && !ALLOWED_ORIGINS.has(origin)) return json({ error: '許可されていないOriginです' }, 403, origin);
-  if (!(await authorized(request))) return json({ error: '合言葉が違います' }, 401, origin);
+  if (!(await authorized(request))) {
+    return json({ error: '愛言葉が違うみたいです。アクセス情報をもう一度確認してね' }, 401, origin);
+  }
 
   const body = await request.json().catch(() => null) as Record<string, unknown> | null;
   if (!body) return json({ error: 'JSON本文が必要です' }, 400, origin);

@@ -15,7 +15,7 @@ Phase0の目的は「正しいゲーム」を作ることではなく、以下�
 
 ## 一試合を手動実行する方法
 
-1. 公開Web Lab URLを開いて専用の合言葉を入力する（ローカル開発は `npm run dev` → http://localhost:5173）
+1. 公開Web Lab URLを開いて専用の愛言葉を入力する（前後空白・大文字小文字・全角英数字は不問。ローカル開発は `npm run dev` → http://localhost:5173）
 2. ホームで「Quick Test / Play Test / mock（公開LabのLiveはlab-live、ローカルはanthropic）」を選び開始
 3. ゲーム画面は既定で自動進行。討論中に「🗣 助言」から1回助言を送る
 4. 裁判になると選択シートが自動で開く。処刑したい相手を選ぶ

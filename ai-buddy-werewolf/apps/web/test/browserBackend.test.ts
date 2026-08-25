@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BrowserBackend } from '../src/runtime/browserBackend.js';
+import { normalizeLabAccessCode } from '../src/runtime/access.js';
 import {
   createMobileHandoffBundle,
   validateMobileHandoffBundle,
@@ -79,5 +80,9 @@ describe('公開Web Labブラウザ内バックエンド', () => {
     const validated = await validateMobileHandoffBundle(bundle);
     expect(validated.integrity.digest).toMatch(/^[a-f0-9]{64}$/);
     expect(validated.implementationContract.secretsIncluded).toBe(false);
+  });
+
+  it('愛言葉の全角英字・大文字小文字・前後空白を吸収する', () => {
+    expect(normalizeLabAccessCode('  ＴＥＳＴ－ＰＡＳＳ  ')).toBe('test-pass');
   });
 });

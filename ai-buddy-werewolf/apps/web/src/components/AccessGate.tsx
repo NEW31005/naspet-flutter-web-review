@@ -58,13 +58,13 @@ export function AccessGate({ children }: { children: ReactNode }) {
           <h1>AIバディ人狼</h1>
           <p className="muted">しんちゃん専用 Phase0 Lab</p>
           <label className="field">
-            合言葉
+            しんちゃんと真里の愛言葉
             <input
               type="password"
               autoComplete="current-password"
               value={code}
               onChange={(event) => setCode(event.target.value)}
-              placeholder="専用アクセスコード"
+              placeholder="愛言葉を入力"
               autoFocus
             />
           </label>
@@ -73,6 +73,8 @@ export function AccessGate({ children }: { children: ReactNode }) {
           </button>
           {error && <div className="errorbox small">{error}</div>}
           <p className="muted small">
+            大文字・小文字、前後の空白、全角英数字は気にしなくて大丈夫です。
+            <br />
             設定・プロンプト・試合データはこの端末のブラウザ内だけに保存されます。
             APIキーはブラウザへ配布されません。
           </p>

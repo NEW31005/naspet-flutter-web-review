@@ -81,7 +81,7 @@ export function Settings() {
           <h2>📦 本番モバイルへ持ち越す</h2>
           <div className="muted small">
             現在のルール・能力・人格・モデル設定・全プロンプトを、バージョンとSHA-256付きの固定形式で書き出します。
-            APIキーや合言葉は含みません。本番ではプロンプトとLLM呼び出しをサーバー側に置いてください。
+            APIキーや愛言葉は含みません。本番ではプロンプトとLLM呼び出しをサーバー側に置いてください。
           </div>
           <div className="row">
             <button className="primary" onClick={() => void exportForMobile()}>

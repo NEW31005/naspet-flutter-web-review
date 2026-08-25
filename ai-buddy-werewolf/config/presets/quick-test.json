@@ -1,7 +1,7 @@
 {
   "version": "0.1.0",
   "presetId": "quick-test",
-  "label": "Quick Test (5組・狼1・占い1・最大3日)",
+  "label": "クイックテスト（5組・狼憑き1組・占い役1組・最大3日）",
   "pairCount": 5,
   "roleSetup": { "werewolf": 1, "seer": 1 },
   "maxDays": 3,

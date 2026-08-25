@@ -118,9 +118,9 @@ export function Buddies() {
                     )
                   }
                 >
-                  <option value="short">short(短い)</option>
-                  <option value="medium">medium(普通)</option>
-                  <option value="long">long(長い)</option>
+                  <option value="short">短い</option>
+                  <option value="medium">普通</option>
+                  <option value="long">長い</option>
                 </select>
               </label>
               <label className="field">

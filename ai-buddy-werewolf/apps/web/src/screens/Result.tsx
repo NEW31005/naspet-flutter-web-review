@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api, type MatchRecord, type ReplayData, type ViewResponse } from '../api.js';
 import { ErrorBox, Spinner, TopBar } from '../components.js';
+import { configVersionLabel, providerLabel } from '../uiLabels.js';
 
 export function Result({ matchId }: { matchId: string }) {
   const [data, setData] = useState<ViewResponse | null>(null);
@@ -54,8 +55,8 @@ export function Result({ matchId }: { matchId: string }) {
           <div className="muted">{view.finishReason}</div>
           <div className="row">
             <span className="badge">{view.matchId}</span>
-            <span className="badge">seed: {record?.seed}</span>
-            <span className="badge">{record?.provider}</span>
+            <span className="badge">シード: {record?.seed}</span>
+            <span className="badge">{providerLabel(record?.provider ?? '')}</span>
           </div>
         </div>
 
@@ -95,7 +96,7 @@ export function Result({ matchId }: { matchId: string }) {
                       <tr>
                         <th>バディ</th>
                         <th>主人の選択</th>
-                        <th>AIの投票</th>
+                        <th>バディの最終投票</th>
                         <th>一致</th>
                       </tr>
                     </thead>
@@ -144,7 +145,7 @@ export function Result({ matchId }: { matchId: string }) {
                 <tr>
                   <th>モデル/プロバイダー</th>
                   <td>
-                    {record?.provider}
+                    {providerLabel(record?.provider ?? '')}
                     {record && record.aiCalls[0] ? ` (${record.aiCalls[0].model})` : ''}
                   </td>
                 </tr>
@@ -153,7 +154,7 @@ export function Result({ matchId }: { matchId: string }) {
                   <td className="mono">
                     {record
                       ? Object.entries(record.configSnapshot.versions)
-                          .map(([k, v]) => `${k}:${v}`)
+                          .map(([k, v]) => `${configVersionLabel(k)}:${v}`)
                           .join(' ')
                       : '…'}
                   </td>
@@ -194,7 +195,7 @@ export function Result({ matchId }: { matchId: string }) {
             <button className="primary" onClick={() => (location.hash = `/match/${matchId}/replay`)}>
               🔍 リプレイ/内部分析
             </button>
-            <button onClick={() => (location.hash = `/match/${matchId}/lab`)}>Lab</button>
+            <button onClick={() => (location.hash = `/match/${matchId}/lab`)}>検証室</button>
             <button className="ghost" onClick={() => void api.downloadRecord(matchId)}>
               JSON書き出し
             </button>

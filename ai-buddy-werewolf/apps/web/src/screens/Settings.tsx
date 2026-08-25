@@ -1,18 +1,33 @@
-/** 設定・プロンプト編集画面(ファイルをそのまま編集する管理UI) */
+/** 実験設定画面: 普段使う日本語UIと、開発者向け原文編集を分離する。 */
 import { useEffect, useRef, useState } from 'react';
 import { api, type ConfigResponse } from '../api.js';
 import { ErrorBox, Spinner, TopBar } from '../components.js';
+import {
+  CONFIG_FILE_META,
+  PROMPT_FILE_META,
+  configFileLabel,
+  promptFileLabel,
+} from '../uiLabels.js';
+import { EasySettings } from './EasySettings.js';
 
 export function Settings() {
   const [config, setConfig] = useState<ConfigResponse | null>(null);
   const [selected, setSelected] = useState<{ kind: 'config' | 'prompt'; name: string } | null>(null);
   const [text, setText] = useState('');
+  const [promptVersion, setPromptVersion] = useState('');
+  const [settingsRevision, setSettingsRevision] = useState(0);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const importRef = useRef<HTMLInputElement>(null);
 
+  const refreshConfig = async () => {
+    const next = await api.config();
+    setConfig(next);
+    setPromptVersion(next.promptVersion);
+  };
+
   useEffect(() => {
-    api.config().then(setConfig).catch((e) => setError(String(e)));
+    void refreshConfig().catch((cause) => setError(String(cause)));
   }, []);
 
   const open = async (kind: 'config' | 'prompt', name: string) => {
@@ -22,20 +37,44 @@ export function Settings() {
       const res = await api.readFile(kind, name);
       setSelected({ kind, name });
       setText(res.text);
-    } catch (e) {
-      setError(String(e));
+    } catch (cause) {
+      setError(String(cause));
     }
   };
 
-  const save = async () => {
-    if (!selected) return;
+  const saveAdvanced = async () => {
+    if (!selected || selected.kind !== 'config') return;
     setStatus(null);
     setError(null);
     try {
-      await api.writeFile(selected.kind, selected.name, text);
-      setStatus(`${selected.name} を保存しました。次の新規試合(またはLabの再読込)から反映されます。`);
-    } catch (e) {
-      setError(String(e));
+      await api.writeFile('config', selected.name, text);
+      await refreshConfig();
+      setSettingsRevision((revision) => revision + 1);
+      setStatus(`${configFileLabel(selected.name)}を保存しました。次の新規試合から反映されます。`);
+    } catch (cause) {
+      setError(String(cause));
+    }
+  };
+
+  const savePrompt = async () => {
+    if (!selected || selected.kind !== 'prompt' || selected.name === 'version.json') return;
+    setStatus(null);
+    setError(null);
+    if (!promptVersion.trim()) {
+      setError('プロンプトの版番号を入力してください。');
+      return;
+    }
+    try {
+      await api.writeFile('prompt', selected.name, text);
+      await api.writeFile(
+        'prompt',
+        'version.json',
+        JSON.stringify({ version: promptVersion.trim() }, null, 2),
+      );
+      await refreshConfig();
+      setStatus(`${promptFileLabel(selected.name)}と版番号を保存しました。次の新規試合から反映されます。`);
+    } catch (cause) {
+      setError(String(cause));
     }
   };
 
@@ -51,7 +90,7 @@ export function Settings() {
       link.download = `ai-buddy-mobile-handoff-${bundle.source.configVersions.prompts}.json`;
       link.click();
       setTimeout(() => URL.revokeObjectURL(url), 0);
-      setStatus(`モバイル引継ぎパッケージを書き出しました。SHA-256: ${bundle.integrity.digest}`);
+      setStatus(`本番モバイル用データを書き出しました。改ざん確認番号: ${bundle.integrity.digest}`);
     } catch (cause) {
       setError(String(cause));
     }
@@ -63,9 +102,10 @@ export function Settings() {
     try {
       const value: unknown = JSON.parse(await file.text());
       await api.importMobileBundle(value);
-      setConfig(await api.config());
+      await refreshConfig();
+      setSettingsRevision((revision) => revision + 1);
       setSelected(null);
-      setStatus('検証済みの引継ぎパッケージを読み込みました。次の新規試合から反映されます。');
+      setStatus('検証済みの本番モバイル用データを読み込みました。次の新規試合から反映されます。');
     } catch (cause) {
       setError(String(cause));
     } finally {
@@ -73,21 +113,22 @@ export function Settings() {
     }
   };
 
+  const promptNames = config?.editable.prompts.filter((name) => name !== 'version.json') ?? [];
+
   return (
     <>
-      <TopBar title="設定・プロンプト" back="/" />
+      <TopBar title="実験設定" back="/" />
       <div className="page">
-        <div className="card">
+        <div className="card handoff-card">
           <h2>📦 本番モバイルへ持ち越す</h2>
           <div className="muted small">
-            現在のルール・能力・人格・モデル設定・全プロンプトを、バージョンとSHA-256付きの固定形式で書き出します。
-            APIキーや愛言葉は含みません。本番ではプロンプトとLLM呼び出しをサーバー側に置いてください。
+            ここで調整したルール・バディ・AIモデル・全プロンプトを、ひとつのファイルにまとめます。本番モバイル側は同じ内容を読み込めます。APIキーと愛言葉は含みません。
           </div>
           <div className="row">
             <button className="primary" onClick={() => void exportForMobile()}>
-              モバイル引継ぎパッケージを書き出す
+              本番モバイル用データを書き出す
             </button>
-            <button onClick={() => importRef.current?.click()}>引継ぎパッケージを読み込む</button>
+            <button onClick={() => importRef.current?.click()}>保存データを読み込む</button>
             <input
               ref={importRef}
               type="file"
@@ -96,55 +137,82 @@ export function Settings() {
               onChange={(event) => void importBundle(event.target.files?.[0])}
             />
           </div>
-          {status && <div className="factbox">{status}</div>}
         </div>
-        <div className="card">
-          <h2>📁 設定ファイル</h2>
-          <div className="muted small">
-            ルール(組数/役職/日数/助言回数/同票処理/信頼度補正)・助言メニュー・能力アンロック・モデル/単価・バディはすべてここから変更できます。
-            保存後、新しい試合を開始すると反映されます(コード変更・再起動は不要)。
+
+        <EasySettings key={settingsRevision} onSaved={refreshConfig} />
+
+        <div className="card prompt-settings">
+          <div>
+            <h2>📝 AIへの指示文（プロンプト）</h2>
+            <div className="muted small">
+              変えたい役割を日本語名から選び、指示文を直接調整します。文中の <span className="mono">{'{{名前}}'}</span> のような置換記号は消さないでください。
+            </div>
           </div>
-          <div className="row">
+          <label className="field compact-version">
+            プロンプトの版番号
+            <span className="setting-help">内容を変えたら番号も更新すると、試合ごとの差を追跡できます。</span>
+            <input value={promptVersion} onChange={(event) => setPromptVersion(event.target.value)} />
+          </label>
+          <div className="file-choice-grid">
+            {promptNames.map((name) => (
+              <button
+                key={name}
+                className={selected?.kind === 'prompt' && selected.name === name ? 'primary' : 'ghost'}
+                onClick={() => void open('prompt', name)}
+              >
+                {promptFileLabel(name)}
+              </button>
+            ))}
+          </div>
+          {selected?.kind === 'prompt' && (
+            <div className="editor-block">
+              <div>
+                <h3>{promptFileLabel(selected.name)}</h3>
+                <div className="muted small">{PROMPT_FILE_META[selected.name]?.description}</div>
+                <div className="mono technical-name">内部ファイル名: {selected.name}</div>
+              </div>
+              <textarea rows={20} value={text} onChange={(event) => setText(event.target.value)} />
+              <button className="primary" onClick={() => void savePrompt()}>
+                この指示文と版番号を保存
+              </button>
+            </div>
+          )}
+        </div>
+
+        <details className="card advanced-settings">
+          <summary>🛠 開発者向け詳細設定（JSON原文）</summary>
+          <div className="notice small">
+            通常は上の「かんたん設定」で十分です。ここは能力の解放条件など、すべての内部項目を直接変更したい場合に使います。壊れたJSONは保存時に拒否されます。
+          </div>
+          <div className="file-choice-grid">
             {config?.editable.config.map((name) => (
               <button
                 key={name}
-                className={selected?.name === name ? 'primary' : 'ghost'}
-                onClick={() => open('config', name)}
+                className={selected?.kind === 'config' && selected.name === name ? 'primary' : 'ghost'}
+                onClick={() => void open('config', name)}
               >
-                {name}
+                {configFileLabel(name)}
               </button>
             ))}
           </div>
-        </div>
-        <div className="card">
-          <h2>📝 プロンプト(v{config?.promptVersion})</h2>
-          <div className="muted small">
-            評価・発言・役職別プロンプトを編集できます。version.json
-            を上げるとプロンプトバージョンとして試合に記録されます。
-          </div>
-          <div className="row">
-            {config?.editable.prompts.map((name) => (
-              <button
-                key={name}
-                className={selected?.name === name ? 'primary' : 'ghost'}
-                onClick={() => open('prompt', name)}
-              >
-                {name}
+          {selected?.kind === 'config' && (
+            <div className="editor-block">
+              <div>
+                <h3>{configFileLabel(selected.name)}</h3>
+                <div className="muted small">{CONFIG_FILE_META[selected.name]?.description}</div>
+                <div className="mono technical-name">内部ファイル名: {selected.name}</div>
+              </div>
+              <textarea rows={20} value={text} onChange={(event) => setText(event.target.value)} />
+              <button className="primary" onClick={() => void saveAdvanced()}>
+                この詳細設定を保存（内容チェックあり）
               </button>
-            ))}
-          </div>
-        </div>
-        {selected && (
-          <div className="card">
-            <h2>✏️ {selected.name}</h2>
-            <textarea rows={20} value={text} onChange={(e) => setText(e.target.value)} />
-            <button className="primary" onClick={save}>
-              保存(JSON/スキーマ検証あり)
-            </button>
-          </div>
-        )}
+            </div>
+          )}
+        </details>
+
+        {status && <div className="factbox">{status}</div>}
         {error && <ErrorBox error={error} />}
-        {!config && !error && <Spinner />}
+        {!config && !error && <Spinner label="実験設定を読み込み中…" />}
       </div>
     </>
   );

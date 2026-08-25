@@ -54,7 +54,7 @@ npm run dev
 ```
 
 ブラウザ(スマホまたはPCのモバイル表示)で http://localhost:5173 を開き、
-「プリセット: Quick Test / モード: Play Test / プロバイダー: mock」で試合を開始してください。
+「プリセット: クイックテスト / モード: プレイテスト / AI: モックAI」で試合を開始してください。
 
 本番ビルドで動かす場合:
 
@@ -71,7 +71,7 @@ export ANTHROPIC_API_KEY=sk-ant-...   # または .env に記載
 npm run dev
 ```
 
-ローカル開発では試合作成時に `anthropic`、公開Web Labでは `lab-live` を選択する。公開Web Labの既定モデルは `anthropic/claude-sonnet-5`。使用モデル・推論強度・温度・トークン上限・単価は `config/models.json` で変更できる。Live呼び出しの構造検証または通信に失敗した場合は、エラー記録を残して決定論的モックへフォールバックする。
+ローカル開発では試合作成時に画面上の「Claude Live（ローカル開発用）」、公開Web Labでは「Claude Live（実際の会話を検証）」を選択する。内部IDはそれぞれ `anthropic` / `lab-live`。公開Web Labの既定モデルは `anthropic/claude-sonnet-5`。使用モデル・考える深さ・出力量・待ち時間・単価は「実験設定」の日本語画面から変更でき、全項目は `config/models.json` でも変更できる。Live呼び出しの構造検証または通信に失敗した場合は、エラー記録を残して決定論的モックへフォールバックする。
 
 ## テスト方法
 

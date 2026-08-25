@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, type Advice, type AiCallRecord, type ViewResponse } from '../api.js';
 import { ErrorBox, Sheet, Spinner, TopBar } from '../components.js';
+import { pendingLabel, phaseLabel, providerLabel } from '../uiLabels.js';
 
 export function Lab({ matchId }: { matchId: string }) {
   const [data, setData] = useState<ViewResponse | null>(null);
@@ -57,7 +58,7 @@ export function Lab({ matchId }: { matchId: string }) {
   if (!data) {
     return (
       <>
-        <TopBar title="Lab" back="/" />
+        <TopBar title="検証室" back="/" />
         <div className="page">{error ? <ErrorBox error={error} onRetry={refresh} /> : <Spinner />}</div>
       </>
     );
@@ -70,9 +71,9 @@ export function Lab({ matchId }: { matchId: string }) {
   return (
     <>
       <TopBar
-        title={`Lab — ${view.day}日目 ${view.phase}`}
+        title={`検証室 — ${view.day}日目 ${phaseLabel(view.phase)}`}
         back="/"
-        right={(acting || data.busy) ? <Spinner /> : <span className="badge">{view.provider}</span>}
+        right={(acting || data.busy) ? <Spinner /> : <span className="badge">{providerLabel(view.provider)}</span>}
       />
       <div className="page">
         <div className="card">
@@ -138,7 +139,7 @@ export function Lab({ matchId }: { matchId: string }) {
             </button>
           </div>
           <div className="muted small">
-            pending: {view.pending.type}
+            現在の状態: {pendingLabel(view.pending.type)}
             {view.pending.type === 'wait_inputs' &&
               ' — ' +
                 view.pending.missing.map((miss) => `${miss.pairId}:${miss.input}`).join(', ')}
@@ -161,7 +162,7 @@ export function Lab({ matchId }: { matchId: string }) {
             <button onClick={() => setInjectSheet('night')}>夜襲提案</button>
           </div>
           <div className="muted small">
-            フェーズ外・回数超過などは engine が拒否する(エラー表示で確認できる)
+            フェーズ外・回数超過などはゲーム本体が拒否します（エラー表示で確認できます）。
           </div>
         </div>
 
@@ -171,7 +172,7 @@ export function Lab({ matchId }: { matchId: string }) {
             コール{data.metrics.aiCallCount} / 入力{data.metrics.inputTokens}tok / 出力
             {data.metrics.outputTokens}tok / ${data.metrics.costUsd.toFixed(4)} / AI待機
             {(data.metrics.aiWaitMs / 1000).toFixed(1)}s / エラー{data.metrics.errorCount} / JSON失敗
-            {data.metrics.jsonErrorCount} / fallback {data.metrics.fallbackCount}
+            {data.metrics.jsonErrorCount} / 代替処理 {data.metrics.fallbackCount}
           </div>
           <div className="row">
             <button className="ghost" onClick={() => void api.downloadRecord(matchId)}>JSON</button>
@@ -197,14 +198,14 @@ export function Lab({ matchId }: { matchId: string }) {
                 <summary>
                   {c.id} — {c.provider}/{c.model} {c.latencyMs}ms in:{c.inputTokens} out:
                   {c.outputTokens} ${c.costUsd.toFixed(5)}
-                  {c.usedFallback && ' ⚠️fallback'}
+                  {c.usedFallback && ' ⚠️代替処理'}
                   {c.jsonErrors > 0 && ` JSONエラー${c.jsonErrors}`}
                   {!c.ok && ' ❌'}
                 </summary>
                 {c.error && <div className="errorbox small">{c.error}</div>}
-                <h3>request</h3>
+                <h3>AIへ送った内容</h3>
                 <pre className="json">{JSON.stringify(c.rawRequest, null, 1)}</pre>
-                <h3>response</h3>
+                <h3>AIから返った内容</h3>
                 <pre className="json">{JSON.stringify(c.rawResponse, null, 1)}</pre>
               </details>
             ))}
@@ -213,7 +214,7 @@ export function Lab({ matchId }: { matchId: string }) {
         <div className="card">
           <h2>🧠 全内部状態</h2>
           <details>
-            <summary>GameState(GMビュー)を表示</summary>
+            <summary>ゲーム全状態（進行役の視点）を表示</summary>
             <pre className="json">{JSON.stringify(data.gm, null, 1)}</pre>
           </details>
         </div>
@@ -283,7 +284,7 @@ function LabTargetSheet({
             {c.buddyName}({c.pairId})
           </button>
         ))}
-        <button onClick={() => onSubmit(null)}>提案なし(null)</button>
+        <button onClick={() => onSubmit(null)}>提案なし</button>
       </div>
     </Sheet>
   );

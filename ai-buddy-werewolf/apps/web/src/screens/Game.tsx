@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PublicLogEntry } from '@aibw/game-core';
 import { api, type Advice, type ViewResponse } from '../api.js';
 import { ErrorBox, Sheet, Spinner, TopBar } from '../components.js';
+import { providerLabel } from '../uiLabels.js';
 
 const PHASE_LABEL: Record<string, string> = {
   day_start: '朝',
@@ -117,7 +118,7 @@ export function Game({ matchId }: { matchId: string }) {
         right={
           <span className="row" style={{ gap: 6 }}>
             {(data.busy || acting) && <Spinner />}
-            <span className="badge">{view.provider}</span>
+            <span className="badge">{providerLabel(view.provider)}</span>
           </span>
         }
       />

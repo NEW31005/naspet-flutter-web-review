@@ -3,6 +3,13 @@ import { useEffect, useState } from 'react';
 import { api, type ConfigResponse, type MatchSummary } from '../api.js';
 import { ErrorBox, TopBar } from '../components.js';
 import { isStaticLab } from '../runtime/access.js';
+import {
+  masterPolicyLabel,
+  modeLabel,
+  phaseLabel,
+  presetIdLabel,
+  providerLabel,
+} from '../uiLabels.js';
 
 export function Home() {
   const [config, setConfig] = useState<ConfigResponse | null>(null);
@@ -73,17 +80,17 @@ export function Home() {
           </label>
           {preset && (
             <div className="muted small">
-              {preset.pairCount}組 / 狼{preset.roleSetup.werewolf} / 占い{preset.roleSetup.seer} /
-              最大{preset.maxDays}日 / 助言{preset.advicePerDay}回/日 / 他の主人:
-              {preset.otherMastersPolicy}
+              {preset.pairCount}組 / 狼憑き{preset.roleSetup.werewolf}組 / 占い役
+              {preset.roleSetup.seer}組 / 最大{preset.maxDays}日 / 助言{preset.advicePerDay}回/日
+              <br />他の主人: {masterPolicyLabel(preset.otherMastersPolicy)}
             </div>
           )}
           <div className="grid2">
             <label className="field">
               モード
               <select value={mode} onChange={(e) => setMode(e.target.value === 'lab' ? 'lab' : 'play')}>
-                <option value="play">Play Test(1組の主人として遊ぶ)</option>
-                <option value="lab">Lab Simulation(全組観察)</option>
+                <option value="play">プレイテスト（1組の主人として遊ぶ）</option>
+                <option value="lab">検証室（全組を観察・操作）</option>
               </select>
             </label>
             <label className="field">
@@ -92,12 +99,12 @@ export function Home() {
                 {config &&
                   Object.entries(config.models.providers).map(([name, p]) => (
                     <option key={name} value={name}>
-                      {name}
+                      {providerLabel(name, p.type)}
                       {p.type === 'labProxy'
-                        ? ` (${p.model} / 専用Live)`
+                        ? ` — ${p.model}`
                         : p.type === 'anthropic'
-                        ? ` (${p.model}${p.hasKey ? '' : ' / キー未設定'})`
-                        : ' (決定論的)'}
+                        ? ` — ${p.model}${p.hasKey ? '' : '（接続キー未設定）'}`
+                        : ''}
                     </option>
                   ))}
               </select>
@@ -142,7 +149,7 @@ export function Home() {
           <h2>⚙️ 実験設定</h2>
           <div className="row">
             <button onClick={() => (location.hash = '/buddies')}>バディ設定</button>
-            <button onClick={() => (location.hash = '/settings')}>ルール/プロンプト/モデル/コスト設定</button>
+            <button onClick={() => (location.hash = '/settings')}>かんたん設定・AIへの指示文</button>
           </div>
           <div className="muted small">
             設定バージョン: プロンプト v{config?.promptVersion ?? '…'} / モデル設定 v
@@ -164,16 +171,16 @@ export function Home() {
               <div>
                 <div className="row" style={{ gap: 6 }}>
                   <span className="mono">{m.matchId}</span>
-                  <span className="badge">{m.presetId}</span>
-                  <span className="badge">{m.provider}</span>
-                  <span className="badge">{m.mode}</span>
+                  <span className="badge">{presetIdLabel(m.presetId)}</span>
+                  <span className="badge">{providerLabel(m.provider)}</span>
+                  <span className="badge">{modeLabel(m.mode)}</span>
                 </div>
                 <div className="muted small">
                   {new Date(m.createdAt).toLocaleString('ja-JP')} /{' '}
                   {m.winner
                     ? `決着: ${m.winner === 'citizens' ? '市民勝利' : m.winner === 'wolves' ? '狼勝利' : '引分'}`
-                    : `${m.day}日目 ${m.phase}`}{' '}
-                  / ${m.costUsd.toFixed(4)}
+                    : `${m.day}日目 ${phaseLabel(m.phase)}`}{' '}
+                  / 推定原価 ${m.costUsd.toFixed(4)}
                 </div>
               </div>
               <div className="row" style={{ flexWrap: 'nowrap' }}>
@@ -186,7 +193,7 @@ export function Home() {
                   {m.winner ? '結果' : '再開'}
                 </button>
                 <button className="ghost" onClick={() => (location.hash = `/match/${m.matchId}/lab`)}>
-                  Lab
+                  検証室
                 </button>
               </div>
             </div>

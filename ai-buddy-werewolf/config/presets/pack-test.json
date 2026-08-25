@@ -1,7 +1,7 @@
 {
   "version": "0.1.0",
   "presetId": "pack-test",
-  "label": "Pack Test (8組・狼2・占い1・最大4日)",
+  "label": "群れテスト（8組・狼憑き2組・占い役1組・最大4日）",
   "pairCount": 8,
   "roleSetup": { "werewolf": 2, "seer": 1 },
   "maxDays": 4,

@@ -5,7 +5,7 @@
 1. ファイルを直接編集(エディタ)
 2. Web UIの「実験設定」画面(`#/settings`)から編集
 
-Web UIでは、よく使うルール・信頼度・助言・AIモデル・単価を「かんたん設定」で日本語の項目名から変更できる。プロンプトも「推理・内部評価の指示」「狼憑きの嘘・判断」などの日本語名から選ぶ。能力アンロックなど全内部項目を触る場合だけ、画面下部の「開発者向け詳細設定（JSON原文）」を開く。保存時は従来どおりスキーマ検証され、本番モバイル用の書き出し形式も変わらない。
+Web UIでは、よく使うルール・親密度・助言・AIモデル・単価を「かんたん設定」で日本語の項目名から変更できる。プロンプトも「推理・内部評価の指示」「狼憑きの嘘・判断」などの日本語名から選ぶ。能力アンロックなど全内部項目を触る場合だけ、画面下部の「開発者向け詳細設定（JSON原文）」を開く。保存時は従来どおりスキーマ検証され、本番モバイル用の書き出し形式も変わらない。
 
 **反映タイミング**: 設定は試合作成時にスナップショットされる。編集後に**新しい試合を開始**すれば反映される(アプリ再起動不要)。Node版では進行中試合のプロンプト/モデル設定だけをLab画面の「♻️ プロンプト/モデル再読込」で差し替えられる(ルールは差し替え不可)。公開Web Labの編集内容は使用中ブラウザの `localStorage` にだけ保存される。
 
@@ -15,11 +15,12 @@ Web UIでは、よく使うルール・信頼度・助言・AIモデル・単価
 |---|---|---|
 | 組数・狼数・役職構成 | `config/presets/*.json` | `pairCount`, `roleSetup.werewolf`, `roleSetup.seer`(残りは市民) |
 | 最大日数・討論周回・発言回数 | 同上 | `maxDays`, `discussionRounds`, `speechesPerBuddyPerRound` |
+| 初日の占い結果 | 同上 | `firstNightDivination`: `false` / `true` / `"white"` |
 | 主人の助言回数 | 同上 | `advicePerDay` |
 | 同票処理 | 同上 | `tieBreak`(現状 `random` のみ) |
 | 死亡時の役職公開 | 同上 | `revealRoleOnDeath` |
 | 狼襲撃の統合方式 | 同上 | `wolfAttackIntegration.method`(現状 `sumNormalized`) |
-| 信頼度補正関数 | 同上 | `trust.{trialChoice,nightProposal,skillProposal,subjectiveAdvice}` = `{type, maxBonus}` |
+| 親密度補正関数 | 同上 | `trust.{trialChoice,nightProposal,skillProposal,subjectiveAdvice}` = `{type, maxBonus}` |
 | 他の主人のポリシー | 同上 | `otherMastersPolicy`: `none`/`random`/`simple`/`ai` |
 | 助言メニュー(有効/無効/文言) | `config/advice.json` | `menu[]` |
 | 質問テーマの増減 | 同上 | `questionThemes[]`(`mockTemplate`はモック用、`promptHint`はLive用) |
@@ -40,6 +41,8 @@ Web UIでは、よく使うルール・信頼度・助言・AIモデル・単価
 
 Phase0の役職は `villager` / `seer` / `werewolf` の3種。人数は `roleSetup` で変更できる。**役職の種類を増やす**のはコード変更が必要(`shared/types.ts` の `Role` → `game-core` の夜処理 → `prompts/role.*.md` 追加)。手順は [HANDOFF_CODEX.md](HANDOFF_CODEX.md) の「次に実装する候補」を参照。
 
+初日から「占う→主人が共有を選ぶ→卓が反応する」を試す場合は、かんたん設定の「初日の朝に、占い主人へ白結果を1件届ける」をオンにする。内部値 `firstNightDivination: "white"` として同じQuickプリセットJSONへ保存されるため、13ファイル固定のモバイル引継ぎ契約を変えずに持ち越せる。`true` は狼判定もあり得る通常抽選、`false` は初日結果なし。
+
 ## 助言メニュー変更方法
 
 `config/advice.json` の `menu[]` で種類ごとに `enabled` を切り替え、文言(`label`/`description`)を変更する。質問テーマ・立ち回り指示は配列に要素を足すだけで選択肢が増える。影響度(主観助言の重み)はプリセットの `trust.subjectiveAdvice` で変更する。
@@ -51,9 +54,9 @@ Phase0の役職は `villager` / `seer` / `werewolf` の3種。人数は `roleSet
 - Live AI: `promptHint` が「使える観点リスト」としてプロンプトへ入る
 - モックAI: `id` を見てヒューリスティックの分岐が変わる(`face_value`, `vote_consistency`, `bandwagon_detect`, `multi_hypothesis`, `plain_denial`, `plausible_reason`, `misdirection` は実装済みの分岐がある。それ以外のidはLiveプロンプトにのみ効く)
 
-## 信頼度補正変更方法
+## 親密度補正変更方法
 
-プリセットの `trust.*` を編集する。`type` は `linear`(maxBonus×trust/100) / `quadratic` / `none`。**新しい関数型を足す**場合は `packages/game-core/src/rules.ts` の `TRUST_FUNCTIONS` へ1エントリ追加し、`shared/schemas.ts` のenumへ型名を足す(2行)。確定情報はこの補正を通らない仕様を崩さないこと。
+プリセットの `trust.*` を編集する。画面上の名称は「親密度」、内部互換名は `trust`。正解率ではなく、バディが主人との関係をどれだけ優先するかを表す。`type` は `linear`(maxBonus×trust/100) / `quadratic` / `none`。**新しい関数型を足す**場合は `packages/game-core/src/rules.ts` の `TRUST_FUNCTIONS` へ1エントリ追加し、`shared/schemas.ts` のenumへ型名を足す。確定情報はこの補正を通らない仕様を崩さないこと。
 
 ## モデル変更方法
 

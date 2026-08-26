@@ -13,12 +13,12 @@
 - モックAI(シード決定論的、能力値で挙動が変わる、日本語発言テンプレート)
 - Live AI（ローカルAnthropic / 公開LabはSupabase Edge Function→OpenRouter、二重構造検証、リトライ、タイムアウト、失敗時モックフォールバック）
 - 助言5種(主観疑い/質問指定/確定情報共有/スキル対象提案/立ち回り)、1日1回制限
-- 信頼度補正(linear/quadratic/none、登録制)、狼襲撃の正規化合算統合
+- 親密度補正(内部名trust、linear/quadratic/none、登録制)、狼襲撃の正規化合算統合
 - 計測(トークン/原価/レイテンシー/総時間/AI待機/エラー/リトライ)、JSON永続化、JSON/CSVエクスポート
 - Web UI(ホーム/バディ設定/ゲーム/結果/リプレイ/Lab/設定編集)、CLIシミュレーター
 - 入力ゆれを吸収する愛言葉付きGitHub Pages Web Lab（ブラウザ内保存、APIキー非配布、noindex）
 - 設定・全プロンプトを本番モバイルへ渡すSHA-256付き固定bundleの書き出し/読み込み
-- 自動テスト41件（公開Labのブラウザ内完走・復元・愛言葉正規化を含む）/ ESLint / strict TypeScript
+- 自動テスト55件（公開Labのブラウザ内完走・復元・愛言葉正規化・初日占い・simple主人の初日棄権を含む）/ ESLint / strict TypeScript
 
 ## 未実装の範囲
 
@@ -38,7 +38,7 @@
 | `packages/shared/src/rng.ts` | シード付き乱数 `rand(seed, ...labels)` |
 | `packages/game-core/src/engine.ts` | フェーズ遷移・入力検証・イベント生成(`apply*`) |
 | `packages/game-core/src/state.ts` | 状態とリデューサー(`reduce` / `rebuildState`) |
-| `packages/game-core/src/rules.ts` | 信頼度補正・投票・襲撃統合・勝敗の純関数 |
+| `packages/game-core/src/rules.ts` | 親密度補正・投票・襲撃統合・勝敗の純関数 |
 | `packages/game-core/src/visibility.ts` | **秘密分離の境界**(`buildBuddyContext` / `buildMasterView` / `buildReplayData`) |
 | `packages/ai-engine/src/runner.ts` | 進行ランナー(`MatchRunner.advanceOnce`)・ポリシー主人 |
 | `packages/ai-engine/src/mock.ts` | モックAI |
@@ -134,7 +134,7 @@ npm run simulate -- --preset quick-test --matches 3   # モック完走の実地
 - ゲームの核4原則を外す(助言の自由文章入力化・主人選択の直接投票化・試合中の内部スコア公開・占い結果の自動共有)
 - `game-core` から React / ブラウザAPI / LLM / ファイルI/O への依存を張る
 - LLMへ `MatchState` 全体や他組の秘密を渡す
-- 信頼度で確定情報を疑わせる実装
+- 親密度で確定情報を疑わせる実装
 - `Math.random()` / `Date.now()` をゲームロジック内で使う(リプレイが壊れる)
 - 保存済み `MatchRecord` の互換性を黙って壊す(`schemaVersion` を上げ、読み込み側に対応を書く)
 

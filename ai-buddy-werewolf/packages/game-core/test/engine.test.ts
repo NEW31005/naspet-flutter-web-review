@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { EvalOutput, MatchEvent, PairId } from '@aibw/shared';
+import { rulesConfigSchema, type EvalOutput, type MatchEvent, type PairId } from '@aibw/shared';
 import {
   GameRuleError,
   applyAdvanceDay,
@@ -16,7 +16,7 @@ import {
   reduce,
   type MatchState,
 } from '../src/index.js';
-import { makeEval, makeSnapshot } from './fixtures.js';
+import { makeEval, makeRules, makeSnapshot } from './fixtures.js';
 
 const NOW = 1_700_000_000_000;
 
@@ -507,5 +507,14 @@ describe('初日占い(firstNightDivination)', () => {
   it('未設定(既定false)なら開始時の占いは発生しない', () => {
     const { events } = newMatch('first-div-off');
     expect(events.some((e) => e.type === 'divination')).toBe(false);
+  });
+
+  it('白通知の対象が存在しない役職構成は設定検証で拒否する', () => {
+    const rules = makeRules({
+      pairCount: 3,
+      roleSetup: { werewolf: 2, seer: 1 },
+      firstNightDivination: 'white',
+    });
+    expect(() => rulesConfigSchema.parse(rules)).toThrow(/市民陣営/);
   });
 });

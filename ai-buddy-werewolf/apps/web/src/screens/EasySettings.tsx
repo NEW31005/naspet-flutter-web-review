@@ -77,6 +77,13 @@ function validateRules(rules: RulesConfig, label: string): void {
   if (rules.roleSetup.werewolf + rules.roleSetup.seer > rules.pairCount) {
     throw new Error(`${label}の狼憑きと占い役の合計が、参加ペア数を超えています。`);
   }
+  if (
+    rules.firstNightDivination === 'white' &&
+    rules.roleSetup.seer > 0 &&
+    rules.pairCount - rules.roleSetup.werewolf < 2
+  ) {
+    throw new Error(`${label}の初日白通知には、占い役以外の市民陣営が1組以上必要です。`);
+  }
   if (rules.maxDays < 1 || rules.maxDays > 20) {
     throw new Error(`${label}の最大日数は1〜20日にしてください。`);
   }
@@ -129,8 +136,8 @@ function NumberSetting({
 }
 
 function trustTypeLabel(type: TrustFnConfig['type']): string {
-  if (type === 'linear') return '信頼度に比例して効かせる';
-  if (type === 'quadratic') return '高信頼のときだけ強く効かせる';
+  if (type === 'linear') return '親密度に比例して強くする';
+  if (type === 'quadratic') return '高い親密度で一気に強くする';
   return 'この助言は判断へ加味しない';
 }
 
@@ -347,15 +354,31 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
             <small>オフなら役職は試合終了まで伏せられます。</small>
           </span>
         </label>
+        <label className="toggle-setting">
+          <input
+            type="checkbox"
+            checked={rules.firstNightDivination === true || rules.firstNightDivination === 'white'}
+            disabled={rules.roleSetup.seer === 0}
+            onChange={(event) =>
+              updateRules((r) => (r.firstNightDivination = event.target.checked ? 'white' : false))
+            }
+          />
+          <span>
+            <strong>初日の朝に、占い主人へ白結果を1件届ける</strong>
+            <small>
+              「占う→主人が共有を選ぶ→卓が反応する」を初日から試せます。市民側が有利になりやすいため、情報共有ループの検証用です。
+            </small>
+          </span>
+        </label>
         <div className="factbox small">
           同票は同票者からシード付き抽選。複数の狼憑きの夜襲は、各バディの候補評価を公平にそろえて合算します。
         </div>
       </section>
 
       <details className="settings-details">
-        <summary>主人の信頼度が判断へ与える強さ</summary>
+        <summary>主人との親密度が判断へ与える強さ</summary>
         <div className="muted small settings-details-intro">
-          「最大影響値」は信頼度100の主人から提案された候補へ加える点数です。高くしても主人の命令がそのまま確定票になるわけではありません。初期値の20〜30が比較しやすい目安です。
+          「最大影響値」は親密度100の主人が選んだ候補へ加える点数です。親密度が高いほど、バディは自分と異なる意見でも主人を優先します。確定情報との矛盾や大きな評価差があれば別の判断もできるため、命令や確定票にはなりません。裁判は32を現在の比較候補にしています。
         </div>
         {TRUST_META.map((meta) => {
           const trust = rules.trust[meta.key];

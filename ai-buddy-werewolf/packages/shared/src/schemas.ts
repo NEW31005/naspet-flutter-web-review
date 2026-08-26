@@ -81,7 +81,7 @@ export const rulesConfigSchema = z
       seer: z.number().int().min(0),
     }),
     maxDays: z.number().int().min(1).max(20),
-  firstNightDivination: z.union([z.boolean(), z.literal('white')]).default(false),
+    firstNightDivination: z.union([z.boolean(), z.literal('white')]).default(false),
     discussionRounds: z.number().int().min(1).max(10),
     speechesPerBuddyPerRound: z.number().int().min(1).max(3),
     advicePerDay: z.number().int().min(0).max(10),
@@ -101,7 +101,17 @@ export const rulesConfigSchema = z
   })
   .refine((c) => c.roleSetup.werewolf + c.roleSetup.seer <= c.pairCount, {
     message: '役職数が組数を超えています',
-  });
+  })
+  .refine(
+    (c) =>
+      c.firstNightDivination !== 'white' ||
+      c.roleSetup.seer === 0 ||
+      c.pairCount - c.roleSetup.werewolf >= 2,
+    {
+      message: '初日白通知には、占い役本人以外の市民陣営が1組以上必要です',
+      path: ['firstNightDivination'],
+    },
+  );
 
 export const adviceConfigSchema = z.object({
   version: z.string(),

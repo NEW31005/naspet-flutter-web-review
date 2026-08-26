@@ -315,14 +315,15 @@ export class MatchRunner {
       case 'random':
         return pickOne(others, this.state.seed, ...labels);
       case 'simple': {
-        // 前日の投票の最多対象(生存者)へ乗る。なければランダム。
+        // 前日の投票の最多対象(生存者)へ乗る。材料のない初日は棄権する。
+        // 「意見がないのにランダムな意見を持つ主人」を作らない。
         const prev = this.state.voteHistory.filter((v) => v.day === this.state.day - 1);
         const tally = new Map<PairId, number>();
         for (const v of prev) {
           if (others.includes(v.targetId)) tally.set(v.targetId, (tally.get(v.targetId) ?? 0) + 1);
         }
         const top = [...tally.entries()].sort((a, b) => b[1] - a[1])[0];
-        return top ? top[0] : pickOne(others, this.state.seed, ...labels);
+        return top ? top[0] : null;
       }
       case 'ai': {
         const ev = this.state.latestEvals[pairId];

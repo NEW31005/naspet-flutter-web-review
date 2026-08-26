@@ -76,7 +76,7 @@ npm run dev
 ## テスト方法
 
 ```bash
-npm test        # vitest (役職配布/秘密分離/信頼度補正/襲撃統合/勝敗/リプレイ復元/公開Lab復元/愛言葉正規化/引継ぎ整合性/モック完走 など41件)
+npm test        # vitest (役職配布/秘密分離/親密度補正/初日占い/襲撃統合/勝敗/リプレイ復元/公開Lab復元/愛言葉正規化/引継ぎ整合性/モック完走 など55件)
 npm run lint    # ESLint (strict / no-explicit-any)
 ```
 

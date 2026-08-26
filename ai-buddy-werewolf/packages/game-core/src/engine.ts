@@ -171,6 +171,12 @@ export function createMatch(params: CreateMatchParams): { events: MatchEvent[]; 
         .map((p) => p.pairId)
         .filter((id) => id !== seerId)
         .filter((id) => rules.firstNightDivination !== 'white' || ROLE_TEAM[roles[id] ?? 'villager'] !== 'wolves');
+      if (candidates.length === 0) {
+        throw new GameRuleError(
+          '初日占いの対象がいません。白通知を使う場合は、占い役以外の市民陣営を1組以上設定してください',
+          'first_divination_no_target',
+        );
+      }
       const targetId = pickOne(candidates, params.seed, 'first-divination');
       const fact: Fact = {
         id: `fact-d0-${seerId}`,

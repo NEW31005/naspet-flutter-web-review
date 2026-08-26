@@ -48,7 +48,7 @@ export function Buddies() {
       <TopBar title="バディ設定" back="/" />
       <div className="page">
         <div className="notice small">
-          人格・口調は「どう表現するか」にだけ影響し、推論力・虚言力・信頼度は人格と独立に設定します(役職はゲーム開始時に自動付与)。
+          人格・口調は「どう表現するか」にだけ影響し、推論力・虚言力・親密度は人格と独立に設定します(役職はゲーム開始時に自動付与)。
         </div>
         {config.roster.map((b, i) => (
           <div key={b.id} className="card">
@@ -133,7 +133,7 @@ export function Buddies() {
             </div>
             {(['reasoning', 'deception', 'trust'] as const).map((key) => (
               <label key={key} className="field">
-                {key === 'reasoning' ? '推論力' : key === 'deception' ? '虚言力' : '信頼度'}:{' '}
+                {key === 'reasoning' ? '推論力' : key === 'deception' ? '虚言力' : '親密度'}:{' '}
                 {b.abilities[key]}
                 <input
                   type="range"

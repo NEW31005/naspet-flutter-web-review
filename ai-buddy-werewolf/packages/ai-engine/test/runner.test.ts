@@ -178,4 +178,20 @@ describe('ポリシー主人の確定情報共有', () => {
     expect(first.day).toBe(1);
     expect(first.payload.fact.isWolf).toBe(false);
   });
+
+  it('simpleポリシーは前日票のない1日目の裁判でランダム選択せず棄権する', async () => {
+    const { runner, store } = makeRunner('policy-simple-abstains', {
+      otherMastersPolicy: 'simple',
+    });
+    await runner.advanceUntilBlocked(500);
+    const dayOneChoices = store.record.events.filter(
+      (event) => event.type === 'trial_choice' && event.day === 1,
+    );
+    expect(dayOneChoices.length).toBeGreaterThan(0);
+    expect(
+      dayOneChoices.every(
+        (event) => event.type === 'trial_choice' && event.payload.targetId === null,
+      ),
+    ).toBe(true);
+  });
 });

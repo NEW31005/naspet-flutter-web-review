@@ -76,7 +76,7 @@ export function masterPolicyLabel(policy: string): string {
     case 'random':
       return 'ランダムに助言する';
     case 'simple':
-      return '簡単な自動判断で助言する';
+      return '簡単な自動判断（初日は棄権）';
     case 'ai':
       return 'AIが主人役として助言する';
     default:
@@ -113,7 +113,9 @@ export function presetIdLabel(presetId: string): string {
     ? 'クイックテスト'
     : presetId === 'pack-test'
       ? '群れテスト'
-      : presetId;
+      : presetId === 'quick-info'
+        ? 'クイック情報戦'
+        : presetId;
 }
 
 export function phaseLabel(phase: string): string {

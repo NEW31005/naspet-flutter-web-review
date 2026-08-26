@@ -6,6 +6,7 @@ import {
   masterPolicyLabel,
   modeLabel,
   phaseLabel,
+  presetIdLabel,
   promptFileLabel,
   providerLabel,
 } from '../src/uiLabels.js';
@@ -15,6 +16,7 @@ describe('日本語UI表示名', () => {
     const files = [
       'presets/quick-test.json',
       'presets/pack-test.json',
+      'presets/quick-info.json',
       'advice.json',
       'abilities.json',
       'models.json',
@@ -41,7 +43,8 @@ describe('日本語UI表示名', () => {
   it('ホームと試合画面の内部値を日本語表示へ変換する', () => {
     expect(providerLabel('mock')).toContain('モックAI');
     expect(providerLabel('lab-live')).toContain('実際の会話');
-    expect(masterPolicyLabel('simple')).toBe('簡単な自動判断で助言する');
+    expect(masterPolicyLabel('simple')).toContain('初日は棄権');
+    expect(presetIdLabel('quick-info')).toBe('クイック情報戦');
     expect(modeLabel('lab')).toBe('検証室');
     expect(phaseLabel('discussion')).toBe('討論');
   });

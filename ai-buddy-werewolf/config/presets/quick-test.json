@@ -1,10 +1,11 @@
 {
-  "version": "0.2.0-mari.2",
+  "version": "0.3.0-joint.1",
   "presetId": "quick-test",
   "label": "クイックテスト（5組・狼憑き1組・占い役1組・最大3日）",
   "pairCount": 5,
   "roleSetup": { "werewolf": 1, "seer": 1 },
   "maxDays": 3,
+  "firstNightDivination": false,
   "discussionRounds": 1,
   "speechesPerBuddyPerRound": 1,
   "advicePerDay": 1,
@@ -12,7 +13,7 @@
   "revealRoleOnDeath": false,
   "wolfAttackIntegration": { "method": "sumNormalized", "tieBreak": "random" },
   "trust": {
-    "trialChoice": { "type": "linear", "maxBonus": 20 },
+    "trialChoice": { "type": "linear", "maxBonus": 32 },
     "nightProposal": { "type": "linear", "maxBonus": 25 },
     "skillProposal": { "type": "linear", "maxBonus": 30 },
     "subjectiveAdvice": { "type": "linear", "maxBonus": 20 }

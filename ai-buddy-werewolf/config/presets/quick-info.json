@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0-joint.1",
   "presetId": "quick-info",
   "label": "クイック情報戦（5組・初日白通知・共有ループ検証用）",
   "pairCount": 5,
@@ -20,7 +20,7 @@
   "trust": {
     "trialChoice": {
       "type": "linear",
-      "maxBonus": 25
+      "maxBonus": 32
     },
     "nightProposal": {
       "type": "linear",

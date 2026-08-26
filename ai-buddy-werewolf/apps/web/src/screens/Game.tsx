@@ -174,7 +174,7 @@ export function Game({ matchId }: { matchId: string }) {
             )}
             {me.facts.map((f) => (
               <div key={f.id} className="factbox">
-                🔮 {f.day}日目の占い: <strong>{f.targetName}</strong> は
+                🔮 {f.day === 0 ? '初日の占い' : `${f.day}日目の占い`}: <strong>{f.targetName}</strong> は
                 {f.isWolf ? ' 狼憑き' : ' 狼憑きではない'}
                 {f.shared ? (
                   <span className="badge ok" style={{ marginLeft: 6 }}>
@@ -192,14 +192,19 @@ export function Game({ matchId }: { matchId: string }) {
                 ⚖️ {lastComparison.day}日目の裁判 — あなた:{' '}
                 {lastComparison.myChoiceName ?? '(選択なし)'} / バディの投票:{' '}
                 {lastComparison.buddyVoteName ?? '—'}
-                {isCompletedVoteMismatch(
-                  lastComparison.myChoiceId,
-                  lastComparison.buddyVoteId,
-                ) && (
-                  <span className="badge warn" style={{ marginLeft: 6 }}>
-                    不一致
-                  </span>
-                )}
+                {lastComparison.buddyVoteId != null &&
+                  (isCompletedVoteMismatch(
+                    lastComparison.myChoiceId,
+                    lastComparison.buddyVoteId,
+                  ) ? (
+                    <span className="badge warn" style={{ marginLeft: 6 }}>
+                      バディは別の判断
+                    </span>
+                  ) : (
+                    <span className="badge ok" style={{ marginLeft: 6 }}>
+                      意見が一致
+                    </span>
+                  ))}
               </div>
             )}
             {lastWolfReport && (
@@ -316,7 +321,7 @@ export function Game({ matchId }: { matchId: string }) {
       {sheet === 'night' && me && (
         <TargetSheet
           title="🌙 夜 — 襲撃すべき相手を提案"
-          description="提案は狼AIの評価へ信頼度に応じて加算される。最終襲撃先は狼AIたち(複数いる場合は統合)が決める。"
+          description="提案は主人との親密度に応じて狼バディの評価へ加算される。最終襲撃先は狼バディたち(複数いる場合は統合)が決める。"
           candidates={aliveOthers.filter(
             (p) => !me.wolfPartners.some((w) => w.pairId === p.pairId),
           )}
@@ -567,7 +572,7 @@ function AdviceSheet({
             この助言を送る
           </button>
           <p className="muted small">
-            助言は命令ではない。バディは信頼度({me.abilities.trust}/100)に応じて重みを決め、最終判断は自分で行う。
+            親密度 {me.abilities.trust}/100。高いほど、バディは自分と異なる考えでも主人の意見を優先する。確定情報との矛盾や大きな評価差がある場合は、自分の判断を選ぶこともある。
           </p>
         </>
       )}

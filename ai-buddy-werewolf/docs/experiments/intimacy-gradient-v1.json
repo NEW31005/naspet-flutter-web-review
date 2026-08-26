@@ -1,0 +1,6310 @@
+{
+  "schemaVersion": 1,
+  "experiment": "ai-buddy-intimacy-gradient",
+  "generator": "apps/server/src/cli/analyzeIntimacy.ts",
+  "baseSeed": "intimacy-gradient-v1",
+  "provider": "mock",
+  "plan": [
+    {
+      "presetId": "quick-test",
+      "matches": 12,
+      "rulesVersion": "0.3.0-joint.1"
+    },
+    {
+      "presetId": "quick-info",
+      "matches": 20,
+      "rulesVersion": "0.2.0-joint.1"
+    },
+    {
+      "presetId": "pack-test",
+      "matches": 10,
+      "rulesVersion": "0.1.1-joint.1"
+    }
+  ],
+  "maxBonuses": [
+    20,
+    25,
+    32,
+    40
+  ],
+  "intimacyLevels": [
+    50,
+    80
+  ],
+  "modes": [
+    "second",
+    "third",
+    "middle",
+    "last"
+  ],
+  "totalMatches": 42,
+  "totalCalls": 1181,
+  "scenarioCount": 364,
+  "scenariosByPreset": {
+    "quick-test": 87,
+    "quick-info": 133,
+    "pack-test": 144
+  },
+  "modeDefinitions": {
+    "second": "AI基礎評価の2位。1位と同点なら除外",
+    "third": "AI基礎評価の3位。候補不足または1位と同点なら除外",
+    "middle": "順位中央の候補。1位と同点なら除外",
+    "last": "AI基礎評価の最下位。1位と同点なら除外"
+  },
+  "cells": [
+    {
+      "mode": "second",
+      "maxBonus": 20,
+      "intimacy": 50,
+      "effectiveBonus": 10,
+      "trials": 358,
+      "reflectedCount": 141,
+      "reflectedRate": 0.393855,
+      "reversalCount": 141,
+      "reversalRate": 0.393855,
+      "nonObedienceCount": 217,
+      "nonObedienceRate": 0.606145,
+      "averageBaseGap": 15.709
+    },
+    {
+      "mode": "second",
+      "maxBonus": 20,
+      "intimacy": 80,
+      "effectiveBonus": 16,
+      "trials": 358,
+      "reflectedCount": 212,
+      "reflectedRate": 0.592179,
+      "reversalCount": 212,
+      "reversalRate": 0.592179,
+      "nonObedienceCount": 146,
+      "nonObedienceRate": 0.407821,
+      "averageBaseGap": 15.709
+    },
+    {
+      "mode": "second",
+      "maxBonus": 25,
+      "intimacy": 50,
+      "effectiveBonus": 12.5,
+      "trials": 358,
+      "reflectedCount": 174,
+      "reflectedRate": 0.486034,
+      "reversalCount": 174,
+      "reversalRate": 0.486034,
+      "nonObedienceCount": 184,
+      "nonObedienceRate": 0.513966,
+      "averageBaseGap": 15.709
+    },
+    {
+      "mode": "second",
+      "maxBonus": 25,
+      "intimacy": 80,
+      "effectiveBonus": 20,
+      "trials": 358,
+      "reflectedCount": 249,
+      "reflectedRate": 0.695531,
+      "reversalCount": 249,
+      "reversalRate": 0.695531,
+      "nonObedienceCount": 109,
+      "nonObedienceRate": 0.304469,
+      "averageBaseGap": 15.709
+    },
+    {
+      "mode": "second",
+      "maxBonus": 32,
+      "intimacy": 50,
+      "effectiveBonus": 16,
+      "trials": 358,
+      "reflectedCount": 212,
+      "reflectedRate": 0.592179,
+      "reversalCount": 212,
+      "reversalRate": 0.592179,
+      "nonObedienceCount": 146,
+      "nonObedienceRate": 0.407821,
+      "averageBaseGap": 15.709
+    },
+    {
+      "mode": "second",
+      "maxBonus": 32,
+      "intimacy": 80,
+      "effectiveBonus": 25.6,
+      "trials": 358,
+      "reflectedCount": 290,
+      "reflectedRate": 0.810056,
+      "reversalCount": 290,
+      "reversalRate": 0.810056,
+      "nonObedienceCount": 68,
+      "nonObedienceRate": 0.189944,
+      "averageBaseGap": 15.709
+    },
+    {
+      "mode": "second",
+      "maxBonus": 40,
+      "intimacy": 50,
+      "effectiveBonus": 20,
+      "trials": 358,
+      "reflectedCount": 249,
+      "reflectedRate": 0.695531,
+      "reversalCount": 249,
+      "reversalRate": 0.695531,
+      "nonObedienceCount": 109,
+      "nonObedienceRate": 0.304469,
+      "averageBaseGap": 15.709
+    },
+    {
+      "mode": "second",
+      "maxBonus": 40,
+      "intimacy": 80,
+      "effectiveBonus": 32,
+      "trials": 358,
+      "reflectedCount": 325,
+      "reflectedRate": 0.907821,
+      "reversalCount": 325,
+      "reversalRate": 0.907821,
+      "nonObedienceCount": 33,
+      "nonObedienceRate": 0.092179,
+      "averageBaseGap": 15.709
+    },
+    {
+      "mode": "third",
+      "maxBonus": 20,
+      "intimacy": 50,
+      "effectiveBonus": 10,
+      "trials": 304,
+      "reflectedCount": 47,
+      "reflectedRate": 0.154605,
+      "reversalCount": 47,
+      "reversalRate": 0.154605,
+      "nonObedienceCount": 257,
+      "nonObedienceRate": 0.845395,
+      "averageBaseGap": 20.773
+    },
+    {
+      "mode": "third",
+      "maxBonus": 20,
+      "intimacy": 80,
+      "effectiveBonus": 16,
+      "trials": 304,
+      "reflectedCount": 114,
+      "reflectedRate": 0.375,
+      "reversalCount": 114,
+      "reversalRate": 0.375,
+      "nonObedienceCount": 190,
+      "nonObedienceRate": 0.625,
+      "averageBaseGap": 20.773
+    },
+    {
+      "mode": "third",
+      "maxBonus": 25,
+      "intimacy": 50,
+      "effectiveBonus": 12.5,
+      "trials": 304,
+      "reflectedCount": 71,
+      "reflectedRate": 0.233553,
+      "reversalCount": 71,
+      "reversalRate": 0.233553,
+      "nonObedienceCount": 233,
+      "nonObedienceRate": 0.766447,
+      "averageBaseGap": 20.773
+    },
+    {
+      "mode": "third",
+      "maxBonus": 25,
+      "intimacy": 80,
+      "effectiveBonus": 20,
+      "trials": 304,
+      "reflectedCount": 162,
+      "reflectedRate": 0.532895,
+      "reversalCount": 162,
+      "reversalRate": 0.532895,
+      "nonObedienceCount": 142,
+      "nonObedienceRate": 0.467105,
+      "averageBaseGap": 20.773
+    },
+    {
+      "mode": "third",
+      "maxBonus": 32,
+      "intimacy": 50,
+      "effectiveBonus": 16,
+      "trials": 304,
+      "reflectedCount": 114,
+      "reflectedRate": 0.375,
+      "reversalCount": 114,
+      "reversalRate": 0.375,
+      "nonObedienceCount": 190,
+      "nonObedienceRate": 0.625,
+      "averageBaseGap": 20.773
+    },
+    {
+      "mode": "third",
+      "maxBonus": 32,
+      "intimacy": 80,
+      "effectiveBonus": 25.6,
+      "trials": 304,
+      "reflectedCount": 219,
+      "reflectedRate": 0.720395,
+      "reversalCount": 219,
+      "reversalRate": 0.720395,
+      "nonObedienceCount": 85,
+      "nonObedienceRate": 0.279605,
+      "averageBaseGap": 20.773
+    },
+    {
+      "mode": "third",
+      "maxBonus": 40,
+      "intimacy": 50,
+      "effectiveBonus": 20,
+      "trials": 304,
+      "reflectedCount": 162,
+      "reflectedRate": 0.532895,
+      "reversalCount": 162,
+      "reversalRate": 0.532895,
+      "nonObedienceCount": 142,
+      "nonObedienceRate": 0.467105,
+      "averageBaseGap": 20.773
+    },
+    {
+      "mode": "third",
+      "maxBonus": 40,
+      "intimacy": 80,
+      "effectiveBonus": 32,
+      "trials": 304,
+      "reflectedCount": 256,
+      "reflectedRate": 0.842105,
+      "reversalCount": 256,
+      "reversalRate": 0.842105,
+      "nonObedienceCount": 48,
+      "nonObedienceRate": 0.157895,
+      "averageBaseGap": 20.773
+    },
+    {
+      "mode": "middle",
+      "maxBonus": 20,
+      "intimacy": 50,
+      "effectiveBonus": 10,
+      "trials": 363,
+      "reflectedCount": 51,
+      "reflectedRate": 0.140496,
+      "reversalCount": 51,
+      "reversalRate": 0.140496,
+      "nonObedienceCount": 312,
+      "nonObedienceRate": 0.859504,
+      "averageBaseGap": 22.405
+    },
+    {
+      "mode": "middle",
+      "maxBonus": 20,
+      "intimacy": 80,
+      "effectiveBonus": 16,
+      "trials": 363,
+      "reflectedCount": 115,
+      "reflectedRate": 0.316804,
+      "reversalCount": 115,
+      "reversalRate": 0.316804,
+      "nonObedienceCount": 248,
+      "nonObedienceRate": 0.683196,
+      "averageBaseGap": 22.405
+    },
+    {
+      "mode": "middle",
+      "maxBonus": 25,
+      "intimacy": 50,
+      "effectiveBonus": 12.5,
+      "trials": 363,
+      "reflectedCount": 75,
+      "reflectedRate": 0.206612,
+      "reversalCount": 75,
+      "reversalRate": 0.206612,
+      "nonObedienceCount": 288,
+      "nonObedienceRate": 0.793388,
+      "averageBaseGap": 22.405
+    },
+    {
+      "mode": "middle",
+      "maxBonus": 25,
+      "intimacy": 80,
+      "effectiveBonus": 20,
+      "trials": 363,
+      "reflectedCount": 170,
+      "reflectedRate": 0.46832,
+      "reversalCount": 170,
+      "reversalRate": 0.46832,
+      "nonObedienceCount": 193,
+      "nonObedienceRate": 0.53168,
+      "averageBaseGap": 22.405
+    },
+    {
+      "mode": "middle",
+      "maxBonus": 32,
+      "intimacy": 50,
+      "effectiveBonus": 16,
+      "trials": 363,
+      "reflectedCount": 115,
+      "reflectedRate": 0.316804,
+      "reversalCount": 115,
+      "reversalRate": 0.316804,
+      "nonObedienceCount": 248,
+      "nonObedienceRate": 0.683196,
+      "averageBaseGap": 22.405
+    },
+    {
+      "mode": "middle",
+      "maxBonus": 32,
+      "intimacy": 80,
+      "effectiveBonus": 25.6,
+      "trials": 363,
+      "reflectedCount": 244,
+      "reflectedRate": 0.672176,
+      "reversalCount": 244,
+      "reversalRate": 0.672176,
+      "nonObedienceCount": 119,
+      "nonObedienceRate": 0.327824,
+      "averageBaseGap": 22.405
+    },
+    {
+      "mode": "middle",
+      "maxBonus": 40,
+      "intimacy": 50,
+      "effectiveBonus": 20,
+      "trials": 363,
+      "reflectedCount": 170,
+      "reflectedRate": 0.46832,
+      "reversalCount": 170,
+      "reversalRate": 0.46832,
+      "nonObedienceCount": 193,
+      "nonObedienceRate": 0.53168,
+      "averageBaseGap": 22.405
+    },
+    {
+      "mode": "middle",
+      "maxBonus": 40,
+      "intimacy": 80,
+      "effectiveBonus": 32,
+      "trials": 363,
+      "reflectedCount": 298,
+      "reflectedRate": 0.820937,
+      "reversalCount": 298,
+      "reversalRate": 0.820937,
+      "nonObedienceCount": 65,
+      "nonObedienceRate": 0.179063,
+      "averageBaseGap": 22.405
+    },
+    {
+      "mode": "last",
+      "maxBonus": 20,
+      "intimacy": 50,
+      "effectiveBonus": 10,
+      "trials": 363,
+      "reflectedCount": 18,
+      "reflectedRate": 0.049587,
+      "reversalCount": 18,
+      "reversalRate": 0.049587,
+      "nonObedienceCount": 345,
+      "nonObedienceRate": 0.950413,
+      "averageBaseGap": 37.733
+    },
+    {
+      "mode": "last",
+      "maxBonus": 20,
+      "intimacy": 80,
+      "effectiveBonus": 16,
+      "trials": 363,
+      "reflectedCount": 39,
+      "reflectedRate": 0.107438,
+      "reversalCount": 39,
+      "reversalRate": 0.107438,
+      "nonObedienceCount": 324,
+      "nonObedienceRate": 0.892562,
+      "averageBaseGap": 37.733
+    },
+    {
+      "mode": "last",
+      "maxBonus": 25,
+      "intimacy": 50,
+      "effectiveBonus": 12.5,
+      "trials": 363,
+      "reflectedCount": 24,
+      "reflectedRate": 0.066116,
+      "reversalCount": 24,
+      "reversalRate": 0.066116,
+      "nonObedienceCount": 339,
+      "nonObedienceRate": 0.933884,
+      "averageBaseGap": 37.733
+    },
+    {
+      "mode": "last",
+      "maxBonus": 25,
+      "intimacy": 80,
+      "effectiveBonus": 20,
+      "trials": 363,
+      "reflectedCount": 67,
+      "reflectedRate": 0.184573,
+      "reversalCount": 67,
+      "reversalRate": 0.184573,
+      "nonObedienceCount": 296,
+      "nonObedienceRate": 0.815427,
+      "averageBaseGap": 37.733
+    },
+    {
+      "mode": "last",
+      "maxBonus": 32,
+      "intimacy": 50,
+      "effectiveBonus": 16,
+      "trials": 363,
+      "reflectedCount": 39,
+      "reflectedRate": 0.107438,
+      "reversalCount": 39,
+      "reversalRate": 0.107438,
+      "nonObedienceCount": 324,
+      "nonObedienceRate": 0.892562,
+      "averageBaseGap": 37.733
+    },
+    {
+      "mode": "last",
+      "maxBonus": 32,
+      "intimacy": 80,
+      "effectiveBonus": 25.6,
+      "trials": 363,
+      "reflectedCount": 115,
+      "reflectedRate": 0.316804,
+      "reversalCount": 115,
+      "reversalRate": 0.316804,
+      "nonObedienceCount": 248,
+      "nonObedienceRate": 0.683196,
+      "averageBaseGap": 37.733
+    },
+    {
+      "mode": "last",
+      "maxBonus": 40,
+      "intimacy": 50,
+      "effectiveBonus": 20,
+      "trials": 363,
+      "reflectedCount": 67,
+      "reflectedRate": 0.184573,
+      "reversalCount": 67,
+      "reversalRate": 0.184573,
+      "nonObedienceCount": 296,
+      "nonObedienceRate": 0.815427,
+      "averageBaseGap": 37.733
+    },
+    {
+      "mode": "last",
+      "maxBonus": 40,
+      "intimacy": 80,
+      "effectiveBonus": 32,
+      "trials": 363,
+      "reflectedCount": 181,
+      "reflectedRate": 0.498623,
+      "reversalCount": 181,
+      "reversalRate": 0.498623,
+      "nonObedienceCount": 182,
+      "nonObedienceRate": 0.501377,
+      "averageBaseGap": 37.733
+    }
+  ],
+  "gaps": [
+    {
+      "mode": "second",
+      "maxBonus": 20,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.393855,
+      "reflectedRateUpper": 0.592179,
+      "intimacyGapPoints": 19.8,
+      "nonObedienceRateUpper": 0.407821
+    },
+    {
+      "mode": "second",
+      "maxBonus": 25,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.486034,
+      "reflectedRateUpper": 0.695531,
+      "intimacyGapPoints": 20.9,
+      "nonObedienceRateUpper": 0.304469
+    },
+    {
+      "mode": "second",
+      "maxBonus": 32,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.592179,
+      "reflectedRateUpper": 0.810056,
+      "intimacyGapPoints": 21.8,
+      "nonObedienceRateUpper": 0.189944
+    },
+    {
+      "mode": "second",
+      "maxBonus": 40,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.695531,
+      "reflectedRateUpper": 0.907821,
+      "intimacyGapPoints": 21.2,
+      "nonObedienceRateUpper": 0.092179
+    },
+    {
+      "mode": "third",
+      "maxBonus": 20,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.154605,
+      "reflectedRateUpper": 0.375,
+      "intimacyGapPoints": 22,
+      "nonObedienceRateUpper": 0.625
+    },
+    {
+      "mode": "third",
+      "maxBonus": 25,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.233553,
+      "reflectedRateUpper": 0.532895,
+      "intimacyGapPoints": 29.9,
+      "nonObedienceRateUpper": 0.467105
+    },
+    {
+      "mode": "third",
+      "maxBonus": 32,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.375,
+      "reflectedRateUpper": 0.720395,
+      "intimacyGapPoints": 34.5,
+      "nonObedienceRateUpper": 0.279605
+    },
+    {
+      "mode": "third",
+      "maxBonus": 40,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.532895,
+      "reflectedRateUpper": 0.842105,
+      "intimacyGapPoints": 30.9,
+      "nonObedienceRateUpper": 0.157895
+    },
+    {
+      "mode": "middle",
+      "maxBonus": 20,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.140496,
+      "reflectedRateUpper": 0.316804,
+      "intimacyGapPoints": 17.6,
+      "nonObedienceRateUpper": 0.683196
+    },
+    {
+      "mode": "middle",
+      "maxBonus": 25,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.206612,
+      "reflectedRateUpper": 0.46832,
+      "intimacyGapPoints": 26.2,
+      "nonObedienceRateUpper": 0.53168
+    },
+    {
+      "mode": "middle",
+      "maxBonus": 32,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.316804,
+      "reflectedRateUpper": 0.672176,
+      "intimacyGapPoints": 35.5,
+      "nonObedienceRateUpper": 0.327824
+    },
+    {
+      "mode": "middle",
+      "maxBonus": 40,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.46832,
+      "reflectedRateUpper": 0.820937,
+      "intimacyGapPoints": 35.3,
+      "nonObedienceRateUpper": 0.179063
+    },
+    {
+      "mode": "last",
+      "maxBonus": 20,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.049587,
+      "reflectedRateUpper": 0.107438,
+      "intimacyGapPoints": 5.8,
+      "nonObedienceRateUpper": 0.892562
+    },
+    {
+      "mode": "last",
+      "maxBonus": 25,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.066116,
+      "reflectedRateUpper": 0.184573,
+      "intimacyGapPoints": 11.8,
+      "nonObedienceRateUpper": 0.815427
+    },
+    {
+      "mode": "last",
+      "maxBonus": 32,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.107438,
+      "reflectedRateUpper": 0.316804,
+      "intimacyGapPoints": 20.9,
+      "nonObedienceRateUpper": 0.683196
+    },
+    {
+      "mode": "last",
+      "maxBonus": 40,
+      "lowerIntimacy": 50,
+      "upperIntimacy": 80,
+      "reflectedRateLower": 0.184573,
+      "reflectedRateUpper": 0.498623,
+      "intimacyGapPoints": 31.4,
+      "nonObedienceRateUpper": 0.501377
+    }
+  ],
+  "usableScenariosByMode": {
+    "second": 358,
+    "third": 304,
+    "middle": 363,
+    "last": 363
+  },
+  "scenarios": [
+    {
+      "id": "quick-test:1:intimacy-gradient-v1:quick-test:1:d1:q21:p1",
+      "presetId": "quick-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-test:1",
+      "day": 1,
+      "eventSeq": 21,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 90,
+        "p3": 58,
+        "p4": 50,
+        "p5": 41
+      }
+    },
+    {
+      "id": "quick-test:1:intimacy-gradient-v1:quick-test:1:d1:q23:p2",
+      "presetId": "quick-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-test:1",
+      "day": 1,
+      "eventSeq": 23,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 73,
+        "p3": 71,
+        "p4": 58,
+        "p5": 48
+      }
+    },
+    {
+      "id": "quick-test:1:intimacy-gradient-v1:quick-test:1:d1:q25:p3",
+      "presetId": "quick-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-test:1",
+      "day": 1,
+      "eventSeq": 25,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 52,
+        "p2": 70,
+        "p4": 53,
+        "p5": 81
+      }
+    },
+    {
+      "id": "quick-test:1:intimacy-gradient-v1:quick-test:1:d1:q27:p4",
+      "presetId": "quick-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-test:1",
+      "day": 1,
+      "eventSeq": 27,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 46,
+        "p2": 64,
+        "p3": 46,
+        "p5": 61
+      }
+    },
+    {
+      "id": "quick-test:1:intimacy-gradient-v1:quick-test:1:d1:q29:p5",
+      "presetId": "quick-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-test:1",
+      "day": 1,
+      "eventSeq": 29,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 37,
+        "p2": 58,
+        "p3": 60,
+        "p4": 63
+      }
+    },
+    {
+      "id": "quick-test:1:intimacy-gradient-v1:quick-test:1:d2:q59:p1",
+      "presetId": "quick-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-test:1",
+      "day": 2,
+      "eventSeq": 59,
+      "pairId": "p1",
+      "baseScores": {
+        "p4": 94,
+        "p5": 45
+      }
+    },
+    {
+      "id": "quick-test:1:intimacy-gradient-v1:quick-test:1:d2:q61:p4",
+      "presetId": "quick-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-test:1",
+      "day": 2,
+      "eventSeq": 61,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 78,
+        "p5": 76
+      }
+    },
+    {
+      "id": "quick-test:1:intimacy-gradient-v1:quick-test:1:d2:q63:p5",
+      "presetId": "quick-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-test:1",
+      "day": 2,
+      "eventSeq": 63,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 58,
+        "p4": 76
+      }
+    },
+    {
+      "id": "quick-test:2:intimacy-gradient-v1:quick-test:2:d1:q21:p1",
+      "presetId": "quick-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-test:2",
+      "day": 1,
+      "eventSeq": 21,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 75,
+        "p3": 57,
+        "p4": 72,
+        "p5": 68
+      }
+    },
+    {
+      "id": "quick-test:2:intimacy-gradient-v1:quick-test:2:d1:q23:p2",
+      "presetId": "quick-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-test:2",
+      "day": 1,
+      "eventSeq": 23,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 94,
+        "p3": 46,
+        "p4": 64,
+        "p5": 40
+      }
+    },
+    {
+      "id": "quick-test:2:intimacy-gradient-v1:quick-test:2:d1:q25:p3",
+      "presetId": "quick-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-test:2",
+      "day": 1,
+      "eventSeq": 25,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 63,
+        "p2": 59,
+        "p4": 44,
+        "p5": 70
+      }
+    },
+    {
+      "id": "quick-test:2:intimacy-gradient-v1:quick-test:2:d1:q27:p4",
+      "presetId": "quick-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-test:2",
+      "day": 1,
+      "eventSeq": 27,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 69,
+        "p2": 37,
+        "p3": 51,
+        "p5": 57
+      }
+    },
+    {
+      "id": "quick-test:2:intimacy-gradient-v1:quick-test:2:d1:q29:p5",
+      "presetId": "quick-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-test:2",
+      "day": 1,
+      "eventSeq": 29,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 71,
+        "p2": 68,
+        "p3": 55,
+        "p4": 47
+      }
+    },
+    {
+      "id": "quick-test:2:intimacy-gradient-v1:quick-test:2:d2:q59:p2",
+      "presetId": "quick-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-test:2",
+      "day": 2,
+      "eventSeq": 59,
+      "pairId": "p2",
+      "baseScores": {
+        "p3": 87,
+        "p5": 54
+      }
+    },
+    {
+      "id": "quick-test:2:intimacy-gradient-v1:quick-test:2:d2:q61:p3",
+      "presetId": "quick-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-test:2",
+      "day": 2,
+      "eventSeq": 61,
+      "pairId": "p3",
+      "baseScores": {
+        "p2": 83,
+        "p5": 81
+      }
+    },
+    {
+      "id": "quick-test:2:intimacy-gradient-v1:quick-test:2:d2:q63:p5",
+      "presetId": "quick-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-test:2",
+      "day": 2,
+      "eventSeq": 63,
+      "pairId": "p5",
+      "baseScores": {
+        "p2": 80,
+        "p3": 62
+      }
+    },
+    {
+      "id": "quick-test:3:intimacy-gradient-v1:quick-test:3:d1:q21:p1",
+      "presetId": "quick-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-test:3",
+      "day": 1,
+      "eventSeq": 21,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 49,
+        "p3": 50,
+        "p4": 61,
+        "p5": 49
+      }
+    },
+    {
+      "id": "quick-test:3:intimacy-gradient-v1:quick-test:3:d1:q23:p2",
+      "presetId": "quick-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-test:3",
+      "day": 1,
+      "eventSeq": 23,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 40,
+        "p3": 40,
+        "p4": 64,
+        "p5": 73
+      }
+    },
+    {
+      "id": "quick-test:3:intimacy-gradient-v1:quick-test:3:d1:q25:p3",
+      "presetId": "quick-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-test:3",
+      "day": 1,
+      "eventSeq": 25,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 49,
+        "p2": 58,
+        "p4": 55,
+        "p5": 50
+      }
+    },
+    {
+      "id": "quick-test:3:intimacy-gradient-v1:quick-test:3:d1:q27:p4",
+      "presetId": "quick-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-test:3",
+      "day": 1,
+      "eventSeq": 27,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 72,
+        "p2": 71,
+        "p3": 65,
+        "p5": 51
+      }
+    },
+    {
+      "id": "quick-test:3:intimacy-gradient-v1:quick-test:3:d1:q29:p5",
+      "presetId": "quick-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-test:3",
+      "day": 1,
+      "eventSeq": 29,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 38,
+        "p2": 73,
+        "p3": 62,
+        "p4": 57
+      }
+    },
+    {
+      "id": "quick-test:3:intimacy-gradient-v1:quick-test:3:d2:q59:p3",
+      "presetId": "quick-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-test:3",
+      "day": 2,
+      "eventSeq": 59,
+      "pairId": "p3",
+      "baseScores": {
+        "p4": 86,
+        "p5": 60
+      }
+    },
+    {
+      "id": "quick-test:3:intimacy-gradient-v1:quick-test:3:d2:q61:p4",
+      "presetId": "quick-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-test:3",
+      "day": 2,
+      "eventSeq": 61,
+      "pairId": "p4",
+      "baseScores": {
+        "p3": 91,
+        "p5": 68
+      }
+    },
+    {
+      "id": "quick-test:3:intimacy-gradient-v1:quick-test:3:d2:q63:p5",
+      "presetId": "quick-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-test:3",
+      "day": 2,
+      "eventSeq": 63,
+      "pairId": "p5",
+      "baseScores": {
+        "p3": 72,
+        "p4": 73
+      }
+    },
+    {
+      "id": "quick-test:4:intimacy-gradient-v1:quick-test:4:d1:q21:p1",
+      "presetId": "quick-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:quick-test:4",
+      "day": 1,
+      "eventSeq": 21,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 73,
+        "p3": 43,
+        "p4": 51,
+        "p5": 92
+      }
+    },
+    {
+      "id": "quick-test:4:intimacy-gradient-v1:quick-test:4:d1:q23:p2",
+      "presetId": "quick-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:quick-test:4",
+      "day": 1,
+      "eventSeq": 23,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 74,
+        "p3": 49,
+        "p4": 46,
+        "p5": 49
+      }
+    },
+    {
+      "id": "quick-test:4:intimacy-gradient-v1:quick-test:4:d1:q25:p3",
+      "presetId": "quick-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:quick-test:4",
+      "day": 1,
+      "eventSeq": 25,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 64,
+        "p2": 54,
+        "p4": 53,
+        "p5": 70
+      }
+    },
+    {
+      "id": "quick-test:4:intimacy-gradient-v1:quick-test:4:d1:q27:p4",
+      "presetId": "quick-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:quick-test:4",
+      "day": 1,
+      "eventSeq": 27,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 57,
+        "p2": 42,
+        "p3": 39,
+        "p5": 49
+      }
+    },
+    {
+      "id": "quick-test:4:intimacy-gradient-v1:quick-test:4:d1:q29:p5",
+      "presetId": "quick-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:quick-test:4",
+      "day": 1,
+      "eventSeq": 29,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 67,
+        "p2": 40,
+        "p3": 66,
+        "p4": 46
+      }
+    },
+    {
+      "id": "quick-test:5:intimacy-gradient-v1:quick-test:5:d1:q21:p1",
+      "presetId": "quick-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:quick-test:5",
+      "day": 1,
+      "eventSeq": 21,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 61,
+        "p3": 53,
+        "p4": 45,
+        "p5": 75
+      }
+    },
+    {
+      "id": "quick-test:5:intimacy-gradient-v1:quick-test:5:d1:q23:p2",
+      "presetId": "quick-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:quick-test:5",
+      "day": 1,
+      "eventSeq": 23,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 48,
+        "p3": 71,
+        "p4": 58,
+        "p5": 53
+      }
+    },
+    {
+      "id": "quick-test:5:intimacy-gradient-v1:quick-test:5:d1:q25:p3",
+      "presetId": "quick-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:quick-test:5",
+      "day": 1,
+      "eventSeq": 25,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 47,
+        "p2": 64,
+        "p4": 46,
+        "p5": 69
+      }
+    },
+    {
+      "id": "quick-test:5:intimacy-gradient-v1:quick-test:5:d1:q27:p4",
+      "presetId": "quick-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:quick-test:5",
+      "day": 1,
+      "eventSeq": 27,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 48,
+        "p2": 55,
+        "p3": 62,
+        "p5": 47
+      }
+    },
+    {
+      "id": "quick-test:5:intimacy-gradient-v1:quick-test:5:d1:q29:p5",
+      "presetId": "quick-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:quick-test:5",
+      "day": 1,
+      "eventSeq": 29,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 74,
+        "p2": 43,
+        "p3": 68,
+        "p4": 50
+      }
+    },
+    {
+      "id": "quick-test:5:intimacy-gradient-v1:quick-test:5:d2:q59:p1",
+      "presetId": "quick-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:quick-test:5",
+      "day": 2,
+      "eventSeq": 59,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 80,
+        "p5": 80
+      }
+    },
+    {
+      "id": "quick-test:5:intimacy-gradient-v1:quick-test:5:d2:q61:p2",
+      "presetId": "quick-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:quick-test:5",
+      "day": 2,
+      "eventSeq": 61,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 80,
+        "p5": 51
+      }
+    },
+    {
+      "id": "quick-test:5:intimacy-gradient-v1:quick-test:5:d2:q63:p5",
+      "presetId": "quick-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:quick-test:5",
+      "day": 2,
+      "eventSeq": 63,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 81,
+        "p2": 47
+      }
+    },
+    {
+      "id": "quick-test:6:intimacy-gradient-v1:quick-test:6:d1:q21:p1",
+      "presetId": "quick-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:quick-test:6",
+      "day": 1,
+      "eventSeq": 21,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 49,
+        "p3": 49,
+        "p4": 51,
+        "p5": 85
+      }
+    },
+    {
+      "id": "quick-test:6:intimacy-gradient-v1:quick-test:6:d1:q23:p2",
+      "presetId": "quick-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:quick-test:6",
+      "day": 1,
+      "eventSeq": 23,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 51,
+        "p3": 54,
+        "p4": 68,
+        "p5": 92
+      }
+    },
+    {
+      "id": "quick-test:6:intimacy-gradient-v1:quick-test:6:d1:q25:p3",
+      "presetId": "quick-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:quick-test:6",
+      "day": 1,
+      "eventSeq": 25,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 41,
+        "p2": 62,
+        "p4": 61,
+        "p5": 68
+      }
+    },
+    {
+      "id": "quick-test:6:intimacy-gradient-v1:quick-test:6:d1:q27:p4",
+      "presetId": "quick-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:quick-test:6",
+      "day": 1,
+      "eventSeq": 27,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 47,
+        "p2": 61,
+        "p3": 49,
+        "p5": 58
+      }
+    },
+    {
+      "id": "quick-test:6:intimacy-gradient-v1:quick-test:6:d1:q29:p5",
+      "presetId": "quick-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:quick-test:6",
+      "day": 1,
+      "eventSeq": 29,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 71,
+        "p2": 73,
+        "p3": 68,
+        "p4": 55
+      }
+    },
+    {
+      "id": "quick-test:6:intimacy-gradient-v1:quick-test:6:d2:q59:p1",
+      "presetId": "quick-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:quick-test:6",
+      "day": 2,
+      "eventSeq": 59,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 58,
+        "p3": 78
+      }
+    },
+    {
+      "id": "quick-test:6:intimacy-gradient-v1:quick-test:6:d2:q61:p2",
+      "presetId": "quick-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:quick-test:6",
+      "day": 2,
+      "eventSeq": 61,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 68,
+        "p3": 70
+      }
+    },
+    {
+      "id": "quick-test:6:intimacy-gradient-v1:quick-test:6:d2:q63:p3",
+      "presetId": "quick-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:quick-test:6",
+      "day": 2,
+      "eventSeq": 63,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 70,
+        "p2": 78
+      }
+    },
+    {
+      "id": "quick-test:7:intimacy-gradient-v1:quick-test:7:d1:q21:p1",
+      "presetId": "quick-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:quick-test:7",
+      "day": 1,
+      "eventSeq": 21,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 64,
+        "p3": 78,
+        "p4": 66,
+        "p5": 67
+      }
+    },
+    {
+      "id": "quick-test:7:intimacy-gradient-v1:quick-test:7:d1:q23:p2",
+      "presetId": "quick-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:quick-test:7",
+      "day": 1,
+      "eventSeq": 23,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 82,
+        "p3": 47,
+        "p4": 49,
+        "p5": 44
+      }
+    },
+    {
+      "id": "quick-test:7:intimacy-gradient-v1:quick-test:7:d1:q25:p3",
+      "presetId": "quick-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:quick-test:7",
+      "day": 1,
+      "eventSeq": 25,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 85,
+        "p2": 60,
+        "p4": 62,
+        "p5": 54
+      }
+    },
+    {
+      "id": "quick-test:7:intimacy-gradient-v1:quick-test:7:d1:q27:p4",
+      "presetId": "quick-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:quick-test:7",
+      "day": 1,
+      "eventSeq": 27,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 75,
+        "p2": 51,
+        "p3": 58,
+        "p5": 52
+      }
+    },
+    {
+      "id": "quick-test:7:intimacy-gradient-v1:quick-test:7:d1:q29:p5",
+      "presetId": "quick-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:quick-test:7",
+      "day": 1,
+      "eventSeq": 29,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 64,
+        "p2": 43,
+        "p3": 52,
+        "p4": 53
+      }
+    },
+    {
+      "id": "quick-test:7:intimacy-gradient-v1:quick-test:7:d2:q59:p2",
+      "presetId": "quick-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:quick-test:7",
+      "day": 2,
+      "eventSeq": 59,
+      "pairId": "p2",
+      "baseScores": {
+        "p3": 94,
+        "p4": 55
+      }
+    },
+    {
+      "id": "quick-test:7:intimacy-gradient-v1:quick-test:7:d2:q61:p3",
+      "presetId": "quick-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:quick-test:7",
+      "day": 2,
+      "eventSeq": 61,
+      "pairId": "p3",
+      "baseScores": {
+        "p2": 80,
+        "p4": 84
+      }
+    },
+    {
+      "id": "quick-test:7:intimacy-gradient-v1:quick-test:7:d2:q63:p4",
+      "presetId": "quick-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:quick-test:7",
+      "day": 2,
+      "eventSeq": 63,
+      "pairId": "p4",
+      "baseScores": {
+        "p2": 64,
+        "p3": 74
+      }
+    },
+    {
+      "id": "quick-test:8:intimacy-gradient-v1:quick-test:8:d1:q21:p1",
+      "presetId": "quick-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-test:8",
+      "day": 1,
+      "eventSeq": 21,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 61,
+        "p3": 44,
+        "p4": 63,
+        "p5": 63
+      }
+    },
+    {
+      "id": "quick-test:8:intimacy-gradient-v1:quick-test:8:d1:q23:p2",
+      "presetId": "quick-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-test:8",
+      "day": 1,
+      "eventSeq": 23,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 39,
+        "p3": 55,
+        "p4": 60,
+        "p5": 70
+      }
+    },
+    {
+      "id": "quick-test:8:intimacy-gradient-v1:quick-test:8:d1:q25:p3",
+      "presetId": "quick-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-test:8",
+      "day": 1,
+      "eventSeq": 25,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 48,
+        "p2": 40,
+        "p4": 92,
+        "p5": 41
+      }
+    },
+    {
+      "id": "quick-test:8:intimacy-gradient-v1:quick-test:8:d1:q27:p4",
+      "presetId": "quick-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-test:8",
+      "day": 1,
+      "eventSeq": 27,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 51,
+        "p2": 49,
+        "p3": 59,
+        "p5": 54
+      }
+    },
+    {
+      "id": "quick-test:8:intimacy-gradient-v1:quick-test:8:d1:q29:p5",
+      "presetId": "quick-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-test:8",
+      "day": 1,
+      "eventSeq": 29,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 70,
+        "p2": 78,
+        "p3": 48,
+        "p4": 61
+      }
+    },
+    {
+      "id": "quick-test:8:intimacy-gradient-v1:quick-test:8:d2:q59:p1",
+      "presetId": "quick-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-test:8",
+      "day": 2,
+      "eventSeq": 59,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 82,
+        "p3": 53
+      }
+    },
+    {
+      "id": "quick-test:8:intimacy-gradient-v1:quick-test:8:d2:q61:p2",
+      "presetId": "quick-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-test:8",
+      "day": 2,
+      "eventSeq": 61,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 77,
+        "p3": 85
+      }
+    },
+    {
+      "id": "quick-test:8:intimacy-gradient-v1:quick-test:8:d2:q63:p3",
+      "presetId": "quick-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-test:8",
+      "day": 2,
+      "eventSeq": 63,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 44,
+        "p2": 71
+      }
+    },
+    {
+      "id": "quick-test:9:intimacy-gradient-v1:quick-test:9:d1:q21:p1",
+      "presetId": "quick-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:quick-test:9",
+      "day": 1,
+      "eventSeq": 21,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 40,
+        "p3": 64,
+        "p4": 61,
+        "p5": 76
+      }
+    },
+    {
+      "id": "quick-test:9:intimacy-gradient-v1:quick-test:9:d1:q23:p2",
+      "presetId": "quick-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:quick-test:9",
+      "day": 1,
+      "eventSeq": 23,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 45,
+        "p3": 43,
+        "p4": 87,
+        "p5": 60
+      }
+    },
+    {
+      "id": "quick-test:9:intimacy-gradient-v1:quick-test:9:d1:q25:p3",
+      "presetId": "quick-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:quick-test:9",
+      "day": 1,
+      "eventSeq": 25,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 50,
+        "p2": 42,
+        "p4": 79,
+        "p5": 46
+      }
+    },
+    {
+      "id": "quick-test:9:intimacy-gradient-v1:quick-test:9:d1:q27:p4",
+      "presetId": "quick-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:quick-test:9",
+      "day": 1,
+      "eventSeq": 27,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 56,
+        "p2": 67,
+        "p3": 76,
+        "p5": 59
+      }
+    },
+    {
+      "id": "quick-test:9:intimacy-gradient-v1:quick-test:9:d1:q29:p5",
+      "presetId": "quick-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:quick-test:9",
+      "day": 1,
+      "eventSeq": 29,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 61,
+        "p2": 54,
+        "p3": 46,
+        "p4": 56
+      }
+    },
+    {
+      "id": "quick-test:9:intimacy-gradient-v1:quick-test:9:d2:q56:p1",
+      "presetId": "quick-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:quick-test:9",
+      "day": 2,
+      "eventSeq": 56,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 63,
+        "p3": 96
+      }
+    },
+    {
+      "id": "quick-test:9:intimacy-gradient-v1:quick-test:9:d2:q58:p2",
+      "presetId": "quick-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:quick-test:9",
+      "day": 2,
+      "eventSeq": 58,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 47,
+        "p3": 77
+      }
+    },
+    {
+      "id": "quick-test:9:intimacy-gradient-v1:quick-test:9:d2:q60:p3",
+      "presetId": "quick-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:quick-test:9",
+      "day": 2,
+      "eventSeq": 60,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 84,
+        "p2": 66
+      }
+    },
+    {
+      "id": "quick-test:10:intimacy-gradient-v1:quick-test:10:d1:q21:p1",
+      "presetId": "quick-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:quick-test:10",
+      "day": 1,
+      "eventSeq": 21,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 68,
+        "p3": 53,
+        "p4": 63,
+        "p5": 51
+      }
+    },
+    {
+      "id": "quick-test:10:intimacy-gradient-v1:quick-test:10:d1:q23:p2",
+      "presetId": "quick-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:quick-test:10",
+      "day": 1,
+      "eventSeq": 23,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 62,
+        "p3": 86,
+        "p4": 59,
+        "p5": 42
+      }
+    },
+    {
+      "id": "quick-test:10:intimacy-gradient-v1:quick-test:10:d1:q25:p3",
+      "presetId": "quick-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:quick-test:10",
+      "day": 1,
+      "eventSeq": 25,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 42,
+        "p2": 64,
+        "p4": 52,
+        "p5": 48
+      }
+    },
+    {
+      "id": "quick-test:10:intimacy-gradient-v1:quick-test:10:d1:q27:p4",
+      "presetId": "quick-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:quick-test:10",
+      "day": 1,
+      "eventSeq": 27,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 41,
+        "p2": 65,
+        "p3": 45,
+        "p5": 62
+      }
+    },
+    {
+      "id": "quick-test:10:intimacy-gradient-v1:quick-test:10:d1:q29:p5",
+      "presetId": "quick-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:quick-test:10",
+      "day": 1,
+      "eventSeq": 29,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 46,
+        "p2": 67,
+        "p3": 57,
+        "p4": 76
+      }
+    },
+    {
+      "id": "quick-test:11:intimacy-gradient-v1:quick-test:11:d1:q21:p1",
+      "presetId": "quick-test",
+      "matchIndex": 11,
+      "seed": "intimacy-gradient-v1:quick-test:11",
+      "day": 1,
+      "eventSeq": 21,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 51,
+        "p3": 76,
+        "p4": 40,
+        "p5": 46
+      }
+    },
+    {
+      "id": "quick-test:11:intimacy-gradient-v1:quick-test:11:d1:q23:p2",
+      "presetId": "quick-test",
+      "matchIndex": 11,
+      "seed": "intimacy-gradient-v1:quick-test:11",
+      "day": 1,
+      "eventSeq": 23,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 52,
+        "p3": 64,
+        "p4": 47,
+        "p5": 72
+      }
+    },
+    {
+      "id": "quick-test:11:intimacy-gradient-v1:quick-test:11:d1:q25:p3",
+      "presetId": "quick-test",
+      "matchIndex": 11,
+      "seed": "intimacy-gradient-v1:quick-test:11",
+      "day": 1,
+      "eventSeq": 25,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 100,
+        "p2": 63,
+        "p4": 75,
+        "p5": 64
+      }
+    },
+    {
+      "id": "quick-test:11:intimacy-gradient-v1:quick-test:11:d1:q27:p4",
+      "presetId": "quick-test",
+      "matchIndex": 11,
+      "seed": "intimacy-gradient-v1:quick-test:11",
+      "day": 1,
+      "eventSeq": 27,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 51,
+        "p2": 61,
+        "p3": 74,
+        "p5": 53
+      }
+    },
+    {
+      "id": "quick-test:11:intimacy-gradient-v1:quick-test:11:d1:q29:p5",
+      "presetId": "quick-test",
+      "matchIndex": 11,
+      "seed": "intimacy-gradient-v1:quick-test:11",
+      "day": 1,
+      "eventSeq": 29,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 48,
+        "p2": 45,
+        "p3": 62,
+        "p4": 36
+      }
+    },
+    {
+      "id": "quick-test:12:intimacy-gradient-v1:quick-test:12:d1:q21:p1",
+      "presetId": "quick-test",
+      "matchIndex": 12,
+      "seed": "intimacy-gradient-v1:quick-test:12",
+      "day": 1,
+      "eventSeq": 21,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 51,
+        "p3": 71,
+        "p4": 49,
+        "p5": 71
+      }
+    },
+    {
+      "id": "quick-test:12:intimacy-gradient-v1:quick-test:12:d1:q23:p2",
+      "presetId": "quick-test",
+      "matchIndex": 12,
+      "seed": "intimacy-gradient-v1:quick-test:12",
+      "day": 1,
+      "eventSeq": 23,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 51,
+        "p3": 45,
+        "p4": 100,
+        "p5": 72
+      }
+    },
+    {
+      "id": "quick-test:12:intimacy-gradient-v1:quick-test:12:d1:q25:p3",
+      "presetId": "quick-test",
+      "matchIndex": 12,
+      "seed": "intimacy-gradient-v1:quick-test:12",
+      "day": 1,
+      "eventSeq": 25,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 77,
+        "p2": 50,
+        "p4": 59,
+        "p5": 52
+      }
+    },
+    {
+      "id": "quick-test:12:intimacy-gradient-v1:quick-test:12:d1:q27:p4",
+      "presetId": "quick-test",
+      "matchIndex": 12,
+      "seed": "intimacy-gradient-v1:quick-test:12",
+      "day": 1,
+      "eventSeq": 27,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 45,
+        "p2": 67,
+        "p3": 52,
+        "p5": 68
+      }
+    },
+    {
+      "id": "quick-test:12:intimacy-gradient-v1:quick-test:12:d1:q29:p5",
+      "presetId": "quick-test",
+      "matchIndex": 12,
+      "seed": "intimacy-gradient-v1:quick-test:12",
+      "day": 1,
+      "eventSeq": 29,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 47,
+        "p2": 54,
+        "p3": 49,
+        "p4": 44
+      }
+    },
+    {
+      "id": "quick-test:12:intimacy-gradient-v1:quick-test:12:d2:q56:p1",
+      "presetId": "quick-test",
+      "matchIndex": 12,
+      "seed": "intimacy-gradient-v1:quick-test:12",
+      "day": 2,
+      "eventSeq": 56,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 71,
+        "p3": 82
+      }
+    },
+    {
+      "id": "quick-test:12:intimacy-gradient-v1:quick-test:12:d2:q58:p2",
+      "presetId": "quick-test",
+      "matchIndex": 12,
+      "seed": "intimacy-gradient-v1:quick-test:12",
+      "day": 2,
+      "eventSeq": 58,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 53,
+        "p3": 74
+      }
+    },
+    {
+      "id": "quick-test:12:intimacy-gradient-v1:quick-test:12:d2:q60:p3",
+      "presetId": "quick-test",
+      "matchIndex": 12,
+      "seed": "intimacy-gradient-v1:quick-test:12",
+      "day": 2,
+      "eventSeq": 60,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 91,
+        "p2": 78
+      }
+    },
+    {
+      "id": "quick-info:1:intimacy-gradient-v1:quick-info:1:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-info:1",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 78,
+        "p3": 4,
+        "p4": 77,
+        "p5": 46
+      }
+    },
+    {
+      "id": "quick-info:1:intimacy-gradient-v1:quick-info:1:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-info:1",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 66,
+        "p3": 55,
+        "p4": 51,
+        "p5": 53
+      }
+    },
+    {
+      "id": "quick-info:1:intimacy-gradient-v1:quick-info:1:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-info:1",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 63,
+        "p2": 42,
+        "p4": 61,
+        "p5": 38
+      }
+    },
+    {
+      "id": "quick-info:1:intimacy-gradient-v1:quick-info:1:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-info:1",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 85,
+        "p2": 58,
+        "p3": 55,
+        "p5": 65
+      }
+    },
+    {
+      "id": "quick-info:1:intimacy-gradient-v1:quick-info:1:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-info:1",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 54,
+        "p2": 45,
+        "p3": 45,
+        "p4": 58
+      }
+    },
+    {
+      "id": "quick-info:1:intimacy-gradient-v1:quick-info:1:d2:q62:p2",
+      "presetId": "quick-info",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-info:1",
+      "day": 2,
+      "eventSeq": 62,
+      "pairId": "p2",
+      "baseScores": {
+        "p4": 92,
+        "p5": 83
+      }
+    },
+    {
+      "id": "quick-info:1:intimacy-gradient-v1:quick-info:1:d2:q64:p4",
+      "presetId": "quick-info",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-info:1",
+      "day": 2,
+      "eventSeq": 64,
+      "pairId": "p4",
+      "baseScores": {
+        "p2": 100,
+        "p5": 61
+      }
+    },
+    {
+      "id": "quick-info:1:intimacy-gradient-v1:quick-info:1:d2:q66:p5",
+      "presetId": "quick-info",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:quick-info:1",
+      "day": 2,
+      "eventSeq": 66,
+      "pairId": "p5",
+      "baseScores": {
+        "p2": 86,
+        "p4": 71
+      }
+    },
+    {
+      "id": "quick-info:2:intimacy-gradient-v1:quick-info:2:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-info:2",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 75,
+        "p3": 61,
+        "p4": 77,
+        "p5": 49
+      }
+    },
+    {
+      "id": "quick-info:2:intimacy-gradient-v1:quick-info:2:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-info:2",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 60,
+        "p3": 61,
+        "p4": 85,
+        "p5": 66
+      }
+    },
+    {
+      "id": "quick-info:2:intimacy-gradient-v1:quick-info:2:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-info:2",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 58,
+        "p2": 70,
+        "p4": 39,
+        "p5": 49
+      }
+    },
+    {
+      "id": "quick-info:2:intimacy-gradient-v1:quick-info:2:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-info:2",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 77,
+        "p2": 90,
+        "p3": 56,
+        "p5": 56
+      }
+    },
+    {
+      "id": "quick-info:2:intimacy-gradient-v1:quick-info:2:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-info:2",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 47,
+        "p2": 61,
+        "p3": 44,
+        "p4": 4
+      }
+    },
+    {
+      "id": "quick-info:2:intimacy-gradient-v1:quick-info:2:d2:q64:p1",
+      "presetId": "quick-info",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-info:2",
+      "day": 2,
+      "eventSeq": 64,
+      "pairId": "p1",
+      "baseScores": {
+        "p3": 90,
+        "p5": 61
+      }
+    },
+    {
+      "id": "quick-info:2:intimacy-gradient-v1:quick-info:2:d2:q66:p3",
+      "presetId": "quick-info",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-info:2",
+      "day": 2,
+      "eventSeq": 66,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 95,
+        "p5": 72
+      }
+    },
+    {
+      "id": "quick-info:2:intimacy-gradient-v1:quick-info:2:d2:q68:p5",
+      "presetId": "quick-info",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:quick-info:2",
+      "day": 2,
+      "eventSeq": 68,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 57,
+        "p3": 97
+      }
+    },
+    {
+      "id": "quick-info:3:intimacy-gradient-v1:quick-info:3:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-info:3",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 97,
+        "p3": 58,
+        "p4": 38,
+        "p5": 48
+      }
+    },
+    {
+      "id": "quick-info:3:intimacy-gradient-v1:quick-info:3:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-info:3",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 73,
+        "p3": 65,
+        "p4": 57,
+        "p5": 4
+      }
+    },
+    {
+      "id": "quick-info:3:intimacy-gradient-v1:quick-info:3:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-info:3",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 60,
+        "p2": 61,
+        "p4": 63,
+        "p5": 58
+      }
+    },
+    {
+      "id": "quick-info:3:intimacy-gradient-v1:quick-info:3:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-info:3",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 48,
+        "p2": 58,
+        "p3": 52,
+        "p5": 65
+      }
+    },
+    {
+      "id": "quick-info:3:intimacy-gradient-v1:quick-info:3:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-info:3",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 54,
+        "p2": 60,
+        "p3": 62,
+        "p4": 80
+      }
+    },
+    {
+      "id": "quick-info:3:intimacy-gradient-v1:quick-info:3:d2:q65:p1",
+      "presetId": "quick-info",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-info:3",
+      "day": 2,
+      "eventSeq": 65,
+      "pairId": "p1",
+      "baseScores": {
+        "p3": 94,
+        "p5": 67
+      }
+    },
+    {
+      "id": "quick-info:3:intimacy-gradient-v1:quick-info:3:d2:q67:p3",
+      "presetId": "quick-info",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-info:3",
+      "day": 2,
+      "eventSeq": 67,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 100,
+        "p5": 76
+      }
+    },
+    {
+      "id": "quick-info:3:intimacy-gradient-v1:quick-info:3:d2:q69:p5",
+      "presetId": "quick-info",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:quick-info:3",
+      "day": 2,
+      "eventSeq": 69,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 91,
+        "p3": 73
+      }
+    },
+    {
+      "id": "quick-info:4:intimacy-gradient-v1:quick-info:4:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:quick-info:4",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 61,
+        "p3": 78,
+        "p4": 60,
+        "p5": 39
+      }
+    },
+    {
+      "id": "quick-info:4:intimacy-gradient-v1:quick-info:4:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:quick-info:4",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 47,
+        "p3": 51,
+        "p4": 71,
+        "p5": 48
+      }
+    },
+    {
+      "id": "quick-info:4:intimacy-gradient-v1:quick-info:4:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:quick-info:4",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 68,
+        "p2": 45,
+        "p4": 45,
+        "p5": 4
+      }
+    },
+    {
+      "id": "quick-info:4:intimacy-gradient-v1:quick-info:4:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:quick-info:4",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 58,
+        "p2": 83,
+        "p3": 43,
+        "p5": 46
+      }
+    },
+    {
+      "id": "quick-info:4:intimacy-gradient-v1:quick-info:4:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:quick-info:4",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 61,
+        "p2": 47,
+        "p3": 70,
+        "p4": 46
+      }
+    },
+    {
+      "id": "quick-info:4:intimacy-gradient-v1:quick-info:4:d2:q62:p1",
+      "presetId": "quick-info",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:quick-info:4",
+      "day": 2,
+      "eventSeq": 62,
+      "pairId": "p1",
+      "baseScores": {
+        "p4": 95,
+        "p5": 67
+      }
+    },
+    {
+      "id": "quick-info:4:intimacy-gradient-v1:quick-info:4:d2:q64:p4",
+      "presetId": "quick-info",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:quick-info:4",
+      "day": 2,
+      "eventSeq": 64,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 100,
+        "p5": 38
+      }
+    },
+    {
+      "id": "quick-info:4:intimacy-gradient-v1:quick-info:4:d2:q66:p5",
+      "presetId": "quick-info",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:quick-info:4",
+      "day": 2,
+      "eventSeq": 66,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 74,
+        "p4": 69
+      }
+    },
+    {
+      "id": "quick-info:5:intimacy-gradient-v1:quick-info:5:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:quick-info:5",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 47,
+        "p3": 51,
+        "p4": 72,
+        "p5": 47
+      }
+    },
+    {
+      "id": "quick-info:5:intimacy-gradient-v1:quick-info:5:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:quick-info:5",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 4,
+        "p3": 69,
+        "p4": 46,
+        "p5": 59
+      }
+    },
+    {
+      "id": "quick-info:5:intimacy-gradient-v1:quick-info:5:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:quick-info:5",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 42,
+        "p2": 68,
+        "p4": 40,
+        "p5": 93
+      }
+    },
+    {
+      "id": "quick-info:5:intimacy-gradient-v1:quick-info:5:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:quick-info:5",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 76,
+        "p2": 52,
+        "p3": 62,
+        "p5": 58
+      }
+    },
+    {
+      "id": "quick-info:5:intimacy-gradient-v1:quick-info:5:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:quick-info:5",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 57,
+        "p2": 47,
+        "p3": 82,
+        "p4": 55
+      }
+    },
+    {
+      "id": "quick-info:6:intimacy-gradient-v1:quick-info:6:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:quick-info:6",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 77,
+        "p3": 74,
+        "p4": 40,
+        "p5": 63
+      }
+    },
+    {
+      "id": "quick-info:6:intimacy-gradient-v1:quick-info:6:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:quick-info:6",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 82,
+        "p3": 52,
+        "p4": 62,
+        "p5": 52
+      }
+    },
+    {
+      "id": "quick-info:6:intimacy-gradient-v1:quick-info:6:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:quick-info:6",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 90,
+        "p2": 57,
+        "p4": 58,
+        "p5": 67
+      }
+    },
+    {
+      "id": "quick-info:6:intimacy-gradient-v1:quick-info:6:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:quick-info:6",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 54,
+        "p2": 53,
+        "p3": 73,
+        "p5": 52
+      }
+    },
+    {
+      "id": "quick-info:6:intimacy-gradient-v1:quick-info:6:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:quick-info:6",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 4,
+        "p2": 46,
+        "p3": 70,
+        "p4": 61
+      }
+    },
+    {
+      "id": "quick-info:7:intimacy-gradient-v1:quick-info:7:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:quick-info:7",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 49,
+        "p3": 79,
+        "p4": 46,
+        "p5": 70
+      }
+    },
+    {
+      "id": "quick-info:7:intimacy-gradient-v1:quick-info:7:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:quick-info:7",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 56,
+        "p3": 69,
+        "p4": 49,
+        "p5": 56
+      }
+    },
+    {
+      "id": "quick-info:7:intimacy-gradient-v1:quick-info:7:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:quick-info:7",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 87,
+        "p2": 58,
+        "p4": 59,
+        "p5": 63
+      }
+    },
+    {
+      "id": "quick-info:7:intimacy-gradient-v1:quick-info:7:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:quick-info:7",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 40,
+        "p2": 64,
+        "p3": 67,
+        "p5": 67
+      }
+    },
+    {
+      "id": "quick-info:7:intimacy-gradient-v1:quick-info:7:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:quick-info:7",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 4,
+        "p2": 54,
+        "p3": 77,
+        "p4": 63
+      }
+    },
+    {
+      "id": "quick-info:8:intimacy-gradient-v1:quick-info:8:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-info:8",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 52,
+        "p3": 50,
+        "p4": 75,
+        "p5": 56
+      }
+    },
+    {
+      "id": "quick-info:8:intimacy-gradient-v1:quick-info:8:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-info:8",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 48,
+        "p3": 66,
+        "p4": 46,
+        "p5": 68
+      }
+    },
+    {
+      "id": "quick-info:8:intimacy-gradient-v1:quick-info:8:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-info:8",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 4,
+        "p2": 74,
+        "p4": 48,
+        "p5": 48
+      }
+    },
+    {
+      "id": "quick-info:8:intimacy-gradient-v1:quick-info:8:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-info:8",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 100,
+        "p2": 47,
+        "p3": 59,
+        "p5": 43
+      }
+    },
+    {
+      "id": "quick-info:8:intimacy-gradient-v1:quick-info:8:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-info:8",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 57,
+        "p2": 66,
+        "p3": 52,
+        "p4": 65
+      }
+    },
+    {
+      "id": "quick-info:8:intimacy-gradient-v1:quick-info:8:d2:q66:p3",
+      "presetId": "quick-info",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-info:8",
+      "day": 2,
+      "eventSeq": 66,
+      "pairId": "p3",
+      "baseScores": {
+        "p4": 97,
+        "p5": 66
+      }
+    },
+    {
+      "id": "quick-info:8:intimacy-gradient-v1:quick-info:8:d2:q68:p4",
+      "presetId": "quick-info",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-info:8",
+      "day": 2,
+      "eventSeq": 68,
+      "pairId": "p4",
+      "baseScores": {
+        "p3": 100,
+        "p5": 63
+      }
+    },
+    {
+      "id": "quick-info:8:intimacy-gradient-v1:quick-info:8:d2:q70:p5",
+      "presetId": "quick-info",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:quick-info:8",
+      "day": 2,
+      "eventSeq": 70,
+      "pairId": "p5",
+      "baseScores": {
+        "p3": 66,
+        "p4": 92
+      }
+    },
+    {
+      "id": "quick-info:9:intimacy-gradient-v1:quick-info:9:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:quick-info:9",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 71,
+        "p3": 38,
+        "p4": 63,
+        "p5": 81
+      }
+    },
+    {
+      "id": "quick-info:9:intimacy-gradient-v1:quick-info:9:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:quick-info:9",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 61,
+        "p3": 4,
+        "p4": 63,
+        "p5": 74
+      }
+    },
+    {
+      "id": "quick-info:9:intimacy-gradient-v1:quick-info:9:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:quick-info:9",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 40,
+        "p2": 49,
+        "p4": 57,
+        "p5": 53
+      }
+    },
+    {
+      "id": "quick-info:9:intimacy-gradient-v1:quick-info:9:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:quick-info:9",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 37,
+        "p2": 58,
+        "p3": 51,
+        "p5": 68
+      }
+    },
+    {
+      "id": "quick-info:9:intimacy-gradient-v1:quick-info:9:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:quick-info:9",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 87,
+        "p2": 64,
+        "p3": 39,
+        "p4": 68
+      }
+    },
+    {
+      "id": "quick-info:10:intimacy-gradient-v1:quick-info:10:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:quick-info:10",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 4,
+        "p3": 69,
+        "p4": 65,
+        "p5": 55
+      }
+    },
+    {
+      "id": "quick-info:10:intimacy-gradient-v1:quick-info:10:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:quick-info:10",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 53,
+        "p3": 62,
+        "p4": 64,
+        "p5": 36
+      }
+    },
+    {
+      "id": "quick-info:10:intimacy-gradient-v1:quick-info:10:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:quick-info:10",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 53,
+        "p2": 48,
+        "p4": 100,
+        "p5": 59
+      }
+    },
+    {
+      "id": "quick-info:10:intimacy-gradient-v1:quick-info:10:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:quick-info:10",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 55,
+        "p2": 64,
+        "p3": 79,
+        "p5": 57
+      }
+    },
+    {
+      "id": "quick-info:10:intimacy-gradient-v1:quick-info:10:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:quick-info:10",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 64,
+        "p2": 45,
+        "p3": 55,
+        "p4": 54
+      }
+    },
+    {
+      "id": "quick-info:11:intimacy-gradient-v1:quick-info:11:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 11,
+      "seed": "intimacy-gradient-v1:quick-info:11",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 77,
+        "p3": 58,
+        "p4": 51,
+        "p5": 67
+      }
+    },
+    {
+      "id": "quick-info:11:intimacy-gradient-v1:quick-info:11:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 11,
+      "seed": "intimacy-gradient-v1:quick-info:11",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 76,
+        "p3": 65,
+        "p4": 4,
+        "p5": 53
+      }
+    },
+    {
+      "id": "quick-info:11:intimacy-gradient-v1:quick-info:11:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 11,
+      "seed": "intimacy-gradient-v1:quick-info:11",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 46,
+        "p2": 45,
+        "p4": 97,
+        "p5": 72
+      }
+    },
+    {
+      "id": "quick-info:11:intimacy-gradient-v1:quick-info:11:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 11,
+      "seed": "intimacy-gradient-v1:quick-info:11",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 39,
+        "p2": 57,
+        "p3": 67,
+        "p5": 60
+      }
+    },
+    {
+      "id": "quick-info:11:intimacy-gradient-v1:quick-info:11:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 11,
+      "seed": "intimacy-gradient-v1:quick-info:11",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 45,
+        "p2": 44,
+        "p3": 57,
+        "p4": 50
+      }
+    },
+    {
+      "id": "quick-info:12:intimacy-gradient-v1:quick-info:12:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 12,
+      "seed": "intimacy-gradient-v1:quick-info:12",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 60,
+        "p3": 4,
+        "p4": 49,
+        "p5": 73
+      }
+    },
+    {
+      "id": "quick-info:12:intimacy-gradient-v1:quick-info:12:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 12,
+      "seed": "intimacy-gradient-v1:quick-info:12",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 38,
+        "p3": 65,
+        "p4": 56,
+        "p5": 78
+      }
+    },
+    {
+      "id": "quick-info:12:intimacy-gradient-v1:quick-info:12:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 12,
+      "seed": "intimacy-gradient-v1:quick-info:12",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 36,
+        "p2": 76,
+        "p4": 44,
+        "p5": 65
+      }
+    },
+    {
+      "id": "quick-info:12:intimacy-gradient-v1:quick-info:12:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 12,
+      "seed": "intimacy-gradient-v1:quick-info:12",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 47,
+        "p2": 57,
+        "p3": 55,
+        "p5": 69
+      }
+    },
+    {
+      "id": "quick-info:12:intimacy-gradient-v1:quick-info:12:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 12,
+      "seed": "intimacy-gradient-v1:quick-info:12",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 73,
+        "p2": 92,
+        "p3": 45,
+        "p4": 69
+      }
+    },
+    {
+      "id": "quick-info:13:intimacy-gradient-v1:quick-info:13:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 13,
+      "seed": "intimacy-gradient-v1:quick-info:13",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 41,
+        "p3": 57,
+        "p4": 57,
+        "p5": 58
+      }
+    },
+    {
+      "id": "quick-info:13:intimacy-gradient-v1:quick-info:13:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 13,
+      "seed": "intimacy-gradient-v1:quick-info:13",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 42,
+        "p3": 70,
+        "p4": 42,
+        "p5": 40
+      }
+    },
+    {
+      "id": "quick-info:13:intimacy-gradient-v1:quick-info:13:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 13,
+      "seed": "intimacy-gradient-v1:quick-info:13",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 4,
+        "p2": 77,
+        "p4": 57,
+        "p5": 57
+      }
+    },
+    {
+      "id": "quick-info:13:intimacy-gradient-v1:quick-info:13:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 13,
+      "seed": "intimacy-gradient-v1:quick-info:13",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 36,
+        "p2": 51,
+        "p3": 63,
+        "p5": 70
+      }
+    },
+    {
+      "id": "quick-info:13:intimacy-gradient-v1:quick-info:13:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 13,
+      "seed": "intimacy-gradient-v1:quick-info:13",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 56,
+        "p2": 44,
+        "p3": 55,
+        "p4": 84
+      }
+    },
+    {
+      "id": "quick-info:14:intimacy-gradient-v1:quick-info:14:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 14,
+      "seed": "intimacy-gradient-v1:quick-info:14",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 51,
+        "p3": 45,
+        "p4": 48,
+        "p5": 66
+      }
+    },
+    {
+      "id": "quick-info:14:intimacy-gradient-v1:quick-info:14:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 14,
+      "seed": "intimacy-gradient-v1:quick-info:14",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 57,
+        "p3": 70,
+        "p4": 46,
+        "p5": 68
+      }
+    },
+    {
+      "id": "quick-info:14:intimacy-gradient-v1:quick-info:14:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 14,
+      "seed": "intimacy-gradient-v1:quick-info:14",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 4,
+        "p2": 72,
+        "p4": 57,
+        "p5": 51
+      }
+    },
+    {
+      "id": "quick-info:14:intimacy-gradient-v1:quick-info:14:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 14,
+      "seed": "intimacy-gradient-v1:quick-info:14",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 38,
+        "p2": 49,
+        "p3": 59,
+        "p5": 100
+      }
+    },
+    {
+      "id": "quick-info:14:intimacy-gradient-v1:quick-info:14:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 14,
+      "seed": "intimacy-gradient-v1:quick-info:14",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 52,
+        "p2": 44,
+        "p3": 53,
+        "p4": 64
+      }
+    },
+    {
+      "id": "quick-info:14:intimacy-gradient-v1:quick-info:14:d2:q65:p1",
+      "presetId": "quick-info",
+      "matchIndex": 14,
+      "seed": "intimacy-gradient-v1:quick-info:14",
+      "day": 2,
+      "eventSeq": 65,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 84,
+        "p4": 70
+      }
+    },
+    {
+      "id": "quick-info:14:intimacy-gradient-v1:quick-info:14:d2:q67:p2",
+      "presetId": "quick-info",
+      "matchIndex": 14,
+      "seed": "intimacy-gradient-v1:quick-info:14",
+      "day": 2,
+      "eventSeq": 67,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 81,
+        "p4": 77
+      }
+    },
+    {
+      "id": "quick-info:14:intimacy-gradient-v1:quick-info:14:d2:q69:p4",
+      "presetId": "quick-info",
+      "matchIndex": 14,
+      "seed": "intimacy-gradient-v1:quick-info:14",
+      "day": 2,
+      "eventSeq": 69,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 60,
+        "p2": 87
+      }
+    },
+    {
+      "id": "quick-info:15:intimacy-gradient-v1:quick-info:15:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 15,
+      "seed": "intimacy-gradient-v1:quick-info:15",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 73,
+        "p3": 70,
+        "p4": 47,
+        "p5": 4
+      }
+    },
+    {
+      "id": "quick-info:15:intimacy-gradient-v1:quick-info:15:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 15,
+      "seed": "intimacy-gradient-v1:quick-info:15",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 84,
+        "p3": 56,
+        "p4": 59,
+        "p5": 54
+      }
+    },
+    {
+      "id": "quick-info:15:intimacy-gradient-v1:quick-info:15:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 15,
+      "seed": "intimacy-gradient-v1:quick-info:15",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 73,
+        "p2": 46,
+        "p4": 70,
+        "p5": 56
+      }
+    },
+    {
+      "id": "quick-info:15:intimacy-gradient-v1:quick-info:15:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 15,
+      "seed": "intimacy-gradient-v1:quick-info:15",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 57,
+        "p2": 49,
+        "p3": 78,
+        "p5": 62
+      }
+    },
+    {
+      "id": "quick-info:15:intimacy-gradient-v1:quick-info:15:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 15,
+      "seed": "intimacy-gradient-v1:quick-info:15",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 57,
+        "p2": 63,
+        "p3": 66,
+        "p4": 39
+      }
+    },
+    {
+      "id": "quick-info:16:intimacy-gradient-v1:quick-info:16:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 16,
+      "seed": "intimacy-gradient-v1:quick-info:16",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 88,
+        "p3": 38,
+        "p4": 50,
+        "p5": 58
+      }
+    },
+    {
+      "id": "quick-info:16:intimacy-gradient-v1:quick-info:16:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 16,
+      "seed": "intimacy-gradient-v1:quick-info:16",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 62,
+        "p3": 74,
+        "p4": 85,
+        "p5": 51
+      }
+    },
+    {
+      "id": "quick-info:16:intimacy-gradient-v1:quick-info:16:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 16,
+      "seed": "intimacy-gradient-v1:quick-info:16",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 39,
+        "p2": 63,
+        "p4": 62,
+        "p5": 4
+      }
+    },
+    {
+      "id": "quick-info:16:intimacy-gradient-v1:quick-info:16:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 16,
+      "seed": "intimacy-gradient-v1:quick-info:16",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 61,
+        "p2": 73,
+        "p3": 35,
+        "p5": 52
+      }
+    },
+    {
+      "id": "quick-info:16:intimacy-gradient-v1:quick-info:16:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 16,
+      "seed": "intimacy-gradient-v1:quick-info:16",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 50,
+        "p2": 57,
+        "p3": 47,
+        "p4": 73
+      }
+    },
+    {
+      "id": "quick-info:16:intimacy-gradient-v1:quick-info:16:d2:q64:p1",
+      "presetId": "quick-info",
+      "matchIndex": 16,
+      "seed": "intimacy-gradient-v1:quick-info:16",
+      "day": 2,
+      "eventSeq": 64,
+      "pairId": "p1",
+      "baseScores": {
+        "p4": 100,
+        "p5": 50
+      }
+    },
+    {
+      "id": "quick-info:16:intimacy-gradient-v1:quick-info:16:d2:q66:p4",
+      "presetId": "quick-info",
+      "matchIndex": 16,
+      "seed": "intimacy-gradient-v1:quick-info:16",
+      "day": 2,
+      "eventSeq": 66,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 90,
+        "p5": 50
+      }
+    },
+    {
+      "id": "quick-info:16:intimacy-gradient-v1:quick-info:16:d2:q68:p5",
+      "presetId": "quick-info",
+      "matchIndex": 16,
+      "seed": "intimacy-gradient-v1:quick-info:16",
+      "day": 2,
+      "eventSeq": 68,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 73,
+        "p4": 100
+      }
+    },
+    {
+      "id": "quick-info:17:intimacy-gradient-v1:quick-info:17:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 17,
+      "seed": "intimacy-gradient-v1:quick-info:17",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 79,
+        "p3": 50,
+        "p4": 50,
+        "p5": 38
+      }
+    },
+    {
+      "id": "quick-info:17:intimacy-gradient-v1:quick-info:17:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 17,
+      "seed": "intimacy-gradient-v1:quick-info:17",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 82,
+        "p3": 52,
+        "p4": 35,
+        "p5": 40
+      }
+    },
+    {
+      "id": "quick-info:17:intimacy-gradient-v1:quick-info:17:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 17,
+      "seed": "intimacy-gradient-v1:quick-info:17",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 45,
+        "p2": 51,
+        "p4": 59,
+        "p5": 4
+      }
+    },
+    {
+      "id": "quick-info:17:intimacy-gradient-v1:quick-info:17:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 17,
+      "seed": "intimacy-gradient-v1:quick-info:17",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 47,
+        "p2": 52,
+        "p3": 65,
+        "p5": 57
+      }
+    },
+    {
+      "id": "quick-info:17:intimacy-gradient-v1:quick-info:17:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 17,
+      "seed": "intimacy-gradient-v1:quick-info:17",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 61,
+        "p2": 59,
+        "p3": 57,
+        "p4": 64
+      }
+    },
+    {
+      "id": "quick-info:17:intimacy-gradient-v1:quick-info:17:d2:q66:p2",
+      "presetId": "quick-info",
+      "matchIndex": 17,
+      "seed": "intimacy-gradient-v1:quick-info:17",
+      "day": 2,
+      "eventSeq": 66,
+      "pairId": "p2",
+      "baseScores": {
+        "p3": 95,
+        "p5": 54
+      }
+    },
+    {
+      "id": "quick-info:17:intimacy-gradient-v1:quick-info:17:d2:q68:p3",
+      "presetId": "quick-info",
+      "matchIndex": 17,
+      "seed": "intimacy-gradient-v1:quick-info:17",
+      "day": 2,
+      "eventSeq": 68,
+      "pairId": "p3",
+      "baseScores": {
+        "p2": 97,
+        "p5": 4
+      }
+    },
+    {
+      "id": "quick-info:17:intimacy-gradient-v1:quick-info:17:d2:q70:p5",
+      "presetId": "quick-info",
+      "matchIndex": 17,
+      "seed": "intimacy-gradient-v1:quick-info:17",
+      "day": 2,
+      "eventSeq": 70,
+      "pairId": "p5",
+      "baseScores": {
+        "p2": 91,
+        "p3": 73
+      }
+    },
+    {
+      "id": "quick-info:18:intimacy-gradient-v1:quick-info:18:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 18,
+      "seed": "intimacy-gradient-v1:quick-info:18",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 41,
+        "p3": 56,
+        "p4": 90,
+        "p5": 72
+      }
+    },
+    {
+      "id": "quick-info:18:intimacy-gradient-v1:quick-info:18:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 18,
+      "seed": "intimacy-gradient-v1:quick-info:18",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 52,
+        "p3": 67,
+        "p4": 52,
+        "p5": 58
+      }
+    },
+    {
+      "id": "quick-info:18:intimacy-gradient-v1:quick-info:18:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 18,
+      "seed": "intimacy-gradient-v1:quick-info:18",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 54,
+        "p2": 76,
+        "p4": 50,
+        "p5": 48
+      }
+    },
+    {
+      "id": "quick-info:18:intimacy-gradient-v1:quick-info:18:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 18,
+      "seed": "intimacy-gradient-v1:quick-info:18",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 79,
+        "p2": 64,
+        "p3": 49,
+        "p5": 53
+      }
+    },
+    {
+      "id": "quick-info:18:intimacy-gradient-v1:quick-info:18:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 18,
+      "seed": "intimacy-gradient-v1:quick-info:18",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 62,
+        "p2": 4,
+        "p3": 54,
+        "p4": 62
+      }
+    },
+    {
+      "id": "quick-info:18:intimacy-gradient-v1:quick-info:18:d2:q65:p1",
+      "presetId": "quick-info",
+      "matchIndex": 18,
+      "seed": "intimacy-gradient-v1:quick-info:18",
+      "day": 2,
+      "eventSeq": 65,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 41,
+        "p3": 88
+      }
+    },
+    {
+      "id": "quick-info:18:intimacy-gradient-v1:quick-info:18:d2:q67:p2",
+      "presetId": "quick-info",
+      "matchIndex": 18,
+      "seed": "intimacy-gradient-v1:quick-info:18",
+      "day": 2,
+      "eventSeq": 67,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 63,
+        "p3": 85
+      }
+    },
+    {
+      "id": "quick-info:18:intimacy-gradient-v1:quick-info:18:d2:q69:p3",
+      "presetId": "quick-info",
+      "matchIndex": 18,
+      "seed": "intimacy-gradient-v1:quick-info:18",
+      "day": 2,
+      "eventSeq": 69,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 76,
+        "p2": 100
+      }
+    },
+    {
+      "id": "quick-info:19:intimacy-gradient-v1:quick-info:19:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 19,
+      "seed": "intimacy-gradient-v1:quick-info:19",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 4,
+        "p3": 66,
+        "p4": 57,
+        "p5": 43
+      }
+    },
+    {
+      "id": "quick-info:19:intimacy-gradient-v1:quick-info:19:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 19,
+      "seed": "intimacy-gradient-v1:quick-info:19",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 50,
+        "p3": 48,
+        "p4": 42,
+        "p5": 42
+      }
+    },
+    {
+      "id": "quick-info:19:intimacy-gradient-v1:quick-info:19:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 19,
+      "seed": "intimacy-gradient-v1:quick-info:19",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 63,
+        "p2": 41,
+        "p4": 51,
+        "p5": 60
+      }
+    },
+    {
+      "id": "quick-info:19:intimacy-gradient-v1:quick-info:19:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 19,
+      "seed": "intimacy-gradient-v1:quick-info:19",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 58,
+        "p2": 45,
+        "p3": 60,
+        "p5": 99
+      }
+    },
+    {
+      "id": "quick-info:19:intimacy-gradient-v1:quick-info:19:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 19,
+      "seed": "intimacy-gradient-v1:quick-info:19",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 50,
+        "p2": 55,
+        "p3": 50,
+        "p4": 77
+      }
+    },
+    {
+      "id": "quick-info:19:intimacy-gradient-v1:quick-info:19:d2:q62:p2",
+      "presetId": "quick-info",
+      "matchIndex": 19,
+      "seed": "intimacy-gradient-v1:quick-info:19",
+      "day": 2,
+      "eventSeq": 62,
+      "pairId": "p2",
+      "baseScores": {
+        "p3": 77,
+        "p4": 57
+      }
+    },
+    {
+      "id": "quick-info:19:intimacy-gradient-v1:quick-info:19:d2:q64:p3",
+      "presetId": "quick-info",
+      "matchIndex": 19,
+      "seed": "intimacy-gradient-v1:quick-info:19",
+      "day": 2,
+      "eventSeq": 64,
+      "pairId": "p3",
+      "baseScores": {
+        "p2": 65,
+        "p4": 96
+      }
+    },
+    {
+      "id": "quick-info:19:intimacy-gradient-v1:quick-info:19:d2:q66:p4",
+      "presetId": "quick-info",
+      "matchIndex": 19,
+      "seed": "intimacy-gradient-v1:quick-info:19",
+      "day": 2,
+      "eventSeq": 66,
+      "pairId": "p4",
+      "baseScores": {
+        "p2": 48,
+        "p3": 100
+      }
+    },
+    {
+      "id": "quick-info:20:intimacy-gradient-v1:quick-info:20:d1:q24:p1",
+      "presetId": "quick-info",
+      "matchIndex": 20,
+      "seed": "intimacy-gradient-v1:quick-info:20",
+      "day": 1,
+      "eventSeq": 24,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 52,
+        "p3": 53,
+        "p4": 60,
+        "p5": 63
+      }
+    },
+    {
+      "id": "quick-info:20:intimacy-gradient-v1:quick-info:20:d1:q26:p2",
+      "presetId": "quick-info",
+      "matchIndex": 20,
+      "seed": "intimacy-gradient-v1:quick-info:20",
+      "day": 1,
+      "eventSeq": 26,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 46,
+        "p3": 66,
+        "p4": 81,
+        "p5": 60
+      }
+    },
+    {
+      "id": "quick-info:20:intimacy-gradient-v1:quick-info:20:d1:q28:p3",
+      "presetId": "quick-info",
+      "matchIndex": 20,
+      "seed": "intimacy-gradient-v1:quick-info:20",
+      "day": 1,
+      "eventSeq": 28,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 52,
+        "p2": 68,
+        "p4": 57,
+        "p5": 46
+      }
+    },
+    {
+      "id": "quick-info:20:intimacy-gradient-v1:quick-info:20:d1:q30:p4",
+      "presetId": "quick-info",
+      "matchIndex": 20,
+      "seed": "intimacy-gradient-v1:quick-info:20",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 51,
+        "p2": 70,
+        "p3": 60,
+        "p5": 64
+      }
+    },
+    {
+      "id": "quick-info:20:intimacy-gradient-v1:quick-info:20:d1:q32:p5",
+      "presetId": "quick-info",
+      "matchIndex": 20,
+      "seed": "intimacy-gradient-v1:quick-info:20",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 61,
+        "p2": 61,
+        "p3": 60,
+        "p4": 4
+      }
+    },
+    {
+      "id": "quick-info:20:intimacy-gradient-v1:quick-info:20:d2:q66:p3",
+      "presetId": "quick-info",
+      "matchIndex": 20,
+      "seed": "intimacy-gradient-v1:quick-info:20",
+      "day": 2,
+      "eventSeq": 66,
+      "pairId": "p3",
+      "baseScores": {
+        "p4": 84,
+        "p5": 78
+      }
+    },
+    {
+      "id": "quick-info:20:intimacy-gradient-v1:quick-info:20:d2:q68:p4",
+      "presetId": "quick-info",
+      "matchIndex": 20,
+      "seed": "intimacy-gradient-v1:quick-info:20",
+      "day": 2,
+      "eventSeq": 68,
+      "pairId": "p4",
+      "baseScores": {
+        "p3": 78,
+        "p5": 90
+      }
+    },
+    {
+      "id": "quick-info:20:intimacy-gradient-v1:quick-info:20:d2:q70:p5",
+      "presetId": "quick-info",
+      "matchIndex": 20,
+      "seed": "intimacy-gradient-v1:quick-info:20",
+      "day": 2,
+      "eventSeq": 70,
+      "pairId": "p5",
+      "baseScores": {
+        "p3": 72,
+        "p4": 4
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d1:q30:p1",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 41,
+        "p3": 73,
+        "p4": 93,
+        "p5": 57,
+        "p6": 8,
+        "p7": 50,
+        "p8": 65
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d1:q32:p2",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 59,
+        "p3": 51,
+        "p4": 81,
+        "p5": 44,
+        "p6": 72,
+        "p7": 49,
+        "p8": 57
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d1:q34:p3",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 1,
+      "eventSeq": 34,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 59,
+        "p2": 46,
+        "p4": 64,
+        "p5": 51,
+        "p6": 49,
+        "p7": 54,
+        "p8": 63
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d1:q36:p4",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 1,
+      "eventSeq": 36,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 68,
+        "p2": 69,
+        "p3": 57,
+        "p5": 46,
+        "p6": 45,
+        "p7": 68,
+        "p8": 60
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d1:q38:p5",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 1,
+      "eventSeq": 38,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 50,
+        "p2": 59,
+        "p3": 43,
+        "p4": 63,
+        "p6": 59,
+        "p7": 60,
+        "p8": 67
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d1:q40:p6",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 1,
+      "eventSeq": 40,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 8,
+        "p2": 75,
+        "p3": 55,
+        "p4": 50,
+        "p5": 57,
+        "p7": 53,
+        "p8": 41
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d1:q42:p7",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 1,
+      "eventSeq": 42,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 62,
+        "p2": 60,
+        "p3": 43,
+        "p4": 75,
+        "p5": 39,
+        "p6": 54,
+        "p8": 71
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d1:q44:p8",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 1,
+      "eventSeq": 44,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 55,
+        "p2": 52,
+        "p3": 59,
+        "p4": 64,
+        "p5": 57,
+        "p6": 61,
+        "p7": 63
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d2:q95:p1",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 2,
+      "eventSeq": 95,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 64,
+        "p5": 86,
+        "p6": 8,
+        "p7": 55,
+        "p8": 60
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d2:q97:p2",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 2,
+      "eventSeq": 97,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 72,
+        "p5": 64,
+        "p6": 81,
+        "p7": 76,
+        "p8": 91
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d2:q99:p5",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 2,
+      "eventSeq": 99,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 68,
+        "p2": 93,
+        "p6": 71,
+        "p7": 73,
+        "p8": 77
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d2:q101:p6",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 2,
+      "eventSeq": 101,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 8,
+        "p2": 92,
+        "p5": 57,
+        "p7": 54,
+        "p8": 43
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d2:q103:p7",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 2,
+      "eventSeq": 103,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 78,
+        "p2": 89,
+        "p5": 58,
+        "p6": 62,
+        "p8": 77
+      }
+    },
+    {
+      "id": "pack-test:1:intimacy-gradient-v1:pack-test:1:d2:q105:p8",
+      "presetId": "pack-test",
+      "matchIndex": 1,
+      "seed": "intimacy-gradient-v1:pack-test:1",
+      "day": 2,
+      "eventSeq": 105,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 68,
+        "p2": 88,
+        "p5": 66,
+        "p6": 76,
+        "p7": 82
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d1:q30:p1",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 44,
+        "p3": 55,
+        "p4": 47,
+        "p5": 55,
+        "p6": 60,
+        "p7": 83,
+        "p8": 40
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d1:q32:p2",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 47,
+        "p3": 46,
+        "p4": 49,
+        "p5": 74,
+        "p6": 57,
+        "p7": 65,
+        "p8": 48
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d1:q34:p3",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 1,
+      "eventSeq": 34,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 46,
+        "p2": 37,
+        "p4": 69,
+        "p5": 58,
+        "p6": 57,
+        "p7": 8,
+        "p8": 100
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d1:q36:p4",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 1,
+      "eventSeq": 36,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 58,
+        "p2": 39,
+        "p3": 47,
+        "p5": 49,
+        "p6": 49,
+        "p7": 61,
+        "p8": 54
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d1:q38:p5",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 1,
+      "eventSeq": 38,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 58,
+        "p2": 60,
+        "p3": 44,
+        "p4": 47,
+        "p6": 42,
+        "p7": 64,
+        "p8": 46
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d1:q40:p6",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 1,
+      "eventSeq": 40,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 57,
+        "p2": 60,
+        "p3": 57,
+        "p4": 43,
+        "p5": 57,
+        "p7": 61,
+        "p8": 58
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d1:q42:p7",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 1,
+      "eventSeq": 42,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 90,
+        "p2": 40,
+        "p3": 8,
+        "p4": 65,
+        "p5": 55,
+        "p6": 75,
+        "p8": 64
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d1:q44:p8",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 1,
+      "eventSeq": 44,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 46,
+        "p2": 47,
+        "p3": 64,
+        "p4": 57,
+        "p5": 62,
+        "p6": 54,
+        "p7": 55
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d2:q92:p1",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 2,
+      "eventSeq": 92,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 60,
+        "p3": 67,
+        "p4": 54,
+        "p5": 100,
+        "p6": 74
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d2:q94:p2",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 2,
+      "eventSeq": 94,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 61,
+        "p3": 57,
+        "p4": 61,
+        "p5": 100,
+        "p6": 67
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d2:q96:p3",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 2,
+      "eventSeq": 96,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 50,
+        "p2": 35,
+        "p4": 70,
+        "p5": 78,
+        "p6": 91
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d2:q98:p4",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 2,
+      "eventSeq": 98,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 65,
+        "p2": 53,
+        "p3": 62,
+        "p5": 78,
+        "p6": 58
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d2:q100:p5",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 2,
+      "eventSeq": 100,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 97,
+        "p2": 71,
+        "p3": 52,
+        "p4": 67,
+        "p6": 59
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d2:q102:p6",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 2,
+      "eventSeq": 102,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 76,
+        "p2": 69,
+        "p3": 80,
+        "p4": 50,
+        "p5": 77
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d3:q136:p1",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 3,
+      "eventSeq": 136,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 72,
+        "p3": 75,
+        "p6": 85
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d3:q138:p2",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 3,
+      "eventSeq": 138,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 65,
+        "p3": 68,
+        "p6": 92
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d3:q140:p3",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 3,
+      "eventSeq": 140,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 68,
+        "p2": 43,
+        "p6": 86
+      }
+    },
+    {
+      "id": "pack-test:2:intimacy-gradient-v1:pack-test:2:d3:q142:p6",
+      "presetId": "pack-test",
+      "matchIndex": 2,
+      "seed": "intimacy-gradient-v1:pack-test:2",
+      "day": 3,
+      "eventSeq": 142,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 98,
+        "p2": 90,
+        "p3": 90
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d1:q30:p1",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 49,
+        "p3": 55,
+        "p4": 56,
+        "p5": 53,
+        "p6": 61,
+        "p7": 63,
+        "p8": 47
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d1:q32:p2",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 48,
+        "p3": 38,
+        "p4": 53,
+        "p5": 82,
+        "p6": 45,
+        "p7": 51,
+        "p8": 67
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d1:q34:p3",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 1,
+      "eventSeq": 34,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 52,
+        "p2": 45,
+        "p4": 45,
+        "p5": 62,
+        "p6": 59,
+        "p7": 61,
+        "p8": 57
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d1:q36:p4",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 1,
+      "eventSeq": 36,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 54,
+        "p2": 64,
+        "p3": 57,
+        "p5": 55,
+        "p6": 8,
+        "p7": 39,
+        "p8": 94
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d1:q38:p5",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 1,
+      "eventSeq": 38,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 43,
+        "p2": 75,
+        "p3": 62,
+        "p4": 45,
+        "p6": 71,
+        "p7": 84,
+        "p8": 52
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d1:q40:p6",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 1,
+      "eventSeq": 40,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 76,
+        "p2": 40,
+        "p3": 72,
+        "p4": 8,
+        "p5": 72,
+        "p7": 58,
+        "p8": 59
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d1:q42:p7",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 1,
+      "eventSeq": 42,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 39,
+        "p2": 55,
+        "p3": 57,
+        "p4": 40,
+        "p5": 72,
+        "p6": 51,
+        "p8": 57
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d1:q44:p8",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 1,
+      "eventSeq": 44,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 45,
+        "p2": 57,
+        "p3": 43,
+        "p4": 75,
+        "p5": 61,
+        "p6": 68,
+        "p7": 53
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d2:q96:p1",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 2,
+      "eventSeq": 96,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 67,
+        "p3": 64,
+        "p4": 69,
+        "p6": 84,
+        "p7": 81
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d2:q98:p2",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 2,
+      "eventSeq": 98,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 60,
+        "p3": 56,
+        "p4": 66,
+        "p6": 62,
+        "p7": 77
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d2:q100:p3",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 2,
+      "eventSeq": 100,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 62,
+        "p2": 67,
+        "p4": 69,
+        "p6": 92,
+        "p7": 96
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d2:q102:p4",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 2,
+      "eventSeq": 102,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 59,
+        "p2": 69,
+        "p3": 53,
+        "p6": 8,
+        "p7": 100
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d2:q104:p6",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 2,
+      "eventSeq": 104,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 73,
+        "p2": 60,
+        "p3": 98,
+        "p4": 8,
+        "p7": 79
+      }
+    },
+    {
+      "id": "pack-test:3:intimacy-gradient-v1:pack-test:3:d2:q106:p7",
+      "presetId": "pack-test",
+      "matchIndex": 3,
+      "seed": "intimacy-gradient-v1:pack-test:3",
+      "day": 2,
+      "eventSeq": 106,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 57,
+        "p2": 70,
+        "p3": 4,
+        "p4": 80,
+        "p6": 72
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d1:q30:p1",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 45,
+        "p3": 8,
+        "p4": 56,
+        "p5": 60,
+        "p6": 85,
+        "p7": 67,
+        "p8": 45
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d1:q32:p2",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 57,
+        "p3": 64,
+        "p4": 56,
+        "p5": 81,
+        "p6": 61,
+        "p7": 48,
+        "p8": 51
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d1:q34:p3",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 1,
+      "eventSeq": 34,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 8,
+        "p2": 45,
+        "p4": 54,
+        "p5": 60,
+        "p6": 66,
+        "p7": 100,
+        "p8": 36
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d1:q36:p4",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 1,
+      "eventSeq": 36,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 41,
+        "p2": 69,
+        "p3": 60,
+        "p5": 57,
+        "p6": 53,
+        "p7": 50,
+        "p8": 49
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d1:q38:p5",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 1,
+      "eventSeq": 38,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 55,
+        "p2": 71,
+        "p3": 43,
+        "p4": 41,
+        "p6": 41,
+        "p7": 59,
+        "p8": 74
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d1:q40:p6",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 1,
+      "eventSeq": 40,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 77,
+        "p2": 69,
+        "p3": 58,
+        "p4": 43,
+        "p5": 71,
+        "p7": 40,
+        "p8": 41
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d1:q42:p7",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 1,
+      "eventSeq": 42,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 60,
+        "p2": 62,
+        "p3": 80,
+        "p4": 57,
+        "p5": 66,
+        "p6": 47,
+        "p8": 44
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d1:q44:p8",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 1,
+      "eventSeq": 44,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 51,
+        "p2": 63,
+        "p3": 58,
+        "p4": 42,
+        "p5": 71,
+        "p6": 49,
+        "p7": 42
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d2:q96:p1",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 2,
+      "eventSeq": 96,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 45,
+        "p3": 8,
+        "p4": 63,
+        "p6": 95,
+        "p8": 57
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d2:q98:p2",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 2,
+      "eventSeq": 98,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 50,
+        "p3": 80,
+        "p4": 61,
+        "p6": 100,
+        "p8": 68
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d2:q100:p3",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 2,
+      "eventSeq": 100,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 8,
+        "p2": 41,
+        "p4": 66,
+        "p6": 86,
+        "p8": 83
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d2:q102:p4",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 2,
+      "eventSeq": 102,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 49,
+        "p2": 4,
+        "p3": 69,
+        "p6": 65,
+        "p8": 60
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d2:q104:p6",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 2,
+      "eventSeq": 104,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 70,
+        "p2": 86,
+        "p3": 74,
+        "p4": 46,
+        "p8": 60
+      }
+    },
+    {
+      "id": "pack-test:4:intimacy-gradient-v1:pack-test:4:d2:q106:p8",
+      "presetId": "pack-test",
+      "matchIndex": 4,
+      "seed": "intimacy-gradient-v1:pack-test:4",
+      "day": 2,
+      "eventSeq": 106,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 48,
+        "p2": 75,
+        "p3": 78,
+        "p4": 51,
+        "p6": 72
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d1:q30:p1",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 54,
+        "p3": 47,
+        "p4": 45,
+        "p5": 47,
+        "p6": 58,
+        "p7": 43,
+        "p8": 60
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d1:q32:p2",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 64,
+        "p3": 36,
+        "p4": 47,
+        "p5": 48,
+        "p6": 55,
+        "p7": 51,
+        "p8": 49
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d1:q34:p3",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 1,
+      "eventSeq": 34,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 50,
+        "p2": 49,
+        "p4": 57,
+        "p5": 81,
+        "p6": 47,
+        "p7": 60,
+        "p8": 8
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d1:q36:p4",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 1,
+      "eventSeq": 36,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 52,
+        "p2": 47,
+        "p3": 34,
+        "p5": 49,
+        "p6": 60,
+        "p7": 45,
+        "p8": 68
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d1:q38:p5",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 1,
+      "eventSeq": 38,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 39,
+        "p2": 54,
+        "p3": 50,
+        "p4": 54,
+        "p6": 79,
+        "p7": 44,
+        "p8": 54
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d1:q40:p6",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 1,
+      "eventSeq": 40,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 48,
+        "p2": 34,
+        "p3": 58,
+        "p4": 63,
+        "p5": 78,
+        "p7": 43,
+        "p8": 71
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d1:q42:p7",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 1,
+      "eventSeq": 42,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 41,
+        "p2": 45,
+        "p3": 45,
+        "p4": 38,
+        "p5": 53,
+        "p6": 42,
+        "p8": 71
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d1:q44:p8",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 1,
+      "eventSeq": 44,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 76,
+        "p2": 50,
+        "p3": 8,
+        "p4": 73,
+        "p5": 92,
+        "p6": 43,
+        "p7": 78
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d2:q96:p2",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 2,
+      "eventSeq": 96,
+      "pairId": "p2",
+      "baseScores": {
+        "p3": 48,
+        "p4": 47,
+        "p6": 72,
+        "p7": 68,
+        "p8": 60
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d2:q98:p3",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 2,
+      "eventSeq": 98,
+      "pairId": "p3",
+      "baseScores": {
+        "p2": 47,
+        "p4": 57,
+        "p6": 89,
+        "p7": 57,
+        "p8": 22
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d2:q100:p4",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 2,
+      "eventSeq": 100,
+      "pairId": "p4",
+      "baseScores": {
+        "p2": 61,
+        "p3": 45,
+        "p6": 77,
+        "p7": 53,
+        "p8": 86
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d2:q102:p6",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 2,
+      "eventSeq": 102,
+      "pairId": "p6",
+      "baseScores": {
+        "p2": 45,
+        "p3": 78,
+        "p4": 62,
+        "p7": 55,
+        "p8": 90
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d2:q104:p7",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 2,
+      "eventSeq": 104,
+      "pairId": "p7",
+      "baseScores": {
+        "p2": 69,
+        "p3": 56,
+        "p4": 38,
+        "p6": 66,
+        "p8": 84
+      }
+    },
+    {
+      "id": "pack-test:5:intimacy-gradient-v1:pack-test:5:d2:q106:p8",
+      "presetId": "pack-test",
+      "matchIndex": 5,
+      "seed": "intimacy-gradient-v1:pack-test:5",
+      "day": 2,
+      "eventSeq": 106,
+      "pairId": "p8",
+      "baseScores": {
+        "p2": 52,
+        "p3": 8,
+        "p4": 72,
+        "p6": 100,
+        "p7": 74
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d1:q30:p1",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 65,
+        "p3": 58,
+        "p4": 45,
+        "p5": 85,
+        "p6": 41,
+        "p7": 55,
+        "p8": 49
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d1:q32:p2",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 58,
+        "p3": 63,
+        "p4": 61,
+        "p5": 82,
+        "p6": 38,
+        "p7": 68,
+        "p8": 38
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d1:q34:p3",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 1,
+      "eventSeq": 34,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 40,
+        "p2": 71,
+        "p4": 54,
+        "p5": 96,
+        "p6": 50,
+        "p7": 52,
+        "p8": 38
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d1:q36:p4",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 1,
+      "eventSeq": 36,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 62,
+        "p2": 60,
+        "p3": 80,
+        "p5": 60,
+        "p6": 45,
+        "p7": 47,
+        "p8": 8
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d1:q38:p5",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 1,
+      "eventSeq": 38,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 63,
+        "p2": 80,
+        "p3": 87,
+        "p4": 43,
+        "p6": 65,
+        "p7": 62,
+        "p8": 45
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d1:q40:p6",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 1,
+      "eventSeq": 40,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 51,
+        "p2": 62,
+        "p3": 68,
+        "p4": 60,
+        "p5": 79,
+        "p7": 55,
+        "p8": 41
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d1:q42:p7",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 1,
+      "eventSeq": 42,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 53,
+        "p2": 57,
+        "p3": 70,
+        "p4": 41,
+        "p5": 79,
+        "p6": 45,
+        "p8": 54
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d1:q44:p8",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 1,
+      "eventSeq": 44,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 59,
+        "p2": 41,
+        "p3": 43,
+        "p4": 8,
+        "p5": 43,
+        "p6": 54,
+        "p7": 89
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d2:q96:p1",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 2,
+      "eventSeq": 96,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 74,
+        "p3": 94,
+        "p4": 53,
+        "p7": 69,
+        "p8": 50
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d2:q98:p2",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 2,
+      "eventSeq": 98,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 75,
+        "p3": 83,
+        "p4": 79,
+        "p7": 79,
+        "p8": 41
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d2:q100:p3",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 2,
+      "eventSeq": 100,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 73,
+        "p2": 4,
+        "p4": 61,
+        "p7": 69,
+        "p8": 41
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d2:q102:p4",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 2,
+      "eventSeq": 102,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 54,
+        "p2": 89,
+        "p3": 56,
+        "p7": 45,
+        "p8": 8
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d2:q104:p7",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 2,
+      "eventSeq": 104,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 68,
+        "p2": 82,
+        "p3": 97,
+        "p4": 46,
+        "p8": 55
+      }
+    },
+    {
+      "id": "pack-test:6:intimacy-gradient-v1:pack-test:6:d2:q106:p8",
+      "presetId": "pack-test",
+      "matchIndex": 6,
+      "seed": "intimacy-gradient-v1:pack-test:6",
+      "day": 2,
+      "eventSeq": 106,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 59,
+        "p2": 43,
+        "p3": 55,
+        "p4": 8,
+        "p7": 91
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d1:q30:p1",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 8,
+        "p3": 55,
+        "p4": 92,
+        "p5": 39,
+        "p6": 52,
+        "p7": 35,
+        "p8": 37
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d1:q32:p2",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 8,
+        "p3": 49,
+        "p4": 49,
+        "p5": 53,
+        "p6": 73,
+        "p7": 50,
+        "p8": 60
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d1:q34:p3",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 1,
+      "eventSeq": 34,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 61,
+        "p2": 43,
+        "p4": 52,
+        "p5": 72,
+        "p6": 83,
+        "p7": 78,
+        "p8": 46
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d1:q36:p4",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 1,
+      "eventSeq": 36,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 52,
+        "p2": 40,
+        "p3": 79,
+        "p5": 67,
+        "p6": 61,
+        "p7": 58,
+        "p8": 49
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d1:q38:p5",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 1,
+      "eventSeq": 38,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 61,
+        "p2": 51,
+        "p3": 72,
+        "p4": 43,
+        "p6": 60,
+        "p7": 60,
+        "p8": 41
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d1:q40:p6",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 1,
+      "eventSeq": 40,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 48,
+        "p2": 65,
+        "p3": 80,
+        "p4": 62,
+        "p5": 51,
+        "p7": 64,
+        "p8": 65
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d1:q42:p7",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 1,
+      "eventSeq": 42,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 45,
+        "p2": 50,
+        "p3": 73,
+        "p4": 47,
+        "p5": 64,
+        "p6": 63,
+        "p8": 43
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d1:q44:p8",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 1,
+      "eventSeq": 44,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 57,
+        "p2": 60,
+        "p3": 58,
+        "p4": 53,
+        "p5": 58,
+        "p6": 64,
+        "p7": 44
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d2:q96:p1",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 2,
+      "eventSeq": 96,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 8,
+        "p4": 86,
+        "p5": 46,
+        "p6": 55,
+        "p8": 38
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d2:q98:p2",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 2,
+      "eventSeq": 98,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 8,
+        "p4": 50,
+        "p5": 61,
+        "p6": 77,
+        "p8": 60
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d2:q100:p4",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 2,
+      "eventSeq": 100,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 61,
+        "p2": 37,
+        "p5": 70,
+        "p6": 100,
+        "p8": 77
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d2:q102:p5",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 2,
+      "eventSeq": 102,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 60,
+        "p2": 51,
+        "p4": 78,
+        "p6": 97,
+        "p8": 58
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d2:q104:p6",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 2,
+      "eventSeq": 104,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 41,
+        "p2": 65,
+        "p4": 100,
+        "p5": 79,
+        "p8": 77
+      }
+    },
+    {
+      "id": "pack-test:7:intimacy-gradient-v1:pack-test:7:d2:q106:p8",
+      "presetId": "pack-test",
+      "matchIndex": 7,
+      "seed": "intimacy-gradient-v1:pack-test:7",
+      "day": 2,
+      "eventSeq": 106,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 55,
+        "p2": 58,
+        "p4": 73,
+        "p5": 71,
+        "p6": 4
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d1:q30:p1",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 41,
+        "p3": 72,
+        "p4": 46,
+        "p5": 37,
+        "p6": 63,
+        "p7": 75,
+        "p8": 64
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d1:q32:p2",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 48,
+        "p3": 81,
+        "p4": 41,
+        "p5": 8,
+        "p6": 48,
+        "p7": 46,
+        "p8": 59
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d1:q34:p3",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 1,
+      "eventSeq": 34,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 60,
+        "p2": 49,
+        "p4": 36,
+        "p5": 51,
+        "p6": 69,
+        "p7": 57,
+        "p8": 70
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d1:q36:p4",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 1,
+      "eventSeq": 36,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 52,
+        "p2": 58,
+        "p3": 61,
+        "p5": 53,
+        "p6": 56,
+        "p7": 47,
+        "p8": 57
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d1:q38:p5",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 1,
+      "eventSeq": 38,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 45,
+        "p2": 8,
+        "p3": 91,
+        "p4": 60,
+        "p6": 41,
+        "p7": 44,
+        "p8": 35
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d1:q40:p6",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 1,
+      "eventSeq": 40,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 43,
+        "p2": 54,
+        "p3": 71,
+        "p4": 39,
+        "p5": 42,
+        "p7": 53,
+        "p8": 48
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d1:q42:p7",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 1,
+      "eventSeq": 42,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 73,
+        "p2": 51,
+        "p3": 65,
+        "p4": 44,
+        "p5": 54,
+        "p6": 60,
+        "p8": 61
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d1:q44:p8",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 1,
+      "eventSeq": 44,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 53,
+        "p2": 39,
+        "p3": 67,
+        "p4": 70,
+        "p5": 41,
+        "p6": 50,
+        "p7": 62
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d2:q96:p1",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 2,
+      "eventSeq": 96,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 72,
+        "p4": 63,
+        "p5": 47,
+        "p7": 97,
+        "p8": 73
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d2:q98:p2",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 2,
+      "eventSeq": 98,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 80,
+        "p4": 61,
+        "p5": 8,
+        "p7": 45,
+        "p8": 55
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d2:q100:p4",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 2,
+      "eventSeq": 100,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 52,
+        "p2": 69,
+        "p5": 66,
+        "p7": 75,
+        "p8": 76
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d2:q102:p5",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 2,
+      "eventSeq": 102,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 41,
+        "p2": 8,
+        "p4": 94,
+        "p7": 60,
+        "p8": 37
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d2:q104:p7",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 2,
+      "eventSeq": 104,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 72,
+        "p2": 66,
+        "p4": 61,
+        "p5": 59,
+        "p8": 89
+      }
+    },
+    {
+      "id": "pack-test:8:intimacy-gradient-v1:pack-test:8:d2:q106:p8",
+      "presetId": "pack-test",
+      "matchIndex": 8,
+      "seed": "intimacy-gradient-v1:pack-test:8",
+      "day": 2,
+      "eventSeq": 106,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 62,
+        "p2": 56,
+        "p4": 4,
+        "p5": 56,
+        "p7": 85
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d1:q30:p1",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 76,
+        "p3": 48,
+        "p4": 74,
+        "p5": 56,
+        "p6": 38,
+        "p7": 51,
+        "p8": 55
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d1:q32:p2",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 55,
+        "p3": 54,
+        "p4": 80,
+        "p5": 55,
+        "p6": 52,
+        "p7": 65,
+        "p8": 75
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d1:q34:p3",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 1,
+      "eventSeq": 34,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 48,
+        "p2": 72,
+        "p4": 57,
+        "p5": 59,
+        "p6": 52,
+        "p7": 8,
+        "p8": 46
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d1:q36:p4",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 1,
+      "eventSeq": 36,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 65,
+        "p2": 87,
+        "p3": 43,
+        "p5": 56,
+        "p6": 61,
+        "p7": 56,
+        "p8": 53
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d1:q38:p5",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 1,
+      "eventSeq": 38,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 42,
+        "p2": 66,
+        "p3": 53,
+        "p4": 51,
+        "p6": 61,
+        "p7": 71,
+        "p8": 57
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d1:q40:p6",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 1,
+      "eventSeq": 40,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 54,
+        "p2": 80,
+        "p3": 57,
+        "p4": 59,
+        "p5": 53,
+        "p7": 53,
+        "p8": 45
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d1:q42:p7",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 1,
+      "eventSeq": 42,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 38,
+        "p2": 69,
+        "p3": 8,
+        "p4": 49,
+        "p5": 53,
+        "p6": 51,
+        "p8": 54
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d1:q44:p8",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 1,
+      "eventSeq": 44,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 54,
+        "p2": 75,
+        "p3": 62,
+        "p4": 66,
+        "p5": 51,
+        "p6": 58,
+        "p7": 53
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d2:q96:p1",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 2,
+      "eventSeq": 96,
+      "pairId": "p1",
+      "baseScores": {
+        "p3": 68,
+        "p4": 100,
+        "p6": 50,
+        "p7": 78,
+        "p8": 68
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d2:q98:p3",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 2,
+      "eventSeq": 98,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 54,
+        "p4": 100,
+        "p6": 50,
+        "p7": 8,
+        "p8": 49
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d2:q100:p4",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 2,
+      "eventSeq": 100,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 4,
+        "p3": 71,
+        "p6": 83,
+        "p7": 57,
+        "p8": 70
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d2:q102:p6",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 2,
+      "eventSeq": 102,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 59,
+        "p3": 77,
+        "p4": 87,
+        "p7": 66,
+        "p8": 60
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d2:q104:p7",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 2,
+      "eventSeq": 104,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 71,
+        "p3": 8,
+        "p4": 69,
+        "p6": 51,
+        "p8": 47
+      }
+    },
+    {
+      "id": "pack-test:9:intimacy-gradient-v1:pack-test:9:d2:q106:p8",
+      "presetId": "pack-test",
+      "matchIndex": 9,
+      "seed": "intimacy-gradient-v1:pack-test:9",
+      "day": 2,
+      "eventSeq": 106,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 67,
+        "p3": 85,
+        "p4": 99,
+        "p6": 69,
+        "p7": 66
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d1:q30:p1",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 1,
+      "eventSeq": 30,
+      "pairId": "p1",
+      "baseScores": {
+        "p2": 73,
+        "p3": 47,
+        "p4": 64,
+        "p5": 54,
+        "p6": 48,
+        "p7": 43,
+        "p8": 57
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d1:q32:p2",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 1,
+      "eventSeq": 32,
+      "pairId": "p2",
+      "baseScores": {
+        "p1": 44,
+        "p3": 49,
+        "p4": 78,
+        "p5": 61,
+        "p6": 47,
+        "p7": 41,
+        "p8": 62
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d1:q34:p3",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 1,
+      "eventSeq": 34,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 41,
+        "p2": 46,
+        "p4": 58,
+        "p5": 8,
+        "p6": 61,
+        "p7": 46,
+        "p8": 71
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d1:q36:p4",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 1,
+      "eventSeq": 36,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 60,
+        "p2": 74,
+        "p3": 41,
+        "p5": 53,
+        "p6": 44,
+        "p7": 63,
+        "p8": 37
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d1:q38:p5",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 1,
+      "eventSeq": 38,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 36,
+        "p2": 42,
+        "p3": 8,
+        "p4": 77,
+        "p6": 54,
+        "p7": 51,
+        "p8": 62
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d1:q40:p6",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 1,
+      "eventSeq": 40,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 59,
+        "p2": 60,
+        "p3": 55,
+        "p4": 54,
+        "p5": 44,
+        "p7": 54,
+        "p8": 46
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d1:q42:p7",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 1,
+      "eventSeq": 42,
+      "pairId": "p7",
+      "baseScores": {
+        "p1": 58,
+        "p2": 75,
+        "p3": 42,
+        "p4": 78,
+        "p5": 52,
+        "p6": 52,
+        "p8": 44
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d1:q44:p8",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 1,
+      "eventSeq": 44,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 55,
+        "p2": 74,
+        "p3": 56,
+        "p4": 53,
+        "p5": 39,
+        "p6": 45,
+        "p7": 61
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d2:q96:p1",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 2,
+      "eventSeq": 96,
+      "pairId": "p1",
+      "baseScores": {
+        "p3": 48,
+        "p4": 100,
+        "p5": 54,
+        "p6": 71,
+        "p8": 84
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d2:q98:p3",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 2,
+      "eventSeq": 98,
+      "pairId": "p3",
+      "baseScores": {
+        "p1": 49,
+        "p4": 74,
+        "p5": 8,
+        "p6": 64,
+        "p8": 72
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d2:q100:p4",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 2,
+      "eventSeq": 100,
+      "pairId": "p4",
+      "baseScores": {
+        "p1": 74,
+        "p3": 41,
+        "p5": 62,
+        "p6": 72,
+        "p8": 82
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d2:q102:p5",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 2,
+      "eventSeq": 102,
+      "pairId": "p5",
+      "baseScores": {
+        "p1": 40,
+        "p3": 8,
+        "p4": 94,
+        "p6": 60,
+        "p8": 58
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d2:q104:p6",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 2,
+      "eventSeq": 104,
+      "pairId": "p6",
+      "baseScores": {
+        "p1": 73,
+        "p3": 51,
+        "p4": 81,
+        "p5": 42,
+        "p8": 67
+      }
+    },
+    {
+      "id": "pack-test:10:intimacy-gradient-v1:pack-test:10:d2:q106:p8",
+      "presetId": "pack-test",
+      "matchIndex": 10,
+      "seed": "intimacy-gradient-v1:pack-test:10",
+      "day": 2,
+      "eventSeq": 106,
+      "pairId": "p8",
+      "baseScores": {
+        "p1": 4,
+        "p3": 55,
+        "p4": 75,
+        "p5": 44,
+        "p6": 67
+      }
+    }
+  ]
+}

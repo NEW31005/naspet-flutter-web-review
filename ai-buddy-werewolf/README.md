@@ -76,7 +76,7 @@ npm run dev
 ## テスト方法
 
 ```bash
-npm test        # vitest (役職配布/秘密分離/親密度補正/初日占い/襲撃統合/勝敗/リプレイ復元/公開Lab復元/愛言葉正規化/引継ぎ整合性/モック完走 など55件)
+npm test        # vitest (役職配布/秘密分離/親密度補正・勾配集計/初日占い/襲撃統合/勝敗/リプレイ復元/公開Lab復元/愛言葉正規化/引継ぎ整合性/モック完走 など58件)
 npm run lint    # ESLint (strict / no-explicit-any)
 ```
 
@@ -104,6 +104,14 @@ npm run simulate -- --preset quick-test --matches 5 --seed exp1 --provider mock
 ```
 
 結果は `data/matches/*.json` に保存され、Web UIの過去試合一覧からも開けます。
+
+親密度50/80と最大影響値20/25/32/40を同一のAI基礎評価で比較する場合:
+
+```bash
+npm run analyze:intimacy
+```
+
+42試合を一時領域で実行し、再現用の基礎スコアを含む `docs/experiments/intimacy-gradient-v1.json` を生成します。通常の `data/matches/` は汚しません。
 
 ## ディレクトリ概要
 

@@ -52,6 +52,22 @@ Phase0の目的は「正しいゲーム」を作ることではなく、以下�
 - リプレイ画面で助言のseqを確認し、その前後の評価スナップショットで対象への怪しい度がどれだけ動いたか(=親密度補正の実効量)を見る。高親密度では、AI自身の候補と違っても主人を優先できているかを確認する
 - 裁判の詳細テーブルには補正量(+n)と補正前後スコアが表示される
 
+## 親密度勾配を再測定する方法
+
+```bash
+npm run analyze:intimacy
+```
+
+既定ではQuick 12 / Quick-info 20 / Pack 10の計42モック試合を一時領域で実行し、実際の裁判AI評価へ親密度50/80と最大影響値20/25/32/40を適用する。試合データは終了後に削除され、再現レポートだけを `docs/experiments/intimacy-gradient-v1.json` へ保存する。
+
+主人案はAI基礎評価の2位・3位・順位中央・最下位の4定義。1位と同点の候補は「意見の相違」から除外する。結果は主人案の反映率、親密度50→80の差、高親密度でもバディが別判断を残した非服従率を含む。**差が最大になる値は主人案の定義に依存するため、親密度を感じられる反映率と非服従余白を併記して判断する。**
+
+条件を変える場合:
+
+```bash
+npm run analyze:intimacy -- --plan quick-test:20,pack-test:20 --seed comparison-v2 --max-bonuses 20,25,32,40 --intimacies 50,80 --modes second,third,middle,last --output docs/experiments/intimacy-gradient-v2.json
+```
+
 ## 取得できる指標
 
 | 指標 | 場所 |

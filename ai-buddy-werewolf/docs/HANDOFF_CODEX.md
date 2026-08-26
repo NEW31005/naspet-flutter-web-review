@@ -15,16 +15,16 @@
 - 助言5種(主観疑い/質問指定/確定情報共有/スキル対象提案/立ち回り)、1日1回制限
 - 親密度補正(内部名trust、linear/quadratic/none、登録制)、狼襲撃の正規化合算統合
 - 計測(トークン/原価/レイテンシー/総時間/AI待機/エラー/リトライ)、JSON永続化、JSON/CSVエクスポート
-- Web UI(ホーム/バディ設定/ゲーム/結果/リプレイ/Lab/設定編集)、CLIシミュレーター
+- Web UI(ホーム/バディ設定/ゲーム/結果/リプレイ/Lab/設定編集)、CLIシミュレーター、同一局面で親密度勾配を再測定する分析CLI
 - 入力ゆれを吸収する愛言葉付きGitHub Pages Web Lab（ブラウザ内保存、APIキー非配布、noindex）
 - 設定・全プロンプトを本番モバイルへ渡すSHA-256付き固定bundleの書き出し/読み込み
-- 自動テスト55件（公開Labのブラウザ内完走・復元・愛言葉正規化・初日占い・simple主人の初日棄権を含む）/ ESLint / strict TypeScript
+- 自動テスト58件（公開Labのブラウザ内完走・復元・愛言葉正規化・初日占い・simple主人の初日棄権・親密度勾配集計を含む）/ ESLint / strict TypeScript
 
 ## 未実装の範囲
 
 - 追加役職(騎士・霊媒師など)、役職種類の動的追加
 - 発言の先行生成(評価と発言の分離までは実装済み)
-- 大量自己対戦のバッチ分析(CLIで連続実行は可能、集計は未実装)
+- 大量自己対戦の汎用集計（親密度勾配の42試合固定分析は実装済み）
 - Live AIでの`ai`ポリシー主人(現在は自バディ評価の流用)
 - リアルタイム配信(現在はクライアントポーリング)
 - 本番構想全般(認証・課金・演出・育成・マルチプレイ)
@@ -51,6 +51,8 @@
 | `apps/server/src/matches.ts` | セッション管理・永続化・巻き戻し・再戦 |
 | `apps/server/src/http.ts` | HTTPルーター(エンドポイント一覧はここを読む) |
 | `apps/server/src/cli/simulate.ts` | 連続シミュレーションCLI |
+| `apps/server/src/cli/analyzeIntimacy.ts` | 親密度50/80・最大影響値20/25/32/40の再現分析CLI |
+| `apps/server/src/experiments/intimacyGradient.ts` | 主人案順位の定義・同一局面の純粋な勾配集計 |
 | `config/` / `prompts/` | 外部設定(変更ガイド: [CONFIG_AND_PROMPTS.md](CONFIG_AND_PROMPTS.md)) |
 | `docs/MOBILE_HANDOFF.md` | 本番Flutter/バックエンドへ持ち越す固定契約 |
 
@@ -91,6 +93,7 @@ npm run typecheck  # tsc --noEmit (全パッケージ)
 npm run build      # typecheck + Web build
 npm run build:lab  # GitHub Pages用の静的Lab build
 npm run simulate -- --preset quick-test --matches 3   # モック完走の実地確認
+npm run analyze:intimacy  # 42試合から親密度勾配レポートを決定論的に再生成
 ```
 
 ## 安全な変更手順
@@ -126,7 +129,7 @@ npm run simulate -- --preset quick-test --matches 3   # モック完走の実地
 1. Live AIでの討論品質チューニング(prompts/の反復改善 — このための装置は揃っている)
 2. 発言の先行生成(評価は深く、公開発言は1発先まで)
 3. 追加役職(騎士: 夜の護衛。`Role`追加 → applyNightに護衛判定 → role.knight.md)
-4. バッチ実験の集計スクリプト(data/matches/*.json を読んで勝率・一致率・原価を表計算へ)
+4. 汎用バッチ集計（現在は親密度勾配専用CLIのみ。勝率・原価・モデル横断比較を追加）
 5. 助言メニューの影響度パラメータのUI化(現在はJSON編集)
 
 ## やってはいけない変更
@@ -150,8 +153,8 @@ npm run simulate -- --preset quick-test --matches 3   # モック完走の実地
 
 | 対象 | バージョン |
 |---|---|
-| ルールプリセット(quick-test / pack-test) | 0.1.0 |
+| ルールプリセット | quick-test `0.3.0-joint.1` / quick-info `0.2.0-joint.1` / pack-test `0.1.1-joint.1` |
 | advice / abilities / buddies | 0.1.0 |
-| models | 0.2.0 |
-| プロンプト | 0.1.0 |
+| models | `0.3.0-mari.1` |
+| プロンプト | `0.3.0-joint.1` |
 | 保存スキーマ(`MatchRecord.schemaVersion`) | 1 |

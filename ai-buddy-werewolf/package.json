@@ -13,6 +13,7 @@
     "dev:web": "npm run dev -w @aibw/web",
     "start": "tsx apps/server/src/index.ts",
     "simulate": "tsx apps/server/src/cli/simulate.ts",
+    "analyze:intimacy": "tsx apps/server/src/cli/analyzeIntimacy.ts",
     "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p packages/game-core && tsc --noEmit -p packages/ai-engine && tsc --noEmit -p apps/server && tsc --noEmit -p apps/web",
     "lint": "eslint .",
     "test": "vitest run",

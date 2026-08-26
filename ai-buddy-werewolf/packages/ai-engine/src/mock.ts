@@ -268,7 +268,7 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
   // 語尾は「名詞止め+語尾」の形で接続する(どの口調でも自然になる)
   const reasons = [
     '発言がふわっとしている',
-    '投票の理由が曖昧',
+    '投票の理由が薄い',
     '流れに乗っているだけに見える',
     '昨日と言っていることが違う',
   ];
@@ -288,6 +288,12 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
       `${exclaim()}${persona.firstPerson}は占い役${ending()}。占いで分かっている、狼憑きは${nameOf(wolfFact.targetId)}${ending()}`,
     );
     accusesId = wolfFact.targetId;
+  }
+
+  // 1b) 白確の言及(共有済みの白ファクトがあれば時々卓へ出す)
+  const whiteFact = ctx.sharedFacts.find((f) => !f.isWolf);
+  if (whiteFact && !hideRole && lines.length === 0 && rand(seed, 'white', opts.stepLabel) < 0.6) {
+    lines.push(`${nameOf(whiteFact.targetId)}は占いで白と分かっている${ending()}。疑うだけ無駄${ending()}`);
   }
 
   // 2) 主人からの質問指示(最優先で消化。質問文自体には語尾を付けない)
@@ -322,7 +328,16 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
       } else {
         lines.push(`正直、まだ五分五分${ending()}。少なくとも${persona.firstPerson}は狼憑きじゃない`);
       }
-    } else if (topId && (directive === 'push_hard' || (ev.confidence >= 55 && sorted.length > 0))) {
+    } else if (
+      !isWolf &&
+      ctx.publicLog.some((e) => e.t === 'speech' && e.accusesId === self.pairId) &&
+      rand(seed, 'defend', opts.stepLabel) < 0.5
+    ) {
+      lines.push(
+        `${persona.firstPerson}を疑う声があるようだけど、${persona.firstPerson}は狼憑きじゃない。むしろ気になるのは${topId ? nameOf(topId) : '別の組'}${ending()}`,
+      );
+      if (topId) accusesId = accusesId ?? topId;
+    } else if (topId && (directive === 'push_hard' || (ev.confidence >= 48 && sorted.length > 0))) {
       lines.push(
         `${exclaim()}${persona.firstPerson}が一番怪しいと思うのは${nameOf(topId)}${ending()}。${reason()}のが理由${ending()}`,
       );

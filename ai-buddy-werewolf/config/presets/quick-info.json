@@ -1,0 +1,40 @@
+{
+  "version": "0.1.0",
+  "presetId": "quick-info",
+  "label": "クイック情報戦（5組・初日白通知・共有ループ検証用）",
+  "pairCount": 5,
+  "roleSetup": {
+    "werewolf": 1,
+    "seer": 1
+  },
+  "maxDays": 3,
+  "discussionRounds": 1,
+  "speechesPerBuddyPerRound": 1,
+  "advicePerDay": 1,
+  "tieBreak": "random",
+  "revealRoleOnDeath": false,
+  "wolfAttackIntegration": {
+    "method": "sumNormalized",
+    "tieBreak": "random"
+  },
+  "trust": {
+    "trialChoice": {
+      "type": "linear",
+      "maxBonus": 25
+    },
+    "nightProposal": {
+      "type": "linear",
+      "maxBonus": 25
+    },
+    "skillProposal": {
+      "type": "linear",
+      "maxBonus": 30
+    },
+    "subjectiveAdvice": {
+      "type": "linear",
+      "maxBonus": 20
+    }
+  },
+  "otherMastersPolicy": "simple",
+  "firstNightDivination": "white"
+}

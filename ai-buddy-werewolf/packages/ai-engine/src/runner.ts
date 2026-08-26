@@ -370,7 +370,17 @@ export class MatchRunner {
       if (others.length === 0) continue;
       const labels = ['policy-advice', this.state.day, pairId, this.state.rewindNonce];
       let advice: Advice | null = null;
-      if (policy === 'random') {
+      // 思考型ポリシーの主人は、未共有の確定情報があれば疑いよりも共有を優先する
+      // (占い主人が結果を握り潰さない、人間主人の自然な行動の近似)
+      if (policy === 'simple' || policy === 'ai') {
+        const shared = new Set(this.state.sharedFactIds[pairId] ?? []);
+        const unshared = (this.state.facts[pairId] ?? []).filter((f) => !shared.has(f.id));
+        const pick = unshared.find((f) => f.isWolf) ?? unshared[0];
+        if (pick) advice = { kind: 'fact_share', factId: pick.id };
+      }
+      if (advice) {
+        // fall through to apply below
+      } else if (policy === 'random') {
         if (rand(this.state.seed, ...labels) < 0.5) {
           advice = { kind: 'suspicion', targetId: pickOne(others, this.state.seed, ...labels, 't') };
         }

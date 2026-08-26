@@ -8,6 +8,10 @@ export const CONFIG_FILE_META: Record<string, { label: string; description: stri
     label: '群れテストの全ルール',
     description: '2組の狼憑きによる夜襲統合を試すプリセットの詳細JSONです。',
   },
+  'presets/quick-info.json': {
+    label: '情報戦テストの全ルール',
+    description: '初日白通知で「占い→共有→反応」のループを最初から回すプリセットの詳細JSONです。',
+  },
   'advice.json': {
     label: '助言メニュー・質問内容',
     description: '主人からバディへ送れる助言と選択肢の詳細JSONです。',

@@ -163,3 +163,19 @@ describe('モック評価の信頼度・確定情報の扱い', () => {
     expect(withHumanFact.suspicions['p3']).toBeLessThanOrEqual(10);
   });
 });
+
+describe('ポリシー主人の確定情報共有', () => {
+  it('simpleポリシーの占い主人は初日白通知を1日目に共有し、バディへ白情報が届く', async () => {
+    const { runner, store } = makeRunner('policy-fact-share', {
+      firstNightDivination: 'white',
+      otherMastersPolicy: 'simple',
+    });
+    await runner.advanceUntilBlocked(500);
+    const shares = store.record.events.filter((e) => e.type === 'fact_shared');
+    expect(shares.length).toBeGreaterThanOrEqual(1);
+    const first = shares[0];
+    if (first?.type !== 'fact_shared') throw new Error('fact_shared がない');
+    expect(first.day).toBe(1);
+    expect(first.payload.fact.isWolf).toBe(false);
+  });
+});

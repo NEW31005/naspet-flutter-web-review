@@ -9,6 +9,7 @@ import {
   applySpeech,
   applyTrialChoice,
   applyVotes,
+  buildBuddyContext,
   createMatch,
   getPendingTask,
   rebuildState,
@@ -482,5 +483,29 @@ describe('リプレイ(イベントからの状態復元)', () => {
 
     const rebuilt = rebuildState(all, state.config);
     expect(JSON.parse(JSON.stringify(rebuilt))).toEqual(JSON.parse(JSON.stringify(state)));
+  });
+});
+
+describe('初日占い(firstNightDivination)', () => {
+  it("'white'なら開始時に占い主人だけへ白の確定情報が届き、バディへは未共有", () => {
+    const { state, events } = newMatch('first-div', { firstNightDivination: 'white' });
+    const roles = events.find((e) => e.type === 'roles_assigned');
+    if (roles?.type !== 'roles_assigned') throw new Error('roles_assigned がない');
+    const seerId = (Object.entries(roles.payload.roles).find(([, r]) => r === 'seer') ??
+      [])[0] as PairId;
+    const divs = events.filter((e) => e.type === 'divination');
+    expect(divs).toHaveLength(1);
+    const div = divs[0];
+    if (div?.type !== 'divination') throw new Error('divination がない');
+    expect(div.payload.fact.isWolf).toBe(false);
+    expect(div.payload.fact.day).toBe(0);
+    expect(div.visibility).toEqual({ kind: 'pairs', pairIds: [seerId], part: 'master' });
+    expect(state.facts[seerId]).toHaveLength(1);
+    expect(buildBuddyContext(state, seerId).sharedFacts).toHaveLength(0);
+  });
+
+  it('未設定(既定false)なら開始時の占いは発生しない', () => {
+    const { events } = newMatch('first-div-off');
+    expect(events.some((e) => e.type === 'divination')).toBe(false);
   });
 });

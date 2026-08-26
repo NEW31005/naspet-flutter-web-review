@@ -333,6 +333,8 @@ export interface RulesConfig {
   pairCount: number;
   roleSetup: { werewolf: number; seer: number }; // 残りは市民
   maxDays: number;
+  /** 初日の朝に占い役へ0日目占い結果を1件配る。true=ランダム対象 / 'white'=白確定のみ(古典の初日白通知) */
+  firstNightDivination: boolean | 'white';
   discussionRounds: number; // 1日の討論周回数
   speechesPerBuddyPerRound: number; // 周回ごとの各バディ発言回数
   advicePerDay: number; // 主人の討論中助言回数

@@ -81,6 +81,7 @@ export const rulesConfigSchema = z
       seer: z.number().int().min(0),
     }),
     maxDays: z.number().int().min(1).max(20),
+  firstNightDivination: z.union([z.boolean(), z.literal('white')]).default(false),
     discussionRounds: z.number().int().min(1).max(10),
     speechesPerBuddyPerRound: z.number().int().min(1).max(3),
     advicePerDay: z.number().int().min(0).max(10),

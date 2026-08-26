@@ -106,6 +106,10 @@ const EDITABLE_CONFIG: Record<string, { file: string; validate: (data: unknown) 
     file: 'config/presets/pack-test.json',
     validate: (d) => rulesConfigSchema.parse(d),
   },
+  'presets/quick-info.json': {
+    file: 'config/presets/quick-info.json',
+    validate: (d) => rulesConfigSchema.parse(d),
+  },
   'advice.json': { file: 'config/advice.json', validate: (d) => adviceConfigSchema.parse(d) },
   'abilities.json': {
     file: 'config/abilities.json',

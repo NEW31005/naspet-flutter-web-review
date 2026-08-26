@@ -19,7 +19,7 @@ import type {
   SpeechOutput,
   Visibility,
 } from '@aibw/shared';
-import { ROLE_TEAM, shuffle } from '@aibw/shared';
+import { ROLE_TEAM, pickOne, shuffle } from '@aibw/shared';
 import {
   alivePairs,
   aliveWolves,
@@ -163,6 +163,29 @@ export function createMatch(params: CreateMatchParams): { events: MatchEvent[]; 
   let state = rebuildState([created], config);
   const batch = new EventBatch(state, params.now);
   batch.push({ type: 'roles_assigned', visibility: GM, payload: { roles } });
+  if (rules.firstNightDivination) {
+    // 0日目占い: 主人にのみ届く。共有するかは主人(またはポリシー)の判断(原則1は不変)
+    const seerId = pairs.find((p) => roles[p.pairId] === 'seer')?.pairId;
+    if (seerId) {
+      const candidates = pairs
+        .map((p) => p.pairId)
+        .filter((id) => id !== seerId)
+        .filter((id) => rules.firstNightDivination !== 'white' || ROLE_TEAM[roles[id] ?? 'villager'] !== 'wolves');
+      const targetId = pickOne(candidates, params.seed, 'first-divination');
+      const fact: Fact = {
+        id: `fact-d0-${seerId}`,
+        day: 0,
+        targetId,
+        isWolf: ROLE_TEAM[roles[targetId] ?? 'villager'] === 'wolves',
+        source: 'divination',
+      };
+      batch.push({
+        type: 'divination',
+        visibility: forPair(seerId, 'master'),
+        payload: { seerPairId: seerId, targetId, fact },
+      });
+    }
+  }
   batch.push({
     type: 'day_started',
     visibility: PUBLIC,

@@ -60,8 +60,13 @@ export function AccessGate({ children }: { children: ReactNode }) {
           <label className="field">
             しんちゃんと真里の愛言葉
             <input
-              type="password"
-              autoComplete="current-password"
+              type="text"
+              inputMode="text"
+              lang="ja"
+              autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
               value={code}
               onChange={(event) => setCode(event.target.value)}
               placeholder="愛言葉を入力"

@@ -3,7 +3,17 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PublicLogEntry } from '@aibw/game-core';
 import { api, type Advice, type ViewResponse } from '../api.js';
 import { ErrorBox, Sheet, Spinner, TopBar } from '../components.js';
+import {
+  nextPlayPace,
+  normalizePlayPace,
+  playPaceDelay,
+  playPaceLabel,
+  type PlayPace,
+} from '../playPace.js';
 import { providerLabel } from '../uiLabels.js';
+import { isCompletedVoteMismatch } from '../voteComparison.js';
+
+const PLAY_PACE_STORAGE_KEY = 'ai-buddy-werewolf:play-pace';
 
 const PHASE_LABEL: Record<string, string> = {
   day_start: '朝',
@@ -16,7 +26,10 @@ const PHASE_LABEL: Record<string, string> = {
 export function Game({ matchId }: { matchId: string }) {
   const [data, setData] = useState<ViewResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [auto, setAuto] = useState(true);
+  const [playPace, setPlayPace] = useState<PlayPace>(() => {
+    if (typeof window === 'undefined') return 'standard';
+    return normalizePlayPace(window.localStorage.getItem(PLAY_PACE_STORAGE_KEY));
+  });
   const [acting, setActing] = useState(false);
   const [sheet, setSheet] = useState<null | 'advice' | 'trial' | 'night'>(null);
   const logEndRef = useRef<HTMLDivElement>(null);
@@ -53,16 +66,14 @@ export function Game({ matchId }: { matchId: string }) {
 
   // 自動進行: AI処理/他主人の自動入力は進め、人間の入力が必要なら止める
   useEffect(() => {
-    if (!auto || !data || acting || finished || data.busy) return;
-    if (mustAct) {
-      if (me?.needTrialChoice) setSheet('trial');
-      else if (me?.needNightProposal) setSheet('night');
-      return;
-    }
-    const t = setTimeout(() => void doAdvance(), 350);
+    if (!data || acting || finished || data.busy || mustAct || sheet !== null) return;
+    const isSpeechStep = data.view.phase === 'discussion' && pending?.type === 'ai_step';
+    const delay = playPaceDelay(playPace, isSpeechStep);
+    if (delay === null) return;
+    const t = setTimeout(() => void doAdvance(), delay);
     return () => clearTimeout(t);
     // 依存を意図的に絞っている(dataの変化のみで駆動)
-  }, [data, auto, acting, finished, mustAct]);
+  }, [data, playPace, acting, finished, mustAct, sheet]);
 
   useEffect(() => {
     logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -94,6 +105,14 @@ export function Game({ matchId }: { matchId: string }) {
     } finally {
       setActing(false);
     }
+  };
+
+  const cyclePlayPace = () => {
+    setPlayPace((current) => {
+      const next = nextPlayPace(current);
+      window.localStorage.setItem(PLAY_PACE_STORAGE_KEY, next);
+      return next;
+    });
   };
 
   if (!data) {
@@ -173,7 +192,10 @@ export function Game({ matchId }: { matchId: string }) {
                 ⚖️ {lastComparison.day}日目の裁判 — あなた:{' '}
                 {lastComparison.myChoiceName ?? '(選択なし)'} / バディの投票:{' '}
                 {lastComparison.buddyVoteName ?? '—'}
-                {lastComparison.myChoiceId !== lastComparison.buddyVoteId && (
+                {isCompletedVoteMismatch(
+                  lastComparison.myChoiceId,
+                  lastComparison.buddyVoteId,
+                ) && (
                   <span className="badge warn" style={{ marginLeft: 6 }}>
                     不一致
                   </span>
@@ -202,6 +224,14 @@ export function Game({ matchId }: { matchId: string }) {
           )}
           <div ref={logEndRef} />
         </div>
+
+        {mustAct && (
+          <div className="notice">
+            {me?.needTrialChoice
+              ? '討論はここで一時停止中。内容を読み返してから、下の「処刑先を選ぶ」を押してください。'
+              : '夜の行動前で一時停止中。内容を確認してから、下の「襲撃を提案する」を押してください。'}
+          </div>
+        )}
 
         {finished && (
           <div className="card">
@@ -250,8 +280,12 @@ export function Game({ matchId }: { matchId: string }) {
               ▶ 進める
             </button>
           )}
-          <button className={auto ? 'ghost' : ''} onClick={() => setAuto(!auto)}>
-            {auto ? '⏸ 自動中' : '自動'}
+          <button
+            className={playPace === 'manual' ? '' : 'ghost'}
+            onClick={cyclePlayPace}
+            title="押すたびに再生速度を変更"
+          >
+            ⏱ {playPaceLabel(playPace)}
           </button>
         </div>
       )}

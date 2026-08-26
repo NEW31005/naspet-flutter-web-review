@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0-mari.2",
   "presetId": "quick-test",
   "label": "クイックテスト（5組・狼憑き1組・占い役1組・最大3日）",
   "pairCount": 5,
@@ -12,10 +12,10 @@
   "revealRoleOnDeath": false,
   "wolfAttackIntegration": { "method": "sumNormalized", "tieBreak": "random" },
   "trust": {
-    "trialChoice": { "type": "linear", "maxBonus": 25 },
+    "trialChoice": { "type": "linear", "maxBonus": 20 },
     "nightProposal": { "type": "linear", "maxBonus": 25 },
     "skillProposal": { "type": "linear", "maxBonus": 30 },
     "subjectiveAdvice": { "type": "linear", "maxBonus": 20 }
   },
-  "otherMastersPolicy": "simple"
+  "otherMastersPolicy": "none"
 }

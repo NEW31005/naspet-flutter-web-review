@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0",
+  "version": "0.3.0-mari.1",
   "defaultProvider": "mock",
   "providers": {
     "mock": {
@@ -29,11 +29,11 @@
       "endpoint": "https://viqeghtpluzxevxqafam.supabase.co/functions/v1/ai-buddy-lab",
       "model": "anthropic/claude-sonnet-5",
       "temperature": null,
-      "maxTokensEval": 2000,
-      "maxTokensSpeech": 800,
+      "maxTokensEval": 1200,
+      "maxTokensSpeech": 350,
       "effort": "low",
       "timeoutMs": 90000,
-      "jsonRetries": 2,
+      "jsonRetries": 1,
       "prices": {
         "anthropic/claude-sonnet-5": { "inputPerMTok": 2, "outputPerMTok": 10 },
         "anthropic/claude-opus-4.8": { "inputPerMTok": 5, "outputPerMTok": 25 },

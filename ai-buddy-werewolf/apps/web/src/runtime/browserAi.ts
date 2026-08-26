@@ -17,7 +17,7 @@ import {
   type PromptSet,
   type ProviderResult,
 } from '@aibw/ai-engine/browser';
-import { getLabAccessCode } from './access.js';
+import { encodeLabAccessHeader, getLabAccessCode } from './access.js';
 
 interface ScoreEntry {
   targetId: string;
@@ -157,7 +157,10 @@ class LabProxyProvider {
     try {
       const response = await fetch(this.config.endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Lab-Access': accessCode },
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Lab-Access': encodeLabAccessHeader(accessCode),
+        },
         signal: controller.signal,
         body: JSON.stringify({
           action: 'generate',

@@ -10,6 +10,14 @@ export function normalizeLabAccessCode(code: string): string {
   return code.normalize('NFKC').trim().toLowerCase();
 }
 
+/**
+ * Fetchのヘッダー値は非ASCII文字を直接扱えないため、正規化後にASCIIへ変換する。
+ * Edge Functionはこの値のSHA-256だけを照合し、平文は保存しない。
+ */
+export function encodeLabAccessHeader(code: string): string {
+  return encodeURIComponent(normalizeLabAccessCode(code));
+}
+
 export function getLabAccessCode(): string | null {
   if (!isStaticLab) return null;
   try {
@@ -34,7 +42,7 @@ export async function validateLabAccess(code: string): Promise<void> {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Lab-Access': normalizeLabAccessCode(code),
+      'X-Lab-Access': encodeLabAccessHeader(code),
     },
     body: JSON.stringify({ action: 'auth' }),
   });

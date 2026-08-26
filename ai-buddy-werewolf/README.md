@@ -23,7 +23,7 @@
 公開確認先: <https://new31005.github.io/naspet-flutter-web-review/ai-buddy-lab/>
 
 - 入口は覚えやすい愛言葉で保護し、愛言葉そのものはGitHubやビルド成果物へ含めない
-- 愛言葉は前後空白・大文字小文字・全角英数字を吸収。タブを閉じるまでの `sessionStorage` に保持する
+- 愛言葉は前後空白・大文字小文字・全角英数字を吸収し、日本語も使用可能。タブを閉じるまでの `sessionStorage` に保持する
 - Live AIはSupabase Edge Functionを経由し、OpenRouterのAPIキーはサーバー側だけで保持
 - 検索結果への掲載を避けるため `noindex` を指定。ただしURLを知る第三者から完全に存在を隠す認証サービスではない
 - ブラウザデータを消す前に、試合JSONと「モバイル引継ぎパッケージ」を書き出すこと
@@ -76,7 +76,7 @@ npm run dev
 ## テスト方法
 
 ```bash
-npm test        # vitest (役職配布/秘密分離/親密度補正・勾配集計/初日占い/襲撃統合/勝敗/リプレイ復元/公開Lab復元/愛言葉正規化/引継ぎ整合性/モック完走 など58件)
+npm test        # vitest (役職配布/秘密分離/親密度補正・勾配集計/初日占い/襲撃統合/勝敗/リプレイ復元/公開Lab復元/愛言葉正規化/引継ぎ整合性/モック完走 など59件)
 npm run lint    # ESLint (strict / no-explicit-any)
 ```
 

@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BrowserBackend } from '../src/runtime/browserBackend.js';
-import { normalizeLabAccessCode } from '../src/runtime/access.js';
+import {
+  encodeLabAccessHeader,
+  normalizeLabAccessCode,
+} from '../src/runtime/access.js';
 import {
   createMobileHandoffBundle,
   validateMobileHandoffBundle,
@@ -84,5 +87,12 @@ describe('公開Web Labブラウザ内バックエンド', () => {
 
   it('愛言葉の全角英字・大文字小文字・前後空白を吸収する', () => {
     expect(normalizeLabAccessCode('  ＴＥＳＴ－ＰＡＳＳ  ')).toBe('test-pass');
+  });
+
+  it('日本語の愛言葉をHTTPヘッダーへ安全に載せられるASCIIへ変換する', () => {
+    expect(encodeLabAccessHeader('  日本語  ')).toBe(
+      '%E6%97%A5%E6%9C%AC%E8%AA%9E',
+    );
+    expect(encodeLabAccessHeader('  ＴＥＳＴ－ＰＡＳＳ  ')).toBe('test-pass');
   });
 });

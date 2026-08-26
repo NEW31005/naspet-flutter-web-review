@@ -196,8 +196,17 @@ describe('裁判と最終投票', () => {
     void detail;
   });
 
-  it('信頼度MAXでも必ず服従にはならない(差が大きければ自分の判断)', () => {
-    const config = makeSnapshot(undefined, { b1: { trust: 100 } });
+  it('親密度MAXでも必ず服従にはならない(差が大きければ自分の判断)', () => {
+    const baseTrust = makeRules().trust;
+    const config = makeSnapshot(
+      {
+        trust: {
+          ...baseTrust,
+          trialChoice: { type: 'linear', maxBonus: 32 },
+        },
+      },
+      { b1: { trust: 100 } },
+    );
     let state = createMatch({
       matchId: 'm',
       seed: 's-noflip',
@@ -219,7 +228,7 @@ describe('裁判と最終投票', () => {
     }
     state = apply(state, applyVotes(state, evals, NOW));
     const v1 = state.voteHistory.find((v) => v.pairId === 'p1');
-    expect(v1?.targetId).toBe('p2'); // 50+25=75 < 95 なので自分の判断を維持
+    expect(v1?.targetId).toBe('p2'); // Quick候補32でも50+32=82 < 95。余白13で自分の判断を維持
   });
 
   it('同票はシード付きランダムで決まり、再現可能', () => {

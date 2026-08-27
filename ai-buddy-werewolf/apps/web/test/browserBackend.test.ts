@@ -7,6 +7,7 @@ import {
 import {
   createMobileHandoffBundle,
   readStaticFile,
+  resetStaticFiles,
   validateMobileHandoffBundle,
 } from '../src/runtime/staticConfig.js';
 
@@ -155,5 +156,29 @@ describe('公開Web Labブラウザ内バックエンド', () => {
 
     expect(JSON.parse(readStaticFile('prompt', 'version.json'))).toEqual({ version: '0.6.0-timed.1' });
     expect(readStaticFile('prompt', 'system.base.md')).toBe('旧版の順番制指示');
+  });
+
+  it('明示操作なら過去試合を消さず、設定とプロンプトだけを現在の推奨値へ戻す', () => {
+    localStorage.setItem('aibw.lab.file.v1:config/presets/quick-test.json', JSON.stringify({
+      version: 'old-custom',
+    }));
+    localStorage.setItem('aibw.lab.file.v1:prompts/version.json', JSON.stringify({
+      version: 'old-prompt',
+    }));
+    localStorage.setItem('aibw.lab.matches.v1', JSON.stringify(['keep-this-match']));
+
+    resetStaticFiles();
+
+    expect(JSON.parse(readStaticFile('config', 'presets/quick-test.json'))).toMatchObject({
+      version: '0.8.0-human-turn.1',
+      discussionDurationSec: 150,
+      discussionMaxMessages: 30,
+      discussionBatchSize: 2,
+      firstNightDivination: 'white',
+    });
+    expect(JSON.parse(readStaticFile('prompt', 'version.json'))).toEqual({
+      version: '0.8.0-human-turn.1',
+    });
+    expect(localStorage.getItem('aibw.lab.matches.v1')).toBe(JSON.stringify(['keep-this-match']));
   });
 });

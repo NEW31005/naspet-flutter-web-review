@@ -9,6 +9,7 @@ import type {
 } from '@aibw/shared';
 import { api } from '../api.js';
 import { ErrorBox, Spinner } from '../components.js';
+import { isStaticLab } from '../runtime/access.js';
 import { masterPolicyLabel, modelLabel, providerLabel } from '../uiLabels.js';
 
 type PresetKey = 'quick' | 'pack';
@@ -164,6 +165,7 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   useEffect(() => {
     void Promise.all([
@@ -250,6 +252,19 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
     }
   };
 
+  const resetRecommended = async () => {
+    setSaving(true);
+    setStatus(null);
+    setError(null);
+    try {
+      await api.resetRecommendedDefaults();
+      window.location.reload();
+    } catch (cause) {
+      setError(String(cause));
+      setSaving(false);
+    }
+  };
+
   if (!draft) {
     return <div className="card">{error ? <ErrorBox error={error} /> : <Spinner label="設定を読み込み中…" />}</div>;
   }
@@ -263,6 +278,35 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
         <div className="muted small">
           よく調整するルール・助言・AIモデルだけを日本語で変更できます。保存形式は本番モバイルへ渡せる従来のJSONのままです。
         </div>
+        {isStaticLab && (
+          <div className="settings-reset-box">
+            {!confirmReset ? (
+              <button className="ghost" type="button" onClick={() => setConfirmReset(true)}>
+                新しい推奨設定を適用
+              </button>
+            ) : (
+              <div className="notice">
+                <p>
+                  保存済みのルール・モデル・プロンプト調整を、現在公開中の推奨値へ戻します。
+                  過去試合は消えません。必要なら先に上の「本番モバイル用データを書き出す」で保存してください。
+                </p>
+                <div className="row">
+                  <button
+                    className="primary"
+                    type="button"
+                    disabled={saving}
+                    onClick={() => void resetRecommended()}
+                  >
+                    {saving ? '適用中…' : '調整内容を置き換えて適用'}
+                  </button>
+                  <button type="button" disabled={saving} onClick={() => setConfirmReset(false)}>
+                    やめる
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <section className="settings-section">

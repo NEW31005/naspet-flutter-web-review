@@ -16,6 +16,7 @@ import {
   createMobileHandoffBundle,
   createMobileHandoffBundleFromFiles,
   importMobileHandoffBundle,
+  resetStaticFiles,
   validateMobileHandoffBundle,
 } from './runtime/staticConfig.js';
 
@@ -177,6 +178,7 @@ export interface ApiClient {
   downloadCsv(id: string, type: 'evals' | 'calls'): Promise<void>;
   exportMobileBundle(): Promise<MobileHandoffBundle>;
   importMobileBundle(bundle: unknown): Promise<void>;
+  resetRecommendedDefaults(): Promise<void>;
 }
 
 const serverApi: ApiClient = {
@@ -210,6 +212,9 @@ const serverApi: ApiClient = {
   },
   exportMobileBundle: async () => createMobileHandoffBundleFromFiles(await serverEffectiveFiles()),
   importMobileBundle: serverImportBundle,
+  resetRecommendedDefaults: () => Promise.reject(
+    new Error('推奨設定への復元は公開Web Lab専用です'),
+  ),
 };
 
 const backend = isStaticLab ? new BrowserBackend() : null;
@@ -253,6 +258,7 @@ const browserApi: ApiClient = {
     }),
   exportMobileBundle: createMobileHandoffBundle,
   importMobileBundle: importMobileHandoffBundle,
+  resetRecommendedDefaults: () => resolved(() => resetStaticFiles()),
 };
 
 export const api: ApiClient = isStaticLab ? browserApi : serverApi;

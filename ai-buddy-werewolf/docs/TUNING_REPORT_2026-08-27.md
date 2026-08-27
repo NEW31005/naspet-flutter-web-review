@@ -167,7 +167,7 @@ Edge Functionで次を強制する。
 | コマンド | 結果 |
 |---|---|
 | `npm run lint` | 成功 |
-| `npm test` | 11ファイル / 87テスト成功 |
+| `npm test` | 11ファイル / 88テスト成功 |
 | `npm run typecheck` | 5プロジェクト成功 |
 | `npm run build` | 成功 |
 | `npm run build:lab` | 成功 |

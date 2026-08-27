@@ -1,6 +1,6 @@
 {
   "app": "ai-buddy-werewolf-phase0-web-lab",
-  "sourceCommit": "42ed03bdd363fe7a48daab61aac38e7665e33f3d",
+  "sourceCommit": "9fb37a28749cb728d78dc6d2cbb38d0a94aa3516",
   "access": "shared-secret-gate",
   "storage": "browser-local-only"
 }

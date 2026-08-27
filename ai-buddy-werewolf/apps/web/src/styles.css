@@ -148,7 +148,7 @@ h3 {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding-bottom: 110px;
+  padding-bottom: 205px;
 }
 .card {
   background: var(--panel);
@@ -290,6 +290,73 @@ h3 {
 .bubble.self .who {
   color: #c4b5fd;
 }
+.turn-label {
+  display: inline-block;
+  margin-left: 7px;
+  padding: 0 6px;
+  border: 1px solid rgba(139, 92, 246, 0.55);
+  border-radius: 999px;
+  color: #d8ccff;
+  font-size: 10px;
+}
+
+/* 手元情報は会話を邪魔しないよう、操作バーのすぐ上へ固定 */
+.handdock {
+  position: fixed;
+  left: 50%;
+  bottom: calc(66px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 28;
+  width: 100%;
+  max-width: 560px;
+  padding: 7px 10px 8px;
+  border-top: 1px solid var(--border);
+  background: rgba(30, 32, 41, 0.97);
+  backdrop-filter: blur(8px);
+}
+.hand-self {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 7px;
+  padding: 2px 4px 6px;
+  border-radius: 0;
+  background: transparent;
+  text-align: left;
+}
+.hand-label,
+.hand-more {
+  color: var(--muted);
+  font-size: 10px;
+}
+.hand-more {
+  margin-left: auto;
+}
+.hand-pairs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+}
+.hand-pair {
+  min-width: 0;
+  overflow: hidden;
+  padding: 3px 4px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hand-pair.self {
+  border-color: var(--accent);
+  color: #d8ccff;
+}
+.hand-pair.dead {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
 
 /* 下部固定バー */
 .actionbar {
@@ -308,6 +375,16 @@ h3 {
 }
 .actionbar button {
   flex: 1;
+}
+
+@media (max-width: 420px) {
+  .actionbar {
+    padding-inline: 8px;
+  }
+  .actionbar button {
+    padding-inline: 8px;
+    font-size: 12px;
+  }
 }
 
 /* ボトムシート */

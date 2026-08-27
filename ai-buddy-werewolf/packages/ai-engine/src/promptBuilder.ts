@@ -29,6 +29,10 @@ function renderLogEntry(e: PublicLogEntry): string {
       if (e.phase === 'trial') return `--- ${e.day}日目の裁判 ---`;
       if (e.phase === 'night') return `--- ${e.day}日目の夜 ---`;
       return '';
+    case 'discussion_stage':
+      if (e.stage === 'advice') return '--- 主人からバディへの相談時間 ---';
+      if (e.stage === 'response') return '--- 相談後の応答討論 ---';
+      return '';
     case 'speech':
       return `${e.name}: ${e.text}`;
     case 'vote':
@@ -231,6 +235,28 @@ export function buildSpeechPrompt(
 
 function buildDirectiveBlock(ctx: BuddyContext): string {
   const parts: string[] = [];
+  const turn = ctx.discussionTurn;
+  if (turn?.kind === 'opening') {
+    parts.push(
+      '# 今回の会話役割\nこれは冒頭討論。現時点の仮説と根拠を1つ出し、後の相手が反応できる論点を残す。',
+    );
+  } else if (turn?.kind === 'question' && turn.targetName && turn.theme) {
+    parts.push(
+      `# 今回の会話役割: 指名質問\n${turn.targetName}へ「${turn.theme.label}」を尋ねる。質問を1つに絞り、相手が答えられる短い聞き方にする。別の相手へ話題を広げない。`,
+    );
+  } else if (turn?.kind === 'answer' && turn.askerName && turn.theme) {
+    parts.push(
+      `# 今回の会話役割: 単独回答\n${turn.askerName}から「${turn.theme.label}」を聞かれている。まずその問いだけに具体的に答える。新しい質問や別の論点は追加しない。役職上の欺瞞は許されるが、公開ログにない出来事は作らない。`,
+    );
+  } else if (turn?.kind === 'follow_up' && turn.targetName) {
+    parts.push(
+      `# 今回の会話役割: 返答の受け止め\n${turn.targetName}の直前の回答を具体的に取り上げ、納得した点か残った矛盾を1つだけ述べる。`,
+    );
+  } else if (turn?.kind === 'reaction') {
+    parts.push(
+      '# 今回の会話役割: 応答討論\n冒頭討論または直前の質疑から具体的な発言を1つ取り上げ、賛成・反論・評価更新のいずれかを示す。',
+    );
+  }
   if (ctx.pendingQuestion) {
     parts.push(
       `# 主人からの質問指示\n主人は「${ctx.pendingQuestion.targetName}に${ctx.pendingQuestion.theme.label}を聞いてほしい」と言っている(${ctx.pendingQuestion.theme.promptHint})。この発言の中で、あなたの口調で自然に質問すること。`,

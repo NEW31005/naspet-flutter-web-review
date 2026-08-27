@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0-joint.1",
+  "version": "0.3.0-dialogue.1",
   "presetId": "quick-info",
   "label": "クイック情報戦（5組・初日白通知・共有ループ検証用）",
   "pairCount": 5,
@@ -8,7 +8,7 @@
     "seer": 1
   },
   "maxDays": 3,
-  "discussionRounds": 1,
+  "discussionRounds": 2,
   "speechesPerBuddyPerRound": 1,
   "advicePerDay": 1,
   "tieBreak": "random",

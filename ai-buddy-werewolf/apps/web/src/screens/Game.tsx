@@ -31,7 +31,7 @@ export function Game({ matchId }: { matchId: string }) {
     return normalizePlayPace(window.localStorage.getItem(PLAY_PACE_STORAGE_KEY));
   });
   const [acting, setActing] = useState(false);
-  const [sheet, setSheet] = useState<null | 'advice' | 'trial' | 'night'>(null);
+  const [sheet, setSheet] = useState<null | 'status' | 'advice' | 'trial' | 'night'>(null);
   const logEndRef = useRef<HTMLDivElement>(null);
   const asRef = useRef<string | null>(null);
 
@@ -61,7 +61,8 @@ export function Game({ matchId }: { matchId: string }) {
 
   const me = data?.view.me ?? null;
   const pending = data?.view.pending;
-  const mustAct = !!me && (me.needTrialChoice || me.needNightProposal);
+  const mustAct =
+    !!me && (me.needDiscussionAdvice || me.needTrialChoice || me.needNightProposal);
   const finished = pending?.type === 'finished';
 
   // 自動進行: AI処理/他主人の自動入力は進め、人間の入力が必要なら止める
@@ -142,81 +143,6 @@ export function Game({ matchId }: { matchId: string }) {
         }
       />
       <div className="page">
-        {/* 生存者 */}
-        <div className="pairstrip">
-          {view.pairs.map((p) => (
-            <div
-              key={p.pairId}
-              className={`pairchip ${p.alive ? '' : 'dead'} ${p.isSelf ? 'self' : ''}`}
-            >
-              <span className="face">{p.alive ? '🧑' : p.deathCause === 'attack' ? '🩸' : '⚰️'}</span>
-              <span>{p.buddyName}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* 自分だけの情報 */}
-        {me && (
-          <div className="card">
-            <div className="row spread">
-              <div className="row">
-                <strong>{me.buddyName}</strong>
-                <span className={`badge ${me.team === 'wolves' ? 'wolf' : 'citizen'}`}>
-                  {me.roleLabel}
-                </span>
-              </div>
-              <span className="muted small">
-                助言 {me.adviceUsedToday}/{me.advicePerDay} 使用
-              </span>
-            </div>
-            {me.wolfPartners.length > 0 && (
-              <div className="muted small">🐺 仲間の狼: {me.wolfPartners.map((w) => w.name).join('、')}</div>
-            )}
-            {me.facts.map((f) => (
-              <div key={f.id} className="factbox">
-                🔮 {f.day === 0 ? '初日の占い' : `${f.day}日目の占い`}: <strong>{f.targetName}</strong> は
-                {f.isWolf ? ' 狼憑き' : ' 狼憑きではない'}
-                {f.shared ? (
-                  <span className="badge ok" style={{ marginLeft: 6 }}>
-                    共有済み
-                  </span>
-                ) : (
-                  <span className="badge warn" style={{ marginLeft: 6 }}>
-                    あなただけが知っている
-                  </span>
-                )}
-              </div>
-            ))}
-            {lastComparison && (
-              <div className="muted small">
-                ⚖️ {lastComparison.day}日目の裁判 — あなた:{' '}
-                {lastComparison.myChoiceName ?? '(選択なし)'} / バディの投票:{' '}
-                {lastComparison.buddyVoteName ?? '—'}
-                {lastComparison.buddyVoteId != null &&
-                  (isCompletedVoteMismatch(
-                    lastComparison.myChoiceId,
-                    lastComparison.buddyVoteId,
-                  ) ? (
-                    <span className="badge warn" style={{ marginLeft: 6 }}>
-                      バディは別の判断
-                    </span>
-                  ) : (
-                    <span className="badge ok" style={{ marginLeft: 6 }}>
-                      意見が一致
-                    </span>
-                  ))}
-              </div>
-            )}
-            {lastWolfReport && (
-              <div className="muted small">
-                🌙 {lastWolfReport.day}日目の襲撃 — 提案: {lastWolfReport.proposalName ?? 'なし'} /
-                バディ第一候補: {lastWolfReport.buddyTopName ?? '—'} / 最終:{' '}
-                <strong>{lastWolfReport.finalName ?? '—'}</strong>
-              </div>
-            )}
-          </div>
-        )}
-
         {/* 公開ログ */}
         <div className="chatlog">
           {view.publicLog.map((e, i) => (
@@ -232,7 +158,9 @@ export function Game({ matchId }: { matchId: string }) {
 
         {mustAct && (
           <div className="notice">
-            {me?.needTrialChoice
+            {me?.needDiscussionAdvice
+              ? '冒頭討論が終わりました。発言を読み返し、下の「バディに相談する」から1回だけ助言してください。その後、バディたちがもう一度話し合います。'
+              : me?.needTrialChoice
               ? '討論はここで一時停止中。内容を読み返してから、下の「処刑先を選ぶ」を押してください。'
               : '夜の行動前で一時停止中。内容を確認してから、下の「襲撃を提案する」を押してください。'}
           </div>
@@ -258,6 +186,30 @@ export function Game({ matchId }: { matchId: string }) {
         {error && <ErrorBox error={error} onRetry={doAdvance} />}
       </div>
 
+      {/* いつでも見える手元情報: 自分の役職と参加者は画面下へ固定 */}
+      {!finished && me && (
+        <div className="handdock">
+          <button className="hand-self" onClick={() => setSheet('status')}>
+            <span className="hand-label">あなたの手元</span>
+            <strong>{me.buddyName}</strong>
+            <span className={`badge ${me.team === 'wolves' ? 'wolf' : 'citizen'}`}>
+              {me.roleLabel}
+            </span>
+            <span className="hand-more">詳細 ›</span>
+          </button>
+          <div className="hand-pairs" aria-label="参加者一覧">
+            {view.pairs.map((p) => (
+              <span
+                key={p.pairId}
+                className={`hand-pair ${p.alive ? '' : 'dead'} ${p.isSelf ? 'self' : ''}`}
+              >
+                {p.alive ? '●' : p.deathCause === 'attack' ? '🩸' : '×'} {p.buddyName}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* 下部操作バー */}
       {!finished && (
         <div className="actionbar">
@@ -267,7 +219,7 @@ export function Game({ matchId }: { matchId: string }) {
               disabled={!me.canAdvise}
               onClick={() => setSheet('advice')}
             >
-              🗣 助言 {me.canAdvise ? '' : '(使用済み)'}
+              🗣 {me.canAdvise ? 'バディに相談する' : view.discussionStage === 'opening' ? '冒頭討論中' : '相談済み'}
             </button>
           )}
           {me?.needTrialChoice && (
@@ -295,10 +247,19 @@ export function Game({ matchId }: { matchId: string }) {
         </div>
       )}
 
+      {sheet === 'status' && me && (
+        <StatusSheet
+          me={me}
+          lastComparison={lastComparison}
+          lastWolfReport={lastWolfReport}
+          onClose={() => setSheet(null)}
+        />
+      )}
+
       {/* 助言シート */}
       {sheet === 'advice' && me && (
         <AdviceSheet
-          matchId={matchId}
+          day={view.day}
           me={me}
           aliveOthers={aliveOthers}
           onClose={() => setSheet(null)}
@@ -349,13 +310,32 @@ function LogEntry({ entry, selfPairId }: { entry: PublicLogEntry; selfPairId: st
       if (entry.phase === 'night') return <div className="sysline strong">🌙 夜が訪れた</div>;
       if (entry.phase === 'discussion') return <div className="sysline">💬 討論開始</div>;
       return null;
+    case 'discussion_stage':
+      if (entry.stage === 'advice') {
+        return <div className="sysline strong">🤝 主人からバディへの相談時間</div>;
+      }
+      if (entry.stage === 'response') {
+        return <div className="sysline strong">💬 相談後の応答討論</div>;
+      }
+      return null;
     case 'speech': {
       const self = entry.pairId === selfPairId;
+      const turnLabel =
+        entry.turnKind === 'question'
+          ? '指名質問'
+          : entry.turnKind === 'answer'
+            ? '単独回答'
+            : entry.turnKind === 'follow_up'
+              ? '受け止め'
+              : entry.turnKind === 'reaction'
+                ? '応答'
+                : null;
       return (
         <div className={`bubble ${self ? 'self' : ''}`}>
           <div className="who">
             {entry.name}
             {self ? '(あなたのバディ)' : ''}
+            {turnLabel && <span className="turn-label">{turnLabel}</span>}
           </div>
           <div>{entry.text}</div>
         </div>
@@ -432,12 +412,13 @@ function TargetSheet({
 type Me = NonNullable<ViewResponse['view']['me']>;
 
 function AdviceSheet({
+  day,
   me,
   aliveOthers,
   onClose,
   onSubmit,
 }: {
-  matchId: string;
+  day: number;
   me: Me;
   aliveOthers: PairOption[];
   onClose: () => void;
@@ -463,6 +444,7 @@ function AdviceSheet({
   }, []);
 
   const unsharedFacts = me.facts.filter((f) => !f.shared);
+  const availableThemes = themes.filter((theme) => day > 1 || theme.id !== 'vote_reason');
   const availableMenu = menu.filter((m) => {
     if (!m.enabled) return false;
     if (m.kind === 'fact_share') return unsharedFacts.length > 0;
@@ -526,7 +508,7 @@ function AdviceSheet({
               質問テーマ
               <select value={themeId ?? ''} onChange={(e) => setThemeId(e.target.value || null)}>
                 <option value="">選択してください</option>
-                {themes.map((t) => (
+                {availableThemes.map((t) => (
                   <option key={t.id} value={t.id}>
                     {t.label}
                   </option>
@@ -574,7 +556,73 @@ function AdviceSheet({
           <p className="muted small">
             親密度 {me.abilities.trust}/100。高いほど、バディは自分と異なる考えでも主人の意見を優先する。確定情報との矛盾や大きな評価差がある場合は、自分の判断を選ぶこともある。
           </p>
+          {kind === 'question' && (
+            <p className="muted small">
+              質問を送ると、バディが相手を名指しし、その相手だけが先に回答します。回答後はバディが内容を受け止め、周囲も反応します。
+            </p>
+          )}
         </>
+      )}
+    </Sheet>
+  );
+}
+
+function StatusSheet({
+  me,
+  lastComparison,
+  lastWolfReport,
+  onClose,
+}: {
+  me: Me;
+  lastComparison: Me['voteComparisons'][number] | undefined;
+  lastWolfReport: Me['wolfReports'][number] | undefined;
+  onClose: () => void;
+}) {
+  return (
+    <Sheet title="🔒 あなたの手元情報" onClose={onClose}>
+      <div className="row spread">
+        <strong>{me.buddyName}</strong>
+        <span className={`badge ${me.team === 'wolves' ? 'wolf' : 'citizen'}`}>
+          {me.roleLabel}
+        </span>
+      </div>
+      <div className="muted small">
+        親密度 {me.abilities.trust} / 推論力 {me.abilities.reasoning} / 虚言力 {me.abilities.deception}
+      </div>
+      {me.wolfPartners.length > 0 && (
+        <div className="factbox">🐺 仲間の狼: {me.wolfPartners.map((w) => w.name).join('、')}</div>
+      )}
+      {me.facts.length === 0 && <div className="muted small">まだ確定情報はありません。</div>}
+      {me.facts.map((f) => (
+        <div key={f.id} className="factbox">
+          🔮 {f.day === 0 ? '初日の占い' : `${f.day}日目の占い`}: <strong>{f.targetName}</strong> は
+          {f.isWolf ? ' 狼憑き' : ' 狼憑きではない'}
+          <span className={`badge ${f.shared ? 'ok' : 'warn'}`} style={{ marginLeft: 6 }}>
+            {f.shared ? '共有済み' : 'あなただけが知っている'}
+          </span>
+        </div>
+      ))}
+      {lastComparison && (
+        <div className="muted small">
+          ⚖️ {lastComparison.day}日目 — あなた: {lastComparison.myChoiceName ?? '選択なし'} / バディ:{' '}
+          {lastComparison.buddyVoteName ?? '—'}
+          {lastComparison.buddyVoteId != null && (
+            <span
+              className={`badge ${isCompletedVoteMismatch(lastComparison.myChoiceId, lastComparison.buddyVoteId) ? 'warn' : 'ok'}`}
+              style={{ marginLeft: 6 }}
+            >
+              {isCompletedVoteMismatch(lastComparison.myChoiceId, lastComparison.buddyVoteId)
+                ? '別の判断'
+                : '意見が一致'}
+            </span>
+          )}
+        </div>
+      )}
+      {lastWolfReport && (
+        <div className="muted small">
+          🌙 提案: {lastWolfReport.proposalName ?? 'なし'} / バディ第一候補:{' '}
+          {lastWolfReport.buddyTopName ?? '—'} / 最終: <strong>{lastWolfReport.finalName ?? '—'}</strong>
+        </div>
       )}
     </Sheet>
   );

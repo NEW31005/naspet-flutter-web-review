@@ -49,6 +49,7 @@ export interface ConfigResponse {
     pairCount: number;
     roleSetup: { werewolf: number; seer: number };
     maxDays: number;
+    discussionRounds: number;
     advicePerDay: number;
     otherMastersPolicy: string;
   }[];

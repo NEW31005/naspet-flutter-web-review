@@ -264,19 +264,68 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
   const topId = (ev.voteCandidateId ?? sorted[0]?.[0] ?? null) as PairId | null;
   const lines: string[] = [];
   let accusesId: PairId | null = null;
-
+  const turn = ctx.discussionTurn;
   // 語尾は「名詞止め+語尾」の形で接続する(どの口調でも自然になる)
-  const reasons = [
-    '発言がふわっとしている',
-    '投票の理由が薄い',
-    '流れに乗っているだけに見える',
-    '昨日と言っていることが違う',
-  ];
+  const reasons =
+    ctx.matchInfo.day === 1
+      ? ['発言がふわっとしている', '疑い先の理由が薄い', '流れに乗っているだけに見える']
+      : [
+          '発言がふわっとしている',
+          '投票の理由が薄い',
+          '流れに乗っているだけに見える',
+          '昨日と言っていることが違う',
+        ];
   const reason = () => pickOne(reasons, seed, 'reason', opts.stepLabel);
+  const hideRole = directive === 'hide_role';
+
+  // 2幕討論では役割を先に固定する。指名された回答者が話題をそらさないことを
+  // モックでも保証し、Liveと同じ会話構造を検証できるようにする。
+  if (turn?.kind === 'question' && turn.theme && turn.targetName) {
+    return {
+      text: turn.theme.mockTemplate.replace('{target}', turn.targetName),
+      accusesId: null,
+    };
+  }
+  if (turn?.kind === 'answer' && turn.theme && turn.askerName) {
+    const answerByTheme: Record<string, string> = {
+      vote_reason:
+        ctx.matchInfo.day === 1
+          ? 'まだ最初の裁判前だから、昨日の投票はない。今の発言だけで考えている'
+          : `${persona.firstPerson}が昨日選んだ相手は、その時点で一番説明が弱く見えたから${ending()}`,
+      most_suspicious: topId
+        ? `今いちばん疑っているのは${nameOf(topId)}${ending()}。${reason()}のが理由${ending()}`
+        : `今はまだ一人に絞れていない${ending()}`,
+      co_plan:
+        self.role === 'seer' && !hideRole
+          ? `必要になれば役職は明かす。でも今この場で明かすかは、もう少し発言を見て決める${ending()}`
+          : `今のところ役職を名乗る予定はない${ending()}`,
+      why_cover: `庇うつもりではなく、今ある発言だけでは決めつけられないと言っただけ${ending()}`,
+      why_changed: `直前の発言を聞いて評価を更新した。変えた理由はそこ${ending()}`,
+    };
+    return {
+      text: `${turn.askerName}への答え。${answerByTheme[turn.theme.id] ?? `今ある公開情報だけで答える${ending()}`}`,
+      accusesId: turn.theme.id === 'most_suspicious' ? topId : null,
+    };
+  }
+  if (turn?.kind === 'follow_up' && turn.targetName) {
+    const latestAnswer = [...ctx.publicLog]
+      .reverse()
+      .find((entry) => entry.t === 'speech' && entry.pairId === turn.targetId);
+    const reactions = latestAnswer
+      ? [
+          `${turn.targetName}の答えは聞いた。理由は分かったけれど、まだ結論は保留する`,
+          `${turn.targetName}の返答で考えは少し整理できた。ただ、その説明だけで白とは決めない`,
+          `${turn.targetName}は質問には答えた。この返しと冒頭の主張が合うかを見たい`,
+        ]
+      : [`${turn.targetName}の返答を待って判断したい`];
+    return {
+      text: pickOne(reactions, seed, 'follow-up', opts.stepLabel),
+      accusesId: null,
+    };
+  }
 
   // 1) 確定情報の公開(占い役が共有済みの狼情報を持つ場合)
   const wolfFact = ctx.sharedFacts.find((f) => f.isWolf);
-  const hideRole = directive === 'hide_role';
   if (
     self.role === 'seer' &&
     wolfFact &&
@@ -309,6 +358,27 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
   if (lines.length < 2 || persona.verbosity === 'long') {
     if (directive === 'low_profile') {
       lines.push(`今日は聞き役に回るつもり${ending()}`);
+    } else if (turn?.kind === 'reaction') {
+      const latest = [...ctx.publicLog]
+        .reverse()
+        .find(
+          (entry): entry is Extract<(typeof ctx.publicLog)[number], { t: 'speech' }> =>
+            entry.t === 'speech' && entry.pairId !== self.pairId,
+        );
+      if (latest) {
+        const reactions = isWolf
+          ? [
+              `${latest.name}の今の説明だけでは弱い。${topId ? nameOf(topId) : '別の組'}への疑いは残る`,
+              `${latest.name}の今の発言は聞いた。でも${topId ? nameOf(topId) : '候補'}の方が気になるという考えは変わらない`,
+            ]
+          : [
+              `${latest.name}の今の発言は筋が通っている部分もある。でも${topId ? nameOf(topId) : '全員'}への見方はまだ決めきれない`,
+              `${latest.name}の説明だけでは判断しきれない。${topId ? nameOf(topId) : '別の組'}との発言の違いを見たい`,
+              `${latest.name}の今の発言で、少なくとも論点は絞れた。${topId ? nameOf(topId) : '候補'}を引き続き見たい`,
+            ];
+        lines.push(pickOne(reactions, seed, 'reaction', opts.stepLabel));
+        if (topId) accusesId = topId;
+      }
     } else if (isWolf) {
       const canMisdirect = deception.some((d) => d.id === 'misdirection');
       const canReason = deception.some((d) => d.id === 'plausible_reason');

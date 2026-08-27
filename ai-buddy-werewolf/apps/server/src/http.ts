@@ -70,6 +70,7 @@ export function createServer(rootDir: string, manager: MatchManager): http.Serve
         pairCount: r.pairCount,
         roleSetup: r.roleSetup,
         maxDays: r.maxDays,
+        discussionRounds: r.discussionRounds,
         advicePerDay: r.advicePerDay,
         otherMastersPolicy: r.otherMastersPolicy,
       })),

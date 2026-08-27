@@ -6,6 +6,7 @@ import {
 } from '../src/runtime/access.js';
 import {
   createMobileHandoffBundle,
+  readStaticFile,
   validateMobileHandoffBundle,
 } from '../src/runtime/staticConfig.js';
 
@@ -94,5 +95,26 @@ describe('公開Web Labブラウザ内バックエンド', () => {
       '%E6%97%A5%E6%9C%AC%E8%AA%9E',
     );
     expect(encodeLabAccessHeader('  ＴＥＳＴ－ＰＡＳＳ  ')).toBe('test-pass');
+  });
+
+  it('保存済みの旧Quick Testを2幕討論へ移行し、他の設定値は保持する', () => {
+    localStorage.setItem(
+      'aibw.lab.file.v1:config/presets/quick-test.json',
+      JSON.stringify({
+        version: '0.3.0-joint.1',
+        discussionRounds: 1,
+        customMarker: 'keep-me',
+      }),
+    );
+    const migrated = JSON.parse(readStaticFile('config', 'presets/quick-test.json')) as {
+      version: string;
+      discussionRounds: number;
+      customMarker: string;
+    };
+    expect(migrated).toEqual({
+      version: '0.4.0-dialogue.1',
+      discussionRounds: 2,
+      customMarker: 'keep-me',
+    });
   });
 });

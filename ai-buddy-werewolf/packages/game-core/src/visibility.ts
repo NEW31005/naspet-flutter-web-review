@@ -12,6 +12,8 @@ import type {
   Abilities,
   Advice,
   BehaviorDirective,
+  DiscussionStage,
+  DiscussionTurnKind,
   EvalKind,
   EvalOutput,
   Fact,
@@ -80,6 +82,16 @@ export interface BuddyContext {
     revealedRole: Role | null;
   }[];
   publicLog: PublicLogEntry[];
+  /** 今回の発言が冒頭・質問・単独回答・追質問・周囲反応のどれか。公開会話の進行だけを含む。 */
+  discussionTurn: null | {
+    round: number;
+    kind: DiscussionTurnKind;
+    askerId: PairId | null;
+    askerName: string | null;
+    targetId: PairId | null;
+    targetName: string | null;
+    theme: QuestionTheme | null;
+  };
   /** 主人から共有された確定情報のみ(未共有の占い結果は含まれない) */
   sharedFacts: Fact[];
   /** 自分の主人からの助言のみ */
@@ -148,6 +160,11 @@ export function buildBuddyContext(state: MatchState, pairId: PairId): BuddyConte
   const directive = behavior
     ? (config.advice.behaviorDirectives.find((d) => d.id === behavior) ?? null)
     : null;
+  const rawTurn = state.discussion?.queue[state.discussion.cursor] ?? null;
+  const turnQuestion = rawTurn?.question;
+  const turnTheme = turnQuestion
+    ? (config.advice.questionThemes.find((t) => t.id === turnQuestion.themeId) ?? null)
+    : null;
 
   return {
     matchInfo: {
@@ -181,6 +198,17 @@ export function buildBuddyContext(state: MatchState, pairId: PairId): BuddyConte
           : null,
     })),
     publicLog: state.publicLog,
+    discussionTurn: rawTurn
+      ? {
+          round: rawTurn.round,
+          kind: rawTurn.kind,
+          askerId: turnQuestion?.askerId ?? null,
+          askerName: turnQuestion ? getPair(state, turnQuestion.askerId).buddyName : null,
+          targetId: turnQuestion?.targetId ?? null,
+          targetName: turnQuestion ? getPair(state, turnQuestion.targetId).buddyName : null,
+          theme: turnTheme,
+        }
+      : null,
     sharedFacts,
     advices,
     pendingQuestion:
@@ -206,6 +234,7 @@ export interface MasterView {
   provider: string;
   day: number;
   phase: Phase;
+  discussionStage: DiscussionStage | null;
   maxDays: number;
   winner: Winner | null;
   finishReason: string | null;
@@ -237,6 +266,7 @@ export interface MasterView {
     adviceUsedToday: number;
     advicePerDay: number;
     canAdvise: boolean;
+    needDiscussionAdvice: boolean;
     needTrialChoice: boolean;
     needNightProposal: boolean;
     trialChoice: PairId | null | undefined;
@@ -270,6 +300,7 @@ export function buildMasterView(state: MatchState, pairId: PairId | null): Maste
   } else {
     const descriptions: Record<string, string> = {
       ai_speech: 'バディが発言を考えています',
+      start_discussion_response: '相談を受けた討論を始めています',
       ai_votes: 'バディたちが投票を判断しています',
       ai_night: '夜の判断が行われています',
       advance_day: '討論の開始を待っています',
@@ -317,6 +348,13 @@ export function buildMasterView(state: MatchState, pairId: PairId | null): Maste
       canAdvise:
         pair.alive &&
         state.phase === 'discussion' &&
+        (state.config.rules.discussionRounds === 1 || state.discussion?.stage === 'advice') &&
+        (state.adviceUsedToday[pairId] ?? 0) < state.config.rules.advicePerDay,
+      needDiscussionAdvice:
+        pair.alive &&
+        state.phase === 'discussion' &&
+        state.config.rules.discussionRounds > 1 &&
+        state.discussion?.stage === 'advice' &&
         (state.adviceUsedToday[pairId] ?? 0) < state.config.rules.advicePerDay,
       needTrialChoice:
         pair.alive && state.phase === 'trial' && state.trialChoices[pairId] === undefined,
@@ -343,6 +381,7 @@ export function buildMasterView(state: MatchState, pairId: PairId | null): Maste
     provider: state.provider,
     day: state.day,
     phase: state.phase,
+    discussionStage: state.discussion?.stage ?? null,
     maxDays: state.config.rules.maxDays,
     winner: state.winner,
     finishReason: state.finishReason,

@@ -17,6 +17,30 @@ export type Phase =
 
 export type MatchMode = 'play' | 'lab';
 
+/** 2幕討論の現在地。2周以上の設定では opening → advice → response と進む。 */
+export type DiscussionStage = 'opening' | 'advice' | 'response';
+
+/** 公開発言の会話上の役割。質問と回答を発言順でも明示する。 */
+export type DiscussionTurnKind =
+  | 'opening'
+  | 'question'
+  | 'answer'
+  | 'follow_up'
+  | 'reaction';
+
+export interface DiscussionQuestionRef {
+  askerId: PairId;
+  targetId: PairId;
+  themeId: string;
+}
+
+export interface DiscussionTurn {
+  pairId: PairId;
+  round: number;
+  kind: DiscussionTurnKind;
+  question?: DiscussionQuestionRef;
+}
+
 /** 他の主人(非人間)の助言ポリシー */
 export type MasterPolicy = 'none' | 'random' | 'simple' | 'ai';
 
@@ -171,13 +195,21 @@ export type MatchEvent = MatchEventBase &
       }
     | { type: 'roles_assigned'; payload: { roles: Record<PairId, Role> } }
     | { type: 'phase_changed'; payload: { day: number; phase: Phase } }
+    | { type: 'discussion_stage_changed'; payload: { stage: DiscussionStage } }
     | {
         type: 'day_started';
         payload: { day: number; deaths: { pairId: PairId; cause: 'attack' }[] };
       }
     | {
         type: 'speech';
-        payload: { pairId: PairId; round: number; text: string; accusesId: PairId | null };
+        payload: {
+          pairId: PairId;
+          round: number;
+          turnKind: DiscussionTurnKind;
+          question?: DiscussionQuestionRef;
+          text: string;
+          accusesId: PairId | null;
+        };
       }
     | {
         type: 'eval_recorded';

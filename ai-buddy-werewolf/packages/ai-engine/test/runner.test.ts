@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type { EvalOutput, SpeechOutput } from '@aibw/shared';
 import { buildBuddyContext, type BuddyContext } from '@aibw/game-core';
 import { AiEngine } from '../src/calls.js';
-import { mockEvaluate } from '../src/mock.js';
+import { mockEvaluate, mockSpeak } from '../src/mock.js';
 import { MatchRunner, computeMetrics, rebuildStore } from '../src/runner.js';
 import type { CallOpts, LlmProvider, ProviderResult } from '../src/provider.js';
 import { makeStore, testModels, testPrompts } from './fixtures.js';
@@ -193,5 +193,53 @@ describe('ポリシー主人の確定情報共有', () => {
         (event) => event.type === 'trial_choice' && event.payload.targetId === null,
       ),
     ).toBe(true);
+  });
+});
+
+describe('2幕討論のモック発言', () => {
+  const opts: CallOpts = {
+    seed: 'dialogue-test',
+    nonce: 0,
+    stepLabel: 'direct-question',
+    evalKind: 'discussion',
+  };
+
+  it('指名質問は対象へ一問だけ送り、回答ターンは質問への返答だけを生成する', () => {
+    const store = makeStore('dialogue-mock');
+    const questionCtx = buildBuddyContext(store.state, 'p1');
+    const theme = {
+      id: 'most_suspicious',
+      label: '現在最も疑っている相手',
+      mockTemplate: '{target}は今、誰が一番怪しいと思ってる?',
+      promptHint: '相手と理由を尋ねる',
+    };
+    questionCtx.discussionTurn = {
+      round: 2,
+      kind: 'question',
+      askerId: 'p1',
+      askerName: questionCtx.self.buddyName,
+      targetId: 'p2',
+      targetName: 'B2',
+      theme,
+    };
+    const questionEval = mockEvaluate(questionCtx, opts);
+    const question = mockSpeak(questionCtx, questionEval, opts);
+    expect(question.text).toBe('B2は今、誰が一番怪しいと思ってる?');
+
+    const answerCtx = buildBuddyContext(store.state, 'p2');
+    answerCtx.discussionTurn = {
+      round: 2,
+      kind: 'answer',
+      askerId: 'p1',
+      askerName: 'B1',
+      targetId: 'p2',
+      targetName: answerCtx.self.buddyName,
+      theme,
+    };
+    const answerEval = mockEvaluate(answerCtx, opts);
+    const answer = mockSpeak(answerCtx, answerEval, opts);
+    expect(answer.text).toContain('B1への答え');
+    expect(answer.text).toContain('今いちばん疑っているのは');
+    expect(answer.text).not.toContain('?');
   });
 });

@@ -89,7 +89,26 @@ function stored(path: string): string | null {
 
 export function readStaticFile(kind: EditableKind, name: string): string {
   const path = pathOf(kind, name);
-  return stored(path) ?? DEFAULT_FILES[path] ?? '';
+  const saved = stored(path);
+  // 旧公開Labで保存済みのQuick Testだけは、今回の2幕討論へ安全に移行する。
+  // 他の数値・人格・プロンプトは保持し、明示的な旧バージョンだけを対象にする。
+  if (path === 'config/presets/quick-test.json' && saved) {
+    try {
+      const value = JSON.parse(saved) as { version?: unknown; discussionRounds?: unknown };
+      if (value.version === '0.3.0-joint.1' && value.discussionRounds === 1) {
+        const migrated = JSON.stringify(
+          { ...value, version: '0.4.0-dialogue.1', discussionRounds: 2 },
+          null,
+          2,
+        );
+        localStorage.setItem(storageKey(path), migrated);
+        return migrated;
+      }
+    } catch {
+      // 不正JSONは従来どおり後段の検証で利用者へ示す。
+    }
+  }
+  return saved ?? DEFAULT_FILES[path] ?? '';
 }
 
 function parseJson(text: string, label: string): unknown {

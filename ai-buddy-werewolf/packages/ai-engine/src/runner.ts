@@ -24,6 +24,7 @@ import {
   applyNight,
   applyNightProposal,
   applySpeech,
+  applyStartDiscussionResponse,
   applyTrialChoice,
   applyVotes,
   buildBuddyContext,
@@ -140,7 +141,8 @@ export class MatchRunner {
         }
         case 'advance_day': {
           appendEvents(this.store, applyAdvanceDay(this.state, this.now()));
-          this.injectPolicyAdvices();
+          // 1幕構成だけは従来どおり開始時に助言。2幕構成は冒頭討論の後に入れる。
+          if (this.state.config.rules.discussionRounds === 1) this.injectPolicyAdvices();
           return { status: 'progressed', task: 'day_start' };
         }
         case 'wait_inputs': {
@@ -153,6 +155,11 @@ export class MatchRunner {
         case 'ai_speech': {
           await this.doSpeech(task.pairId, task.round);
           return { status: 'progressed', task: `speech:${task.pairId}` };
+        }
+        case 'start_discussion_response': {
+          this.injectPolicyAdvices();
+          appendEvents(this.store, applyStartDiscussionResponse(this.state, this.now()));
+          return { status: 'progressed', task: 'discussion_response' };
         }
         case 'ai_votes': {
           await this.doVotes(task.pairIds);
@@ -275,20 +282,27 @@ export class MatchRunner {
       const target =
         m.input === 'trial_choice'
           ? this.policyTrialChoice(m.pairId)
-          : this.policyNightProposal(m.pairId);
+          : m.input === 'night_proposal'
+            ? this.policyNightProposal(m.pairId)
+            : null;
       try {
         if (m.input === 'trial_choice') {
           appendEvents(this.store, applyTrialChoice(this.state, m.pairId, target, this.now()));
-        } else {
+        } else if (m.input === 'night_proposal') {
           appendEvents(this.store, applyNightProposal(this.state, m.pairId, target, this.now()));
+        } else {
+          // discussion_advice は人間入力専用。ここへ来た場合は待機を維持する。
+          stillMissing.push(m);
         }
       } catch (e) {
         if (e instanceof GameRuleError) {
           // 無効なポリシー入力は「提案なし」で確定させ、進行を止めない
           if (m.input === 'trial_choice') {
             appendEvents(this.store, applyTrialChoice(this.state, m.pairId, null, this.now()));
-          } else {
+          } else if (m.input === 'night_proposal') {
             appendEvents(this.store, applyNightProposal(this.state, m.pairId, null, this.now()));
+          } else {
+            stillMissing.push(m);
           }
         } else {
           throw e;

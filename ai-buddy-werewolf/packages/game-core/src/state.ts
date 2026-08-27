@@ -7,6 +7,9 @@ import type {
   Advice,
   BehaviorDirective,
   ConfigSnapshot,
+  DiscussionStage,
+  DiscussionTurn,
+  DiscussionTurnKind,
   EvalOutput,
   Fact,
   MasterPolicy,
@@ -38,12 +41,15 @@ export type PublicLogEntry =
       day: number;
       t: 'speech';
       round: number;
+      turnKind: DiscussionTurnKind;
+      question?: DiscussionTurn['question'];
       pairId: PairId;
       name: string;
       text: string;
       /** 発言中で主に疑いを向けた相手(公開発言から読み取れる情報) */
       accusesId: PairId | null;
     }
+  | { seq: number; day: number; t: 'discussion_stage'; stage: DiscussionStage }
   | {
       seq: number;
       day: number;
@@ -66,7 +72,8 @@ export type PublicLogEntry =
   | { seq: number; day: number; t: 'finish'; winner: Winner; reason: string };
 
 export interface DiscussionState {
-  queue: { pairId: PairId; round: number }[];
+  stage: DiscussionStage;
+  queue: DiscussionTurn[];
   cursor: number;
 }
 
@@ -203,13 +210,54 @@ function initialState(ev: Extract<MatchEvent, { type: 'match_created' }>, config
 
 function buildDiscussionQueue(state: MatchState): DiscussionState {
   const order = alivePairs(state).map((p) => p.pairId);
-  const queue: { pairId: PairId; round: number }[] = [];
-  for (let round = 1; round <= state.config.rules.discussionRounds; round++) {
+  const queue: DiscussionTurn[] = [];
+  for (let rep = 0; rep < state.config.rules.speechesPerBuddyPerRound; rep++) {
+    for (const pairId of order) queue.push({ pairId, round: 1, kind: 'opening' });
+  }
+  return { stage: 'opening', queue, cursor: 0 };
+}
+
+/**
+ * 相談後の会話順を決定論的に組み立てる。
+ * 質問がある日は質問者→対象の単独回答→質問者の受け止め→最大2組の反応。
+ * 質問がなければ、主人組を先頭に全員が冒頭討論を受けて意見を更新する。
+ */
+function buildResponseQueue(state: MatchState): DiscussionTurn[] {
+  const alive = alivePairs(state).map((p) => p.pairId);
+  const humanFirst = state.humanPairId && alive.includes(state.humanPairId)
+    ? [state.humanPairId, ...alive.filter((id) => id !== state.humanPairId)]
+    : alive;
+  const questioner = humanFirst.find((id) => {
+    const question = state.pendingQuestion[id];
+    return question != null && alive.includes(question.targetId) && question.targetId !== id;
+  });
+  const queue: DiscussionTurn[] = [];
+
+  if (questioner) {
+    const question = state.pendingQuestion[questioner];
+    if (question) {
+      const ref = { askerId: questioner, targetId: question.targetId, themeId: question.themeId };
+      queue.push({ pairId: questioner, round: 2, kind: 'question', question: ref });
+      queue.push({ pairId: question.targetId, round: 2, kind: 'answer', question: ref });
+      queue.push({ pairId: questioner, round: 2, kind: 'follow_up', question: ref });
+      const reactors = alive.filter((id) => id !== questioner && id !== question.targetId).slice(0, 2);
+      for (const pairId of reactors) {
+        queue.push({ pairId, round: 2, kind: 'reaction', question: ref });
+      }
+    }
+  } else {
     for (let rep = 0; rep < state.config.rules.speechesPerBuddyPerRound; rep++) {
-      for (const pairId of order) queue.push({ pairId, round });
+      for (const pairId of humanFirst) queue.push({ pairId, round: 2, kind: 'reaction' });
     }
   }
-  return { queue, cursor: 0 };
+
+  // 3周目以降を設定した場合は、全員の通常リアクションとして追加する。
+  for (let round = 3; round <= state.config.rules.discussionRounds; round++) {
+    for (let rep = 0; rep < state.config.rules.speechesPerBuddyPerRound; rep++) {
+      for (const pairId of alive) queue.push({ pairId, round, kind: 'reaction' });
+    }
+  }
+  return queue;
 }
 
 function applyAdviceToState(state: MatchState, pairId: PairId, advice: Advice): void {
@@ -274,6 +322,21 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
       }
       break;
     }
+    case 'discussion_stage_changed': {
+      if (!state.discussion) throw new Error('discussion state is missing');
+      state.discussion.stage = event.payload.stage;
+      if (event.payload.stage === 'response') {
+        state.discussion.queue = buildResponseQueue(state);
+        state.discussion.cursor = 0;
+      }
+      state.publicLog.push({
+        seq: event.seq,
+        day: event.day,
+        t: 'discussion_stage',
+        stage: event.payload.stage,
+      });
+      break;
+    }
     case 'day_started': {
       state.day = event.payload.day;
       // 日替わりリセット
@@ -300,12 +363,16 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
         day: event.day,
         t: 'speech',
         round: event.payload.round,
+        turnKind: event.payload.turnKind,
+        question: event.payload.question,
         pairId: pair.pairId,
         name: pair.buddyName,
         text: event.payload.text,
         accusesId: event.payload.accusesId,
       });
-      state.pendingQuestion[pair.pairId] = null; // 質問指示は消化
+      if (event.payload.turnKind === 'question' || event.payload.turnKind === 'follow_up') {
+        state.pendingQuestion[pair.pairId] = null; // 質問指示は質問者自身の発言で消化
+      }
       if (state.discussion) state.discussion.cursor += 1;
       break;
     }

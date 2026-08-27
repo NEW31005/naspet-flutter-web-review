@@ -307,14 +307,16 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
             onChange={(value) => updateRules((r) => (r.maxDays = value))}
           />
           <NumberSetting
-            label="1日あたりの討論周回数"
+            label="1日の討論段階数"
+            help="2以上なら「AIだけの冒頭討論 → 主人の相談 → 応答討論」になります。3以上は応答討論を追加します。"
             value={rules.discussionRounds}
             min={1}
             max={10}
             onChange={(value) => updateRules((r) => (r.discussionRounds = value))}
           />
           <NumberSetting
-            label="1周で各バディが話す回数"
+            label="各段階でバディが話す回数"
+            help="指名質問の日は、質問・単独回答・受け止め・周囲の反応を優先します。"
             value={rules.speechesPerBuddyPerRound}
             min={1}
             max={3}

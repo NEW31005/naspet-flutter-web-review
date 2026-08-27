@@ -41,8 +41,15 @@ export class GameRuleError extends Error {
 }
 
 export type PendingTask =
-  | { type: 'wait_inputs'; missing: { pairId: PairId; input: 'trial_choice' | 'night_proposal' }[] }
+  | {
+      type: 'wait_inputs';
+      missing: {
+        pairId: PairId;
+        input: 'discussion_advice' | 'trial_choice' | 'night_proposal';
+      }[];
+    }
   | { type: 'ai_speech'; pairId: PairId; round: number }
+  | { type: 'start_discussion_response' }
   | { type: 'ai_votes'; pairIds: PairId[] }
   | { type: 'ai_night'; wolfPairIds: PairId[]; seerPairId: PairId | null }
   | { type: 'advance_day' }
@@ -212,6 +219,20 @@ export function getPendingTask(state: MatchState): PendingTask {
       if (!d) return { type: 'advance_day' };
       const next = d.queue[d.cursor];
       if (!next) {
+        if (d.stage === 'advice') {
+          const human = state.humanPairId ? state.pairs.find((p) => p.pairId === state.humanPairId) : null;
+          if (
+            human?.alive &&
+            state.config.rules.advicePerDay > 0 &&
+            (state.adviceUsedToday[human.pairId] ?? 0) < state.config.rules.advicePerDay
+          ) {
+            return {
+              type: 'wait_inputs',
+              missing: [{ pairId: human.pairId, input: 'discussion_advice' }],
+            };
+          }
+          return { type: 'start_discussion_response' };
+        }
         // 通常はapplySpeechで遷移済みのため到達しない
         return { type: 'advance_day' };
       }
@@ -255,6 +276,24 @@ export function applyAdvanceDay(state: MatchState, now: number): MatchEvent[] {
   return batch.events;
 }
 
+/** 主人の相談後に第2幕を開始する。会話順はstate reducerが決定論的に構築する。 */
+export function applyStartDiscussionResponse(state: MatchState, now: number): MatchEvent[] {
+  if (
+    state.phase !== 'discussion' ||
+    !state.discussion ||
+    state.discussion.stage !== 'advice'
+  ) {
+    throw new GameRuleError('相談後の討論を開始できる状態ではありません', 'wrong_discussion_stage');
+  }
+  const batch = new EventBatch(state, now);
+  batch.push({
+    type: 'discussion_stage_changed',
+    visibility: PUBLIC,
+    payload: { stage: 'response' },
+  });
+  return batch.events;
+}
+
 /** 主人の助言(討論中のみ・1日の回数制限あり) */
 export function applyAdvice(
   state: MatchState,
@@ -264,6 +303,15 @@ export function applyAdvice(
 ): MatchEvent[] {
   if (state.phase !== 'discussion') {
     throw new GameRuleError('助言は討論中のみ送れます', 'advice_wrong_phase');
+  }
+  if (
+    state.config.rules.discussionRounds > 1 &&
+    state.discussion?.stage !== 'advice'
+  ) {
+    throw new GameRuleError(
+      '助言は冒頭討論が終わってから送れます',
+      'advice_before_intermission',
+    );
   }
   const pair = getPair(state, pairId);
   if (!pair.alive) throw new GameRuleError('死亡した組は助言できません', 'pair_dead');
@@ -365,16 +413,34 @@ export function applySpeech(
   batch.push({
     type: 'speech',
     visibility: PUBLIC,
-    payload: { pairId, round: next.round, text, accusesId },
+    payload: {
+      pairId,
+      round: next.round,
+      turnKind: next.kind,
+      question: next.question,
+      text,
+      accusesId,
+    },
   });
-  // 討論終了なら裁判へ
+  // 第1幕終了なら主人の相談待ちへ。第2幕以降が終われば裁判へ。
   const after = batch.current;
   if (after.discussion && after.discussion.cursor >= after.discussion.queue.length) {
-    batch.push({
-      type: 'phase_changed',
-      visibility: PUBLIC,
-      payload: { day: after.day, phase: 'trial' },
-    });
+    if (
+      after.discussion.stage === 'opening' &&
+      after.config.rules.discussionRounds > 1
+    ) {
+      batch.push({
+        type: 'discussion_stage_changed',
+        visibility: PUBLIC,
+        payload: { stage: 'advice' },
+      });
+    } else {
+      batch.push({
+        type: 'phase_changed',
+        visibility: PUBLIC,
+        payload: { day: after.day, phase: 'trial' },
+      });
+    }
   }
   return batch.events;
 }

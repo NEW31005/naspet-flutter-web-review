@@ -109,6 +109,7 @@ export class BrowserBackend {
         pairCount: rules.pairCount,
         roleSetup: rules.roleSetup,
         maxDays: rules.maxDays,
+        discussionRounds: rules.discussionRounds,
         advicePerDay: rules.advicePerDay,
         otherMastersPolicy: rules.otherMastersPolicy,
       })),

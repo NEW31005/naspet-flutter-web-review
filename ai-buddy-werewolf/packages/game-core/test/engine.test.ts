@@ -7,6 +7,7 @@ import {
   applyNight,
   applyNightProposal,
   applySpeech,
+  applyStartDiscussionResponse,
   applyTrialChoice,
   applyVotes,
   buildBuddyContext,
@@ -525,5 +526,143 @@ describe('初日占い(firstNightDivination)', () => {
       firstNightDivination: 'white',
     });
     expect(() => rulesConfigSchema.parse(rules)).toThrow(/市民陣営/);
+  });
+});
+
+describe('2幕討論と指名質問', () => {
+  it('冒頭討論の後で主人を待ち、質問者→対象の単独回答→受け止めの順に進む', () => {
+    const config = makeSnapshot({ discussionRounds: 2, advicePerDay: 1 });
+    let { state } = createMatch({
+      matchId: 'm-two-act',
+      seed: 'two-act-seed',
+      mode: 'play',
+      provider: 'mock',
+      humanPairIndex: 0,
+      config,
+      now: NOW,
+    });
+    state = apply(state, applyAdvanceDay(state, NOW));
+
+    expect(state.discussion?.stage).toBe('opening');
+    expect(() =>
+      applyAdvice(state, 'p1', { kind: 'question', targetId: 'p2', themeId: 'vote_reason' }, NOW),
+    ).toThrowError(/冒頭討論/);
+
+    while (getPendingTask(state).type === 'ai_speech') {
+      const task = getPendingTask(state);
+      if (task.type !== 'ai_speech') break;
+      const output = makeEval(
+        Object.fromEntries(
+          state.pairs
+            .filter((p) => p.alive && p.pairId !== task.pairId)
+            .map((p) => [p.pairId, 50]),
+        ),
+      );
+      state = apply(
+        state,
+        applySpeech(
+          state,
+          task.pairId,
+          output,
+          `opening-${task.pairId}`,
+          { text: '冒頭の意見', accusesId: null },
+          NOW,
+        ),
+      );
+    }
+
+    expect(state.phase).toBe('discussion');
+    expect(state.discussion?.stage).toBe('advice');
+    expect(getPendingTask(state)).toEqual({
+      type: 'wait_inputs',
+      missing: [{ pairId: 'p1', input: 'discussion_advice' }],
+    });
+
+    state = apply(
+      state,
+      applyAdvice(
+        state,
+        'p1',
+        { kind: 'question', targetId: 'p2', themeId: 'vote_reason' },
+        NOW,
+      ),
+    );
+    expect(getPendingTask(state)).toEqual({ type: 'start_discussion_response' });
+    state = apply(state, applyStartDiscussionResponse(state, NOW));
+
+    expect(state.discussion?.queue.slice(0, 3)).toEqual([
+      {
+        pairId: 'p1',
+        round: 2,
+        kind: 'question',
+        question: { askerId: 'p1', targetId: 'p2', themeId: 'vote_reason' },
+      },
+      {
+        pairId: 'p2',
+        round: 2,
+        kind: 'answer',
+        question: { askerId: 'p1', targetId: 'p2', themeId: 'vote_reason' },
+      },
+      {
+        pairId: 'p1',
+        round: 2,
+        kind: 'follow_up',
+        question: { askerId: 'p1', targetId: 'p2', themeId: 'vote_reason' },
+      },
+    ]);
+
+    const questionTask = getPendingTask(state);
+    expect(questionTask).toMatchObject({ type: 'ai_speech', pairId: 'p1', round: 2 });
+    if (questionTask.type !== 'ai_speech') throw new Error('question task missing');
+    const p1Eval = makeEval({ p2: 60, p3: 50, p4: 40, p5: 30 });
+    state = apply(
+      state,
+      applySpeech(
+        state,
+        'p1',
+        p1Eval,
+        'question-p1',
+        { text: 'P2へ質問します', accusesId: null },
+        NOW,
+      ),
+    );
+
+    const answerContext = buildBuddyContext(state, 'p2');
+    expect(answerContext.discussionTurn).toMatchObject({
+      kind: 'answer',
+      askerId: 'p1',
+      targetId: 'p2',
+    });
+    expect(answerContext.pendingQuestion).toBeNull();
+
+    while (getPendingTask(state).type === 'ai_speech') {
+      const task = getPendingTask(state);
+      if (task.type !== 'ai_speech') break;
+      const output = makeEval(
+        Object.fromEntries(
+          state.pairs
+            .filter((p) => p.alive && p.pairId !== task.pairId)
+            .map((p) => [p.pairId, 50]),
+        ),
+      );
+      state = apply(
+        state,
+        applySpeech(
+          state,
+          task.pairId,
+          output,
+          `response-${task.pairId}-${state.discussion?.cursor ?? 0}`,
+          { text: '応答します', accusesId: null },
+          NOW,
+        ),
+      );
+    }
+    expect(state.phase).toBe('trial');
+    expect(state.publicLog.filter((entry) => entry.t === 'discussion_stage')).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ stage: 'advice' }),
+        expect.objectContaining({ stage: 'response' }),
+      ]),
+    );
   });
 });

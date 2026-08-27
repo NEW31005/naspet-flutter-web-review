@@ -84,4 +84,32 @@ describe('MatchManager(実設定・モックAI)', () => {
     expect(manager.getReplay(summary.matchId, true)).toBeTruthy();
     await manager.flush(summary.matchId);
   });
+
+  it('時間制討論の主人相談を明示的にスキップして再開できる', async () => {
+    const manager = new MatchManager(rootDir, () => Date.now(), tmpData);
+    const summary = manager.createMatch({
+      presetId: 'quick-test',
+      mode: 'play',
+      provider: 'mock',
+      seed: 'server-skip-advice',
+      humanPairIndex: 0,
+    });
+
+    let view = manager.getMasterView(summary.matchId, summary.humanPairId);
+    for (let step = 0; step < 30 && !view.view.me?.needDiscussionAdvice; step += 1) {
+      await manager.advance(summary.matchId);
+      view = manager.getMasterView(summary.matchId, summary.humanPairId);
+    }
+    expect(view.view.discussionPaused).toBe(true);
+    expect(view.view.me?.needDiscussionAdvice).toBe(true);
+
+    manager.skipDiscussionAdvice(summary.matchId, summary.humanPairId ?? '');
+    view = manager.getMasterView(summary.matchId, summary.humanPairId);
+    expect(view.view.me?.needDiscussionAdvice).toBe(false);
+    await manager.advance(summary.matchId);
+    expect(manager.getMasterView(summary.matchId, summary.humanPairId).view.discussionStage).toBe(
+      'response',
+    );
+    await manager.flush(summary.matchId);
+  });
 });

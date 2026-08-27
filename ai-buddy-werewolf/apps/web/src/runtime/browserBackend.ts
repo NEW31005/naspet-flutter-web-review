@@ -31,6 +31,7 @@ import {
 
 const INDEX_KEY = 'aibw.lab.matches.v1';
 const recordKey = (id: string) => `aibw.lab.match.v1:${id}`;
+const RAW_CALLS_TO_PERSIST = 30;
 
 interface Session {
   runner: MatchRunner;
@@ -58,7 +59,19 @@ function writeIndex(ids: string[]): void {
 }
 
 function saveRecord(record: MatchRecord): void {
-  localStorage.setItem(recordKey(record.matchId), JSON.stringify(record));
+  // Liveの生プロンプトは会話量に比例して大きくなる。分析用の構造化イベントと
+  // トークン/原価/待機時間は全件残し、生リクエスト/レスポンスだけ直近へ絞る。
+  // 実行中メモリには全件あるため、その場でのJSON書き出しには完全版を使える。
+  const rawStart = Math.max(0, record.aiCalls.length - RAW_CALLS_TO_PERSIST);
+  const persisted: MatchRecord = {
+    ...record,
+    aiCalls: record.aiCalls.map((call, index) => {
+      if (index >= rawStart) return call;
+      const { rawRequest: _rawRequest, rawResponse: _rawResponse, ...metricsOnly } = call;
+      return metricsOnly;
+    }),
+  };
+  localStorage.setItem(recordKey(record.matchId), JSON.stringify(persisted));
   writeIndex([record.matchId, ...readIndex()]);
 }
 
@@ -244,6 +257,12 @@ export class BrowserBackend {
   submitAdvice(id: string, pairId: PairId, advice: Advice): void {
     const session = this.getSession(id);
     session.runner.submitAdvice(pairId, advice);
+    this.persist(session);
+  }
+
+  skipDiscussionAdvice(id: string, pairId: PairId): void {
+    const session = this.getSession(id);
+    session.runner.skipDiscussionAdvice(pairId);
     this.persist(session);
   }
 

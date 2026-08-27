@@ -7,15 +7,18 @@ import {
   applyCloseDiscussion,
   applyNight,
   applyNightProposal,
+  applySkipDiscussionAdvice,
   applySpeech,
   applyStartDiscussionResponse,
   applyTrialChoice,
   applyVotes,
   buildBuddyContext,
+  buildMasterView,
   createMatch,
   getPendingTask,
   rebuildState,
   reduce,
+  rewindToPhaseStart,
   type MatchState,
 } from '../src/index.js';
 import { makeEval, makeRules, makeSnapshot } from './fixtures.js';
@@ -141,6 +144,19 @@ describe('助言のルール', () => {
         ),
       ),
     ).toThrow(/役職/);
+  });
+
+  it('前日の投票が存在しない1日目は投票理由を質問できない', () => {
+    let { state } = newMatch();
+    state = apply(state, applyAdvanceDay(state, NOW));
+    expect(() =>
+      applyAdvice(
+        state,
+        'p1',
+        { kind: 'question', targetId: 'p2', themeId: 'vote_reason' },
+        NOW + 1,
+      ),
+    ).toThrowError(/前日の投票がない/);
   });
 });
 
@@ -582,6 +598,12 @@ describe('2幕討論と指名質問', () => {
 
   it('冒頭討論の後で主人を待ち、質問者→対象の単独回答→受け止めの順に進む', () => {
     const config = makeSnapshot({ discussionRounds: 2, advicePerDay: 1 });
+    config.advice.questionThemes.push({
+      id: 'most_suspicious',
+      label: '現在最も疑っている相手',
+      mockTemplate: '{target}は今、誰を疑ってる?',
+      promptHint: '現在の疑い先と理由を尋ねる',
+    });
     let { state } = createMatch({
       matchId: 'm-two-act',
       seed: 'two-act-seed',
@@ -595,7 +617,7 @@ describe('2幕討論と指名質問', () => {
 
     expect(state.discussion?.stage).toBe('opening');
     expect(() =>
-      applyAdvice(state, 'p1', { kind: 'question', targetId: 'p2', themeId: 'vote_reason' }, NOW),
+      applyAdvice(state, 'p1', { kind: 'question', targetId: 'p2', themeId: 'most_suspicious' }, NOW),
     ).toThrowError(/冒頭討論/);
 
     while (getPendingTask(state).type === 'ai_speech') {
@@ -633,7 +655,7 @@ describe('2幕討論と指名質問', () => {
       applyAdvice(
         state,
         'p1',
-        { kind: 'question', targetId: 'p2', themeId: 'vote_reason' },
+        { kind: 'question', targetId: 'p2', themeId: 'most_suspicious' },
         NOW,
       ),
     );
@@ -645,19 +667,19 @@ describe('2幕討論と指名質問', () => {
         pairId: 'p1',
         round: 2,
         kind: 'question',
-        question: { askerId: 'p1', targetId: 'p2', themeId: 'vote_reason' },
+        question: { askerId: 'p1', targetId: 'p2', themeId: 'most_suspicious' },
       },
       {
         pairId: 'p2',
         round: 2,
         kind: 'answer',
-        question: { askerId: 'p1', targetId: 'p2', themeId: 'vote_reason' },
+        question: { askerId: 'p1', targetId: 'p2', themeId: 'most_suspicious' },
       },
       {
         pairId: 'p1',
         round: 2,
         kind: 'follow_up',
-        question: { askerId: 'p1', targetId: 'p2', themeId: 'vote_reason' },
+        question: { askerId: 'p1', targetId: 'p2', themeId: 'most_suspicious' },
       },
     ]);
 
@@ -718,7 +740,51 @@ describe('2幕討論と指名質問', () => {
 });
 
 describe('時間制の独立AI討論', () => {
-  it('焦点2人を並列候補にし、完了順で発言でき、名指し相手を次の返答へ優先する', () => {
+  it('冒頭発言を複数回設定しても同じAIを1バッチへ重複投入しない', () => {
+    const config = makeSnapshot({
+      discussionMode: 'timed',
+      discussionBatchSize: 3,
+      discussionRounds: 2,
+      speechesPerBuddyPerRound: 2,
+      firstDayFocusCount: 2,
+    });
+    let { state } = createMatch({
+      matchId: 'm-timed-opening-unique',
+      seed: 'timed-opening-unique',
+      mode: 'lab',
+      provider: 'mock',
+      humanPairIndex: null,
+      config,
+      now: NOW,
+    });
+    state = apply(state, applyAdvanceDay(state, NOW));
+    const first = getPendingTask(state, NOW + 1);
+    expect(first.type).toBe('ai_speech_batch');
+    if (first.type !== 'ai_speech_batch') throw new Error('first opening batch missing');
+    expect(new Set(first.turns.map((turn) => turn.pairId)).size).toBe(first.turns.length);
+    for (const turn of first.turns) {
+      state = apply(state, applySpeech(
+        state,
+        turn.pairId,
+        makeEval(Object.fromEntries(
+          state.pairs.filter((pair) => pair.pairId !== turn.pairId).map((pair) => [pair.pairId, 50]),
+        )),
+        `unique-${turn.pairId}`,
+        { text: '1回目の弁明', accusesId: null },
+        NOW + 2,
+        turn,
+      ));
+    }
+    const second = getPendingTask(state, NOW + 3);
+    expect(second.type).toBe('ai_speech_batch');
+    if (second.type !== 'ai_speech_batch') throw new Error('second opening batch missing');
+    expect(new Set(second.turns.map((turn) => turn.pairId)).size).toBe(second.turns.length);
+    expect(second.turns.map((turn) => turn.pairId).sort()).toEqual(
+      first.turns.map((turn) => turn.pairId).sort(),
+    );
+  });
+
+  it('焦点2人を並列候補にし、通常発言は直近話者を休ませて一般告発への反応を1人に絞る', () => {
     const config = makeSnapshot({
       discussionMode: 'timed',
       discussionDurationSec: 150,
@@ -766,7 +832,6 @@ describe('時間制の独立AI討論', () => {
     expect(opinions.type).toBe('ai_speech_batch');
     if (opinions.type !== 'ai_speech_batch') throw new Error('opinion batch missing');
     for (const turn of opinions.turns) {
-      const targetId = state.pairs.find((pair) => pair.pairId !== turn.pairId)?.pairId ?? null;
       state = apply(state, applySpeech(
         state,
         turn.pairId,
@@ -774,39 +839,526 @@ describe('時間制の独立AI討論', () => {
           state.pairs.filter((pair) => pair.pairId !== turn.pairId).map((pair) => [pair.pairId, 50]),
         )),
         `opinion-${turn.pairId}`,
-        { text: '弁明を比べた意見', accusesId: targetId },
+        { text: '弁明を比べた意見', accusesId: null },
         NOW + 4,
         turn,
       ));
     }
     expect(getPendingTask(state, NOW + 5)).toEqual({ type: 'start_discussion_response' });
     state = apply(state, applyStartDiscussionResponse(state, NOW + 5));
+    expect(state.discussion?.stage).toBe('awaiting_master_advice');
+    expect(getPendingTask(state, NOW + 6)).toEqual({
+      type: 'wait_inputs',
+      missing: [{ pairId: 'p1', input: 'discussion_advice' }],
+    });
+    state = apply(state, applySkipDiscussionAdvice(state, 'p1', NOW + 6));
+    expect(buildMasterView(state, 'p1').me).toMatchObject({
+      canAdvise: false,
+      needDiscussionAdvice: false,
+    });
+    expect(getPendingTask(state, NOW + 6)).toEqual({ type: 'start_discussion_response' });
+    state = apply(state, applyStartDiscussionResponse(state, NOW + 6));
 
-    const response = getPendingTask(state, NOW + 6);
+    const response = getPendingTask(state, NOW + 7);
     expect(response.type).toBe('ai_speech_batch');
     if (response.type !== 'ai_speech_batch') throw new Error('response batch missing');
-    const speaker = response.turns[0];
-    if (!speaker) throw new Error('response speaker missing');
-    const accused = state.pairs.find((pair) => pair.pairId !== speaker.pairId)?.pairId ?? 'p2';
-    state = apply(state, applySpeech(
-      state,
-      speaker.pairId,
-      makeEval(Object.fromEntries(
-        state.pairs.filter((pair) => pair.pairId !== speaker.pairId).map((pair) => [pair.pairId, 50]),
-      )),
-      'accusation',
-      { text: '名指しして疑う', accusesId: accused },
-      NOW + 7,
-      speaker,
-    ));
-    const reply = getPendingTask(state, NOW + 8);
+    const recentOpeningSpeaker = state.publicLog
+      .filter((entry) => entry.t === 'speech')
+      .at(-1)?.pairId;
+    const responseSpeakerIds = response.turns.map((turn) => turn.pairId);
+    const targets = state.pairs
+      .map((pair) => pair.pairId)
+      .filter((pairId) => !responseSpeakerIds.includes(pairId) && pairId !== recentOpeningSpeaker);
+    expect(response.turns).toHaveLength(2);
+    expect(targets).toHaveLength(2);
+    for (const [index, turn] of response.turns.entries()) {
+      const accused = targets[index] ?? targets[0] ?? 'p1';
+      state = apply(state, applySpeech(
+        state,
+        turn.pairId,
+        makeEval(Object.fromEntries(
+          state.pairs.filter((pair) => pair.pairId !== turn.pairId).map((pair) => [pair.pairId, 50]),
+        )),
+        `accusation-${turn.pairId}`,
+        { text: '名指しして疑う', accusesId: accused },
+        NOW + 8,
+        turn,
+      ));
+    }
+    const reply = getPendingTask(state, NOW + 9);
     expect(reply.type).toBe('ai_speech_batch');
     if (reply.type === 'ai_speech_batch') {
-      expect(reply.turns[0]).toMatchObject({ pairId: accused, replyToId: speaker.pairId });
+      expect(reply.turns.filter((turn) => turn.replyToId != null)).toHaveLength(1);
+      expect(reply.turns.every((turn) => !responseSpeakerIds.includes(turn.pairId))).toBe(true);
+      expect(targets).toContain(reply.turns[0]?.pairId);
     }
   });
 
-  it('助言は時間内なら冒頭から送れ、期限到達時に討論を閉じて裁判へ進む', () => {
+  it('同一バッチで名指し後に対象の無関係発言が来ても、直接反論まで返答済みにしない', () => {
+    const config = makeSnapshot({
+      discussionMode: 'timed',
+      discussionDurationSec: 150,
+      discussionMaxMessages: 30,
+      discussionBatchSize: 2,
+      firstDayFocusCount: 0,
+      discussionRounds: 2,
+    });
+    let { state } = createMatch({
+      matchId: 'm-same-batch-accusation',
+      seed: 'same-batch-accusation-seed',
+      mode: 'lab',
+      provider: 'mock',
+      humanPairIndex: null,
+      config,
+      now: NOW,
+    });
+    state = apply(state, applyAdvanceDay(state, NOW));
+    while (state.discussion?.stage === 'opening') {
+      const task = getPendingTask(state, NOW + 1);
+      if (task.type === 'start_discussion_response') {
+        state = apply(state, applyStartDiscussionResponse(state, NOW + 2));
+        break;
+      }
+      if (task.type !== 'ai_speech_batch') throw new Error('opening batch missing');
+      for (const turn of task.turns) {
+        state = apply(state, applySpeech(
+          state,
+          turn.pairId,
+          makeEval(Object.fromEntries(
+            state.pairs.filter((pair) => pair.pairId !== turn.pairId).map((pair) => [pair.pairId, 50]),
+          )),
+          `same-batch-opening-${turn.pairId}`,
+          { text: '冒頭の意見', accusesId: null },
+          NOW + 1,
+          turn,
+        ));
+      }
+    }
+    state = apply(state, applyStartDiscussionResponse(state, NOW + 3));
+
+    const batch = getPendingTask(state, NOW + 4);
+    if (batch.type !== 'ai_speech_batch' || batch.turns.length < 2) {
+      throw new Error('response batch missing');
+    }
+    const accuser = batch.turns[0]!;
+    const target = batch.turns[1]!;
+    state = apply(state, applySpeech(
+      state,
+      accuser.pairId,
+      makeEval({}),
+      'same-batch-accuser',
+      { text: `${target.pairId}の説明が曖昧で怪しい`, accusesId: target.pairId },
+      NOW + 4,
+      accuser,
+    ));
+    // 同じ公開ログを読んで生成済みだった対象の発言。直前の名指しへの返答ではない。
+    state = apply(state, applySpeech(
+      state,
+      target.pairId,
+      makeEval({}),
+      'same-batch-unrelated',
+      { text: '私は別の観点を話します', accusesId: null },
+      NOW + 5,
+      target,
+    ));
+
+    const reply = getPendingTask(state, NOW + 6);
+    expect(reply.type).toBe('ai_speech_batch');
+    if (reply.type !== 'ai_speech_batch') throw new Error('reply batch missing');
+    expect(reply.turns[0]).toMatchObject({
+      pairId: target.pairId,
+      kind: 'reaction',
+      replyToId: accuser.pairId,
+    });
+    const directReply = reply.turns[0]!;
+    state = apply(state, applySpeech(
+      state,
+      directReply.pairId,
+      makeEval({}),
+      'same-batch-direct-reply',
+      { text: `${accuser.pairId}の指摘へ返答します`, accusesId: null },
+      NOW + 7,
+      directReply,
+    ));
+    const targetSpeeches = state.publicLog.filter(
+      (entry) => entry.t === 'speech' && entry.pairId === target.pairId,
+    );
+    expect(targetSpeeches.at(-2)).toMatchObject({ replyToId: undefined });
+    expect(targetSpeeches.at(-1)).toMatchObject({ replyToId: accuser.pairId });
+
+    const afterReply = getPendingTask(state, NOW + 8);
+    expect(afterReply.type).toBe('ai_speech_batch');
+    if (afterReply.type === 'ai_speech_batch') {
+      expect(afterReply.turns).not.toContainEqual(expect.objectContaining({
+        pairId: target.pairId,
+        replyToId: accuser.pairId,
+      }));
+    }
+  });
+
+  it('主人質問を優先し、その後は評価候補から各AI1日1回まで自発質問を回す', () => {
+    const config = makeSnapshot({
+      discussionMode: 'timed',
+      discussionDurationSec: 150,
+      discussionMaxMessages: 40,
+      discussionBatchSize: 3,
+      firstDayFocusCount: 2,
+      discussionRounds: 2,
+    });
+    config.advice.questionThemes.push({
+      id: 'most_suspicious',
+      label: '現在最も疑っている相手',
+      mockTemplate: '{target}は今、誰を疑ってる?',
+      promptHint: '現在の疑い先と理由を尋ねる',
+    });
+    let { state } = createMatch({
+      matchId: 'm-timed-questions',
+      seed: 'timed-question-seed',
+      mode: 'play',
+      provider: 'mock',
+      humanPairIndex: 0,
+      config,
+      now: NOW,
+    });
+    state = apply(state, applyAdvanceDay(state, NOW));
+
+    while (state.discussion?.stage === 'opening') {
+      const task = getPendingTask(state, NOW + 2);
+      if (task.type === 'start_discussion_response') {
+        state = apply(state, applyStartDiscussionResponse(state, NOW + 2));
+        break;
+      }
+      if (task.type !== 'ai_speech_batch') throw new Error('opening batch missing');
+      for (const turn of task.turns) {
+        const targetId = state.pairs.find((pair) => pair.pairId !== turn.pairId)?.pairId ?? null;
+        state = apply(state, applySpeech(
+          state,
+          turn.pairId,
+          makeEval(
+            Object.fromEntries(
+              state.pairs.filter((pair) => pair.pairId !== turn.pairId).map((pair) => [pair.pairId, 50]),
+            ),
+            {
+              questionTargetId: targetId,
+              // Liveが自然文を返しても、設定済みIDへ安全にフォールバックする。
+              questionTheme: '発言が曖昧だった理由を聞きたい',
+            },
+          ),
+          `opening-question-${turn.pairId}`,
+          { text: '冒頭発言', accusesId: null },
+          NOW + 2,
+          turn,
+        ));
+      }
+    }
+
+    expect(state.discussion?.stage).toBe('awaiting_master_advice');
+    state = apply(state, applyAdvice(
+      state,
+      'p1',
+      { kind: 'question', targetId: 'p2', themeId: 'most_suspicious' },
+      NOW + 3,
+    ));
+    expect(getPendingTask(state, NOW + 3)).toEqual({ type: 'start_discussion_response' });
+    state = apply(state, applyStartDiscussionResponse(state, NOW + 3));
+
+    const ownerQuestion = getPendingTask(state, NOW + 4);
+    expect(ownerQuestion.type).toBe('ai_speech_batch');
+    if (ownerQuestion.type !== 'ai_speech_batch') throw new Error('owner question missing');
+    expect(ownerQuestion.turns).toEqual([{
+      pairId: 'p1',
+      round: 2,
+      kind: 'question',
+      question: { askerId: 'p1', targetId: 'p2', themeId: 'most_suspicious' },
+    }]);
+
+    const applyOnlyTurn = (turn: (typeof ownerQuestion.turns)[number], label: string) => {
+      const targetId = state.pairs.find((pair) => pair.pairId !== turn.pairId)?.pairId ?? null;
+      state = apply(state, applySpeech(
+        state,
+        turn.pairId,
+        makeEval(
+          Object.fromEntries(
+            state.pairs.filter((pair) => pair.pairId !== turn.pairId).map((pair) => [pair.pairId, 50]),
+          ),
+          { questionTargetId: targetId, questionTheme: '自然文テーマ' },
+        ),
+        label,
+        { text: label, accusesId: null },
+        NOW + 4,
+        turn,
+      ));
+    };
+    applyOnlyTurn(ownerQuestion.turns[0]!, '主人質問');
+
+    const answer = getPendingTask(state, NOW + 5);
+    expect(answer).toMatchObject({
+      type: 'ai_speech_batch',
+      turns: [{ pairId: 'p2', kind: 'answer' }],
+    });
+    if (answer.type !== 'ai_speech_batch') throw new Error('answer missing');
+    applyOnlyTurn(answer.turns[0]!, '回答');
+
+    const followUp = getPendingTask(state, NOW + 6);
+    expect(followUp).toMatchObject({
+      type: 'ai_speech_batch',
+      turns: [{ pairId: 'p1', kind: 'follow_up' }],
+    });
+    if (followUp.type !== 'ai_speech_batch') throw new Error('follow-up missing');
+    applyOnlyTurn(followUp.turns[0]!, '受け止め');
+
+    const selfQuestion = getPendingTask(state, NOW + 7);
+    expect(selfQuestion.type).toBe('ai_speech_batch');
+    if (selfQuestion.type !== 'ai_speech_batch') throw new Error('self question missing');
+    expect(selfQuestion.turns).toHaveLength(1);
+    expect(selfQuestion.turns[0]).toMatchObject({
+      kind: 'question',
+      question: { themeId: 'most_suspicious' },
+    });
+    expect(selfQuestion.turns[0]?.pairId).not.toBe('p1');
+  });
+
+  it('主人入力待ちでは残時間を消費せず、助言後の再開時刻から締切を延長して復元できる', () => {
+    const config = makeSnapshot({
+      discussionMode: 'timed',
+      discussionDurationSec: 150,
+      discussionMaxMessages: 30,
+      discussionBatchSize: 3,
+      firstDayFocusCount: 2,
+      discussionRounds: 2,
+    });
+    const created = createMatch({
+      matchId: 'm-timed-advice-pause',
+      seed: 'timed-advice-pause-seed',
+      mode: 'play',
+      provider: 'mock',
+      humanPairIndex: 0,
+      config,
+      now: NOW,
+    });
+    const events = [...created.events];
+    let state = created.state;
+    const record = (next: MatchEvent[]) => {
+      events.push(...next);
+      state = apply(state, next);
+    };
+    record(applyAdvanceDay(state, NOW));
+
+    while (state.discussion?.stage === 'opening') {
+      const task = getPendingTask(state, NOW + 10_000);
+      if (task.type === 'start_discussion_response') {
+        record(applyStartDiscussionResponse(state, NOW + 20_000));
+        break;
+      }
+      if (task.type !== 'ai_speech_batch') throw new Error('opening batch missing');
+      for (const turn of task.turns) {
+        record(applySpeech(
+          state,
+          turn.pairId,
+          makeEval(Object.fromEntries(
+            state.pairs.filter((pair) => pair.pairId !== turn.pairId).map((pair) => [pair.pairId, 50]),
+          )),
+          `pause-${turn.pairId}`,
+          { text: '冒頭の意見', accusesId: null },
+          NOW + 10_000,
+          turn,
+        ));
+      }
+    }
+
+    expect(state.discussion).toMatchObject({
+      stage: 'awaiting_master_advice',
+      pausedAt: NOW + 20_000,
+      remainingMs: 130_000,
+      masterAdviceDecision: 'pending',
+    });
+    // 100秒待っても討論のtime_upにはならない。
+    expect(getPendingTask(state, NOW + 120_000)).toEqual({
+      type: 'wait_inputs',
+      missing: [{ pairId: 'p1', input: 'discussion_advice' }],
+    });
+    expect(() => applyCloseDiscussion(state, 'time_up', NOW + 120_000)).toThrowError(
+      /相談中は討論時間を停止/,
+    );
+    const pausedTurn = state.discussion?.queue[0];
+    if (!pausedTurn) throw new Error('paused turn missing');
+    expect(() => applySpeech(
+      state,
+      pausedTurn.pairId,
+      makeEval({}),
+      'paused-speech',
+      { text: '待機中には発言しない', accusesId: null },
+      NOW + 120_000,
+      pausedTurn,
+    )).toThrowError(/主人の助言/);
+    record(applyAdvice(
+      state,
+      'p1',
+      { kind: 'suspicion', targetId: 'p2' },
+      NOW + 120_000,
+    ));
+    expect(state.discussion?.masterAdviceDecision).toBe('advice');
+    expect(() => applyAdvice(
+      state,
+      'p1',
+      { kind: 'suspicion', targetId: 'p3' },
+      NOW + 120_000,
+    )).toThrowError(/すでに確定/);
+    record(applyStartDiscussionResponse(state, NOW + 120_001));
+    expect(state.discussion).toMatchObject({
+      stage: 'response',
+      pausedAt: null,
+      endsAt: NOW + 250_001,
+    });
+    expect(getPendingTask(state, NOW + 250_000).type).toBe('ai_speech_batch');
+    expect(getPendingTask(state, NOW + 250_001)).toEqual({
+      type: 'close_discussion',
+      reason: 'time_up',
+    });
+    expect(rebuildState(events, config)).toEqual(state);
+  });
+
+  it('主人なしのLabは明示スキップイベントを残して応答討論へ進める', () => {
+    const config = makeSnapshot({
+      discussionMode: 'timed',
+      discussionDurationSec: 150,
+      discussionMaxMessages: 30,
+      discussionBatchSize: 3,
+      firstDayFocusCount: 2,
+      discussionRounds: 2,
+    });
+    let { state } = createMatch({
+      matchId: 'm-timed-auto-skip',
+      seed: 'timed-auto-skip-seed',
+      mode: 'lab',
+      provider: 'mock',
+      humanPairIndex: null,
+      config,
+      now: NOW,
+    });
+    state = apply(state, applyAdvanceDay(state, NOW));
+    while (state.discussion?.stage === 'opening') {
+      const task = getPendingTask(state, NOW + 1);
+      if (task.type === 'start_discussion_response') {
+        state = apply(state, applyStartDiscussionResponse(state, NOW + 2));
+        break;
+      }
+      if (task.type !== 'ai_speech_batch') throw new Error('opening batch missing');
+      for (const turn of task.turns) {
+        state = apply(state, applySpeech(
+          state,
+          turn.pairId,
+          makeEval(Object.fromEntries(
+            state.pairs.filter((pair) => pair.pairId !== turn.pairId).map((pair) => [pair.pairId, 50]),
+          )),
+          `auto-skip-${turn.pairId}`,
+          { text: '冒頭の意見', accusesId: null },
+          NOW + 1,
+          turn,
+        ));
+      }
+    }
+    expect(state.discussion?.stage).toBe('awaiting_master_advice');
+    expect(getPendingTask(state, NOW + 100_000)).toEqual({ type: 'start_discussion_response' });
+    const resume = applyStartDiscussionResponse(state, NOW + 100_000);
+    expect(resume.map((event) => event.type)).toEqual([
+      'discussion_advice_skipped',
+      'discussion_stage_changed',
+    ]);
+    state = apply(state, resume);
+    expect(state.discussion).toMatchObject({
+      stage: 'response',
+      masterAdviceDecision: 'skipped',
+    });
+  });
+
+  it('15秒・5発言でも40%と1発言を予約し、人間相談後のresponseを必ず1件通す', () => {
+    const config = makeSnapshot({
+      discussionMode: 'timed',
+      discussionDurationSec: 15,
+      discussionMaxMessages: 5,
+      discussionBatchSize: 2,
+      firstDayFocusCount: 2,
+      discussionRounds: 2,
+    });
+    let { state } = createMatch({
+      matchId: 'm-minimum-response-reserve',
+      seed: 'minimum-response-reserve-seed',
+      mode: 'play',
+      provider: 'mock',
+      humanPairIndex: 0,
+      config,
+      now: NOW,
+    });
+    state = apply(state, applyAdvanceDay(state, NOW));
+    expect(state.discussion).toMatchObject({
+      endsAt: NOW + 15_000,
+      stageEndsAt: NOW + 9_000,
+      responseReserveMs: 6_000,
+    });
+
+    // openingは総上限5件のうち4件まで。最後の1件はresponseへ残す。
+    for (let batchIndex = 0; batchIndex < 2; batchIndex++) {
+      const task = getPendingTask(state, NOW + 1_000 + batchIndex);
+      if (task.type !== 'ai_speech_batch') throw new Error('reserved opening batch missing');
+      expect(task.turns).toHaveLength(2);
+      for (const turn of task.turns) {
+        state = apply(state, applySpeech(
+          state,
+          turn.pairId,
+          makeEval({}),
+          `reserved-opening-${batchIndex}-${turn.pairId}`,
+          { text: '短時間の冒頭発言', accusesId: null },
+          NOW + 1_000 + batchIndex,
+          turn,
+        ));
+      }
+    }
+    expect(state.publicLog.filter((entry) => entry.t === 'speech')).toHaveLength(4);
+    expect(getPendingTask(state, NOW + 9_000)).toEqual({
+      type: 'start_discussion_response',
+    });
+    state = apply(state, applyStartDiscussionResponse(state, NOW + 9_000));
+    expect(state.discussion).toMatchObject({
+      stage: 'awaiting_master_advice',
+      remainingMs: 6_000,
+    });
+
+    // 主人が100秒考えても予約6秒は減らない。
+    state = apply(state, applyAdvice(
+      state,
+      'p1',
+      { kind: 'suspicion', targetId: 'p2' },
+      NOW + 109_000,
+    ));
+    state = apply(state, applyStartDiscussionResponse(state, NOW + 109_000));
+    expect(state.discussion).toMatchObject({
+      stage: 'response',
+      endsAt: NOW + 115_000,
+      stageEndsAt: NOW + 115_000,
+    });
+    const response = getPendingTask(state, NOW + 109_001);
+    expect(response.type).toBe('ai_speech_batch');
+    if (response.type !== 'ai_speech_batch') throw new Error('reserved response missing');
+    expect(response.turns).toHaveLength(1);
+    const responseTurn = response.turns[0]!;
+    state = apply(state, applySpeech(
+      state,
+      responseTurn.pairId,
+      makeEval({}),
+      'reserved-response',
+      { text: '主人の相談を受けた応答', accusesId: null },
+      NOW + 109_001,
+      responseTurn,
+    ));
+    expect(state.publicLog.filter((entry) => entry.t === 'speech')).toHaveLength(5);
+    expect(getPendingTask(state, NOW + 109_002)).toEqual({
+      type: 'close_discussion',
+      reason: 'message_limit',
+    });
+  });
+
+  it('助言は主人ターン前と締切後に拒否し、opening期限後も相談とresponseを保証する', () => {
     const config = makeSnapshot({ discussionMode: 'timed', discussionDurationSec: 150 });
     let { state } = createMatch({
       matchId: 'm-timed-deadline',
@@ -823,15 +1375,113 @@ describe('時間制の独立AI討論', () => {
       'p1',
       { kind: 'suspicion', targetId: 'p2' },
       NOW + 1,
-    )).not.toThrow();
+    )).toThrowError(/冒頭討論/);
+    expect(() => applyAdvice(
+      state,
+      'p1',
+      { kind: 'suspicion', targetId: 'p2' },
+      NOW + 150_000,
+    )).toThrowError(/討論時間が終了/);
+    const pending = getPendingTask(state, NOW + 1);
+    if (pending.type !== 'ai_speech_batch') throw new Error('timed speech missing');
+    const lateTurn = pending.turns[0];
+    if (!lateTurn) throw new Error('late turn missing');
+    expect(() => applySpeech(
+      state,
+      lateTurn.pairId,
+      makeEval(Object.fromEntries(
+        state.pairs.filter((pair) => pair.pairId !== lateTurn.pairId).map((pair) => [pair.pairId, 50]),
+      )),
+      'late-speech',
+      { text: '締切後の発言', accusesId: null },
+      NOW + 150_000,
+      lateTurn,
+    )).toThrowError(/討論時間が終了/);
+    expect(() => applyCloseDiscussion(state, 'time_up', NOW + 150_000)).toThrowError(
+      /主人の相談/,
+    );
     expect(getPendingTask(state, NOW + 150_000)).toEqual({
+      type: 'start_discussion_response',
+    });
+    state = apply(state, applyStartDiscussionResponse(state, NOW + 150_000));
+    expect(state.discussion).toMatchObject({
+      stage: 'awaiting_master_advice',
+      remainingMs: 60_000,
+    });
+    state = apply(state, applySkipDiscussionAdvice(state, 'p1', NOW + 150_001));
+    state = apply(state, applyStartDiscussionResponse(state, NOW + 150_001));
+    expect(getPendingTask(state, NOW + 210_001)).toEqual({
       type: 'close_discussion',
       reason: 'time_up',
     });
-    state = apply(state, applyCloseDiscussion(state, 'time_up', NOW + 150_000));
+    state = apply(state, applyCloseDiscussion(state, 'time_up', NOW + 210_001));
     expect(state.phase).toBe('trial');
     expect(state.publicLog).toEqual(expect.arrayContaining([
       expect.objectContaining({ t: 'discussion_closed', reason: 'time_up' }),
     ]));
+  });
+
+  it('時間制討論の巻き戻しは新しい時刻から期限と発言キューを再初期化する', () => {
+    const config = makeSnapshot({
+      discussionMode: 'timed',
+      discussionDurationSec: 150,
+      discussionMaxMessages: 30,
+      discussionBatchSize: 2,
+    });
+    const created = createMatch({
+      matchId: 'm-timed-rewind',
+      seed: 'timed-rewind-seed',
+      mode: 'lab',
+      provider: 'mock',
+      humanPairIndex: 0,
+      config,
+      now: NOW,
+    });
+    const events = [...created.events];
+    let state = created.state;
+
+    const advanced = applyAdvanceDay(state, NOW);
+    events.push(...advanced);
+    state = apply(state, advanced);
+    const initialFocus = state.discussion?.focusPairIds;
+
+    const task = getPendingTask(state, NOW + 2);
+    if (task.type !== 'ai_speech_batch') throw new Error('timed speech missing');
+    const turn = task.turns[0];
+    if (!turn) throw new Error('timed turn missing');
+    const speech = applySpeech(
+      state,
+      turn.pairId,
+      makeEval(Object.fromEntries(
+        state.pairs.filter((pair) => pair.pairId !== turn.pairId).map((pair) => [pair.pairId, 50]),
+      )),
+      'before-rewind',
+      { text: '巻き戻す前の発言', accusesId: null },
+      NOW + 2,
+      turn,
+    );
+    events.push(...speech);
+    state = apply(state, speech);
+    expect(state.discussion?.cursor).toBeGreaterThan(0);
+
+    const rewindAt = NOW + 300_000;
+    const rewoundEvents = rewindToPhaseStart(events, config, rewindAt);
+    const rewound = rebuildState(rewoundEvents, config);
+
+    expect(rewound.phase).toBe('discussion');
+    expect(rewound.discussion).toMatchObject({
+      stage: 'opening',
+      startedAt: rewindAt,
+      endsAt: rewindAt + 150_000,
+      cursor: 0,
+      focusPairIds: initialFocus,
+    });
+    expect(Object.values(rewound.pendingQuestion).every((question) => question === null)).toBe(true);
+    expect(rewound.publicLog.some((entry) => entry.t === 'speech')).toBe(false);
+    expect(getPendingTask(rewound, rewindAt + 1).type).toBe('ai_speech_batch');
+    expect(rewound.discussion?.stageEndsAt).toBe(rewindAt + 90_000);
+    expect(getPendingTask(rewound, rewindAt + 90_000)).toEqual({
+      type: 'start_discussion_response',
+    });
   });
 });

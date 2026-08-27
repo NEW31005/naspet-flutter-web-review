@@ -8,23 +8,25 @@
 
 ## 現在実装済みの範囲
 
-- ゲームコア: 役職配布(市民/占い役/狼憑き)・150秒の時間制討論（個別AI並列処理、名指し反論、質問回答、期限後の発言破棄）・裁判(意思表示→AI投票)・夜(占い/襲撃統合)・勝敗・同票処理・イベントソーシング・リプレイ復元・フェーズ巻き戻し
+- ゲームコア: 役職配布(市民/占い役/狼憑き)・150秒の時間制討論（`opening → awaiting_master_advice → response`、総時間の40%と発言枠1件以上をresponseへ予約、相談待ち中は時計停止、個別AI処理、名指し反論、質問→回答→追加反応、期限後の発言破棄）・裁判(意思表示→AI投票)・夜(占い/襲撃統合)・勝敗・同票処理・イベントソーシング・リプレイ復元・フェーズ巻き戻し
 - 秘密情報分離(`BuddyContext` / イベント可視性 / 視点別ビュー)+ 漏えい防止テスト
 - モックAI(シード決定論的、能力値で挙動が変わる、日本語発言テンプレート)
 - Live AI（ローカルAnthropic / 公開LabはSupabase Edge Function→OpenRouter、二重構造検証、リトライ、タイムアウト、失敗時モックフォールバック）
 - 助言5種(主観疑い/質問指定/確定情報共有/スキル対象提案/立ち回り)、1日1回制限
 - 親密度補正(内部名trust、linear/quadratic/none、登録制)、狼襲撃の正規化合算統合
-- 計測(トークン/原価/レイテンシー/総時間/AI待機/エラー/リトライ)、JSON永続化、JSON/CSVエクスポート
-- Web UI(ホーム/バディ設定/ゲーム/結果/リプレイ/Lab/設定編集)、CLIシミュレーター、同一局面で親密度勾配を再測定する分析CLI
+- 計測(トークン/推定原価/レイテンシー/総時間/延べAI処理時間/エラー/リトライ)、JSON永続化、JSON/CSVエクスポート
+- Web UI(ホーム/バディ設定/ゲーム/結果/リプレイ/Lab/設定編集)、CLIシミュレーター、同一局面で親密度勾配を再測定する分析CLI、保存試合の汎用集計CLI
 - 入力ゆれを吸収する愛言葉付きGitHub Pages Web Lab（ブラウザ内保存、APIキー非配布、noindex）
 - 設定・全プロンプトを本番モバイルへ渡すSHA-256付き固定bundleの書き出し/読み込み
-- 自動テスト68件（初日焦点2人の並列弁明・独立AI討論・名指し反論・指名質問の単独回答・時間切れ終了・公開Labのブラウザ内完走/復元・日本語を含む愛言葉正規化・初日占い・simple主人の初日棄権・親密度勾配集計を含む）/ ESLint / strict TypeScript
+- Live入力は投票等の永続公開イベントを残し、発言本文だけを直近24件へ制限。公開Labの再読込後に保持する生リクエスト/レスポンスは直近30コール（進行中メモリと即時JSON出力は全件）
+- 公開Edgeに要求サイズ・出力token・同時実行・30分件数の上限とLive緊急停止スイッチ（isolate単位のベストエフォート）
+- 自動テスト87件（初日焦点2人の弁明・討論3段階・相談中の時計停止/再開・15秒/5発言でも主人相談とresponseを保証・同時生成中の無関係発言を名指しへの返答と誤認しない回帰・指名質問の回答・時間切れ終了・公開Labのブラウザ内完走/復元・日本語を含む愛言葉正規化・初日占い・simple主人の初日棄権・秘密分離を含む）/ ESLint / strict TypeScript
 
 ## 未実装の範囲
 
 - 追加役職(騎士・霊媒師など)、役職種類の動的追加
 - 発言の先行生成(評価と発言の分離までは実装済み)
-- 大量自己対戦の汎用集計（親密度勾配の42試合固定分析は実装済み）
+- 複数モデル・複数条件を自動で作成して回す実験オーケストレーター（保存済み試合の汎用集計と親密度勾配分析は実装済み）
 - Live AIでの`ai`ポリシー主人(現在は自バディ評価の流用)
 - リアルタイム配信(現在はクライアントポーリング)
 - 本番構想全般(認証・課金・演出・育成・マルチプレイ)
@@ -53,6 +55,8 @@
 | `apps/server/src/cli/simulate.ts` | 連続シミュレーションCLI |
 | `apps/server/src/cli/analyzeIntimacy.ts` | 親密度50/80・最大影響値20/25/32/40の再現分析CLI |
 | `apps/server/src/experiments/intimacyGradient.ts` | 主人案順位の定義・同一局面の純粋な勾配集計 |
+| `scripts/analyze-matches.mjs` | 保存済み試合をプリセット/シードで絞る汎用集計CLI |
+| `supabase/functions/ai-buddy-lab/COST_GUARD.md` | 公開Liveの課金保護上限・緊急停止・限界 |
 | `config/` / `prompts/` | 外部設定(変更ガイド: [CONFIG_AND_PROMPTS.md](CONFIG_AND_PROMPTS.md)) |
 | `docs/MOBILE_HANDOFF.md` | 本番Flutter/バックエンドへ持ち越す固定契約 |
 
@@ -94,6 +98,8 @@ npm run build      # typecheck + Web build
 npm run build:lab  # GitHub Pages用の静的Lab build
 npm run simulate -- --preset quick-test --matches 3   # モック完走の実地確認
 npm run analyze:intimacy  # 42試合から親密度勾配レポートを決定論的に再生成
+npm run analyze:matches -- --seed-prefix balanced-v070- --preset quick-test
+npx --yes deno test supabase/functions/ai-buddy-lab/index_test.ts  # 実APIを呼ばない課金保護テスト
 ```
 
 ## 安全な変更手順
@@ -104,6 +110,7 @@ npm run analyze:intimacy  # 42試合から親密度勾配レポートを決定�
 4. `npm run simulate` でモック完走を確認
 5. UIに触れた場合は `npm run dev` で 390×844 表示を目視確認
 6. 公開Labに触れた場合は、無効/有効な合言葉、Live評価/発言各1コール、bundle export/import、GitHub Pages URLを実機確認
+7. Live比較は1試合ずつ推定原価と失敗指標を記録し、予算内かを確認してから次を実行。生ログが必要ならリロード前にJSONを保存
 
 ## 変更後に必ず確認する項目
 
@@ -115,21 +122,26 @@ npm run analyze:intimacy  # 42試合から親密度勾配レポートを決定�
 
 ## 既知の課題
 
-- モックAIの発言はテンプレート由来で単調(討論の「面白さ」検証はLive AI前提)
-- `aiWaitMs` は並列コールも単純合計するため、体感待機より大きく出る
+- モックAIの発言は改善してもテンプレート由来であり、討論の「面白さ」検証はLive AI前提
+- `aiWaitMs` は並列コールも単純合計する「延べAI処理時間」で、体感待機より大きく出る
+- 同一バッチの各AI発言は完成順に画面へ反映するが、次バッチの組み立てはそのバッチ内で最も遅いAIの完了を待つ
 - 進行中試合の provider は固定(切り替えは再戦で行う)。Labの「再読込」はプロンプト/モデル設定のみ反映
 - `otherMastersPolicy: 'ai'` は自バディの評価を主人の判断として流用する簡易実装
 - 巻き戻しはフェーズ先頭のみ(任意seqへの巻き戻しは未実装)
 - Nodeサーバー版は単一プロセス・ローカル利用前提（認証なし）。インターネットへ直接公開しない
 - 公開Web Labの合言葉ゲートは個人検証向け。URLの存在まで隠す強いユーザー認証ではない
 - 公開Labの試合・編集内容は端末ごとのlocalStorage。端末間同期はせず、消去前のJSON/bundle exportが必要
+- 公開Labで復元する生リクエスト/レスポンスは直近30コール。全件が必要ならリロード前にJSONを出力する
+- Edgeの30分件数・同時実行上限はisolateごとのベストエフォートで、厳密な総課金上限はプロバイダー側で設定する必要がある
+- Pack Testは2狼の襲撃統合を確認する診断用。候補モック40試合は市民8 / 狼32であり、勝率調整済みではない
+- `0.8.0-human-turn.1` の公開Live比較試験は未実行。旧公開版との品質・原価比較は公開後に追記する（[TUNING_REPORT_2026-08-27.md](TUNING_REPORT_2026-08-27.md)）
 
 ## 次に実装する候補
 
-1. Live AIでの討論品質チューニング(prompts/の反復改善 — このための装置は揃っている)
+1. `0.8.0-human-turn.1` を公開し、同一モデル・同一シードで主人相談→質問→回答のLive比較を実行して調整レポートへ追記
 2. 発言の先行生成(評価は深く、公開発言は1発先まで)
 3. 追加役職(騎士: 夜の護衛。`Role`追加 → applyNightに護衛判定 → role.knight.md)
-4. 汎用バッチ集計（現在は親密度勾配専用CLIのみ。勝率・原価・モデル横断比較を追加）
+4. 複数モデル/設定の試合生成から集計までを自動化する実験オーケストレーター（保存済み試合の集計CLIは実装済み）
 5. 助言メニューの影響度パラメータのUI化(現在はJSON編集)
 
 ## やってはいけない変更
@@ -153,8 +165,8 @@ npm run analyze:intimacy  # 42試合から親密度勾配レポートを決定�
 
 | 対象 | バージョン |
 |---|---|
-| ルールプリセット | quick-test `0.3.0-joint.1` / quick-info `0.2.0-joint.1` / pack-test `0.1.1-joint.1` |
+| ルールプリセット | quick-test `0.8.0-human-turn.1` / quick-info `0.8.0-human-turn.1` / pack-test `0.5.0-human-turn.1` |
 | advice / abilities / buddies | 0.1.0 |
-| models | `0.3.0-mari.1` |
-| プロンプト | `0.3.0-joint.1` |
+| models | `0.4.0-focus.1` |
+| プロンプト | `0.8.0-human-turn.1` |
 | 保存スキーマ(`MatchRecord.schemaVersion`) | 1 |

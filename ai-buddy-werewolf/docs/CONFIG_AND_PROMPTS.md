@@ -7,14 +7,14 @@
 
 Web UIでは、よく使うルール・親密度・助言・AIモデル・単価を「かんたん設定」で日本語の項目名から変更できる。プロンプトも「推理・内部評価の指示」「狼憑きの嘘・判断」などの日本語名から選ぶ。能力アンロックなど全内部項目を触る場合だけ、画面下部の「開発者向け詳細設定（JSON原文）」を開く。保存時は従来どおりスキーマ検証され、本番モバイル用の書き出し形式も変わらない。
 
-**反映タイミング**: 設定は試合作成時にスナップショットされる。編集後に**新しい試合を開始**すれば反映される(アプリ再起動不要)。Node版では進行中試合のプロンプト/モデル設定だけをLab画面の「♻️ プロンプト/モデル再読込」で差し替えられる(ルールは差し替え不可)。公開Web Labの編集内容は使用中ブラウザの `localStorage` にだけ保存される。
+**反映タイミング**: 設定は試合作成時にスナップショットされる。編集後に**新しい試合を開始**すれば反映される(アプリ再起動不要)。Node版では進行中試合のプロンプト/モデル設定だけをLab画面の「♻️ プロンプト/モデル再読込」で差し替えられる(ルールは差し替え不可)。公開Web Labの編集内容は使用中ブラウザの `localStorage` にだけ保存される。既定ファイルのバージョンが上がっても、保存済みの独自設定やプロンプトを自動上書きしない。新しい既定値を使うときは、設定画面から明示的に初期値へ戻すか、新しいブラウザ領域で開始する。
 
 ## どのファイルを変更すると何が変わるか
 
 | 変えたいもの | ファイル | 主なキー |
 |---|---|---|
 | 組数・狼数・役職構成 | `config/presets/*.json` | `pairCount`, `roleSetup.werewolf`, `roleSetup.seer`(残りは市民) |
-| 最大日数・討論時間・同時AI数 | 同上 | `maxDays`, `discussionMode`, `discussionDurationSec`, `discussionMaxMessages`, `discussionBatchSize`, `firstDayFocusCount`。既定の`timed`では初日の焦点対象が先に弁明した後、最大`discussionBatchSize`人が個別に並列判断する。期限後の生成は破棄される。旧`turns`方式では`discussionRounds`, `speechesPerBuddyPerRound`を使う |
+| 最大日数・討論時間・同時AI数 | 同上 | `maxDays`, `discussionMode`, `discussionDurationSec`, `discussionMaxMessages`, `discussionBatchSize`, `firstDayFocusCount`。既定の`timed`は `opening → awaiting_master_advice → response` の3段階。焦点対象2人の弁明と他AIの意見後に主人相談で止まり、相談中は時計を消費しない。助言/スキップ後は残り時間で再開する。最大`discussionBatchSize`人が個別に処理され、期限後の生成は破棄される。旧`turns`方式では`discussionRounds`, `speechesPerBuddyPerRound`を使う |
 | 初日の占い結果 | 同上 | `firstNightDivination`: `false` / `true` / `"white"` |
 | 主人の助言回数 | 同上 | `advicePerDay` |
 | 同票処理 | 同上 | `tieBreak`(現状 `random` のみ) |
@@ -37,11 +37,13 @@ Web UIでは、よく使うルール・親密度・助言・AIモデル・単価
 
 `config/presets/quick-test.json` を編集するか、同形式のJSONを `config/presets/` に増やす(`presetId` を一意にすればホームのプリセット一覧に自動で出る)。Zodスキーマ(`packages/shared/src/schemas.ts` の `rulesConfigSchema`)で検証される。
 
+現在のQuick Testは `discussionDurationSec: 150`、`discussionMaxMessages: 30`、`discussionBatchSize: 2`。Pack Testは150秒、最大48発言、同時3件である。150秒は仮値であり、`discussionDurationSec` を変えればコード変更なしで調整できる。時間にはAIの議論だけを含め、主人相談待ちの読解・選択時間は含めない。
+
 ## 役職変更方法
 
 Phase0の役職は `villager` / `seer` / `werewolf` の3種。人数は `roleSetup` で変更できる。**役職の種類を増やす**のはコード変更が必要(`shared/types.ts` の `Role` → `game-core` の夜処理 → `prompts/role.*.md` 追加)。手順は [HANDOFF_CODEX.md](HANDOFF_CODEX.md) の「次に実装する候補」を参照。
 
-初日から「占う→主人が共有を選ぶ→卓が反応する」を試す場合は、かんたん設定の「初日の朝に、占い主人へ白結果を1件届ける」をオンにする。内部値 `firstNightDivination: "white"` として同じQuickプリセットJSONへ保存されるため、13ファイル固定のモバイル引継ぎ契約を変えずに持ち越せる。`true` は狼判定もあり得る通常抽選、`false` は初日結果なし。
+現行Quick / Quick-info / Packは、初日から「占う→主人が共有を選ぶ→卓が反応する」を試すため、「初日の朝に、占い主人へ白結果を1件届ける」を既定でオンにしている。内部値 `firstNightDivination: "white"` として同じプリセットJSONへ保存されるため、13ファイル固定のモバイル引継ぎ契約を変えずに持ち越せる。`true` は狼判定もあり得る通常抽選、`false` は初日結果なし。結果は自動でバディへ渡らず、主人専用通知→相談で確定情報共有という境界を維持する。
 
 ## 助言メニュー変更方法
 
@@ -62,11 +64,13 @@ Phase0の役職は `villager` / `seer` / `werewolf` の3種。人数は `roleSet
 
 ローカルNode版は `providers.anthropic.model`、公開Web Labは `providers.lab-live.model` を変更する。公開Labで利用できるモデルは、Edge Functionのallowlistにも同じIDを追加する必要がある。試合作成時のプロバイダー選択で `mock` / `anthropic`（ローカル）または `mock` / `lab-live`（公開Lab）を切り替える。別プロバイダー追加は [HANDOFF_CODEX.md](HANDOFF_CODEX.md) を参照。
 
-公開Labの初期allowlistは `anthropic/claude-sonnet-5` / `anthropic/claude-opus-4.8` / `anthropic/claude-haiku-4.5`。既定はSonnet 5、推論強度は `low`。モデルがtemperatureを受け付けない場合は `null` にする（送信しない）。
+公開Labの初期allowlistは `anthropic/claude-sonnet-5` / `anthropic/claude-opus-4.8` / `anthropic/claude-haiku-4.5`。今回の主人相談ターン調整ではモデル差を混ぜないため、既定をSonnet 5、推論強度を `low` のまま据え置いた。モデルがtemperatureを受け付けない場合は `null` にする（送信しない）。
 
 ## コスト単価変更方法
 
 `config/models.json` の `prices` にモデルIDごとの `inputPerMTok` / `outputPerMTok`(USD/100万トークン)を設定する。原価はコールごとに `usage × 単価` で計算され、試合の推定原価として集計される。
+
+公開LabのEdge Functionは、1要求につき本文192 KiB、system 24,000文字、user 48,000文字、評価1,200 tokens、発言400 tokens、effort `low`、待機90秒を上限にする。同一isolate内では同時8件・30分320件が既定で、`AI_BUDDY_LAB_LIVE_DISABLED=true` により生成を緊急停止できる。これは複数isolateをまたぐ厳密な予算上限ではないため、強い上限にはOpenRouter側の利用上限も併用する。詳細は `supabase/functions/ai-buddy-lab/COST_GUARD.md`。
 
 ## プロンプト変更方法
 
@@ -80,9 +84,11 @@ Phase0の役職は `villager` / `seer` / `werewolf` の3種。人数は `roleSet
 
 プレースホルダーの実体は `packages/ai-engine/src/promptBuilder.ts` にある。**評価プロンプトへ人格を、発言プロンプトへ判断指示を混ぜない**こと(判断と表現の分離)。
 
+評価コールへ渡す公開ログは、投票などの永続的な公開イベントを残しつつ、発言本文を直近24件に制限する。これは同じ長い履歴を毎コール再送して入力tokenが二次的に膨らむのを防ぐためである。上限を変える場合は、原価だけでなく長期矛盾の検出率も同条件で比較する。
+
 ## プロンプトバージョン管理方法
 
-`prompts/version.json` の `version` を上げてからプロンプトを編集する。試合作成時に `configSnapshot.promptVersion` / `versions.prompts` として記録され、結果画面・エクスポートJSONで確認できる。どのバージョンのプロンプトで実行された試合かを比較実験の軸にする。
+`prompts/version.json` の `version` を上げてからプロンプトを編集する。現在の主人相談ターン版は `0.8.0-human-turn.1`。試合作成時に `configSnapshot.promptVersion` / `versions.prompts` として記録され、結果画面・エクスポートJSONで確認できる。どのバージョンのプロンプトで実行された試合かを比較実験の軸にする。
 
 ## 本番モバイルへ持ち越す方法
 
@@ -102,3 +108,4 @@ APIキー・平文の合言葉・試合履歴は含まれない。読み込み�
 - 検証はサーバー側で行われ、不正なJSONはUI/PUTで拒否される(エラーメッセージ表示)
 - 進行中の試合の `configSnapshot` は変わらない。「同じ設定で再戦」はスナップショットを引き継ぐため、**編集後の設定で試したい場合は新規試合**を作ること
 - モックAIは決定論的(同シード同結果)、**Live AIは非決定的**(同シードでも結果が変わる)
+- 公開Labの進行中メモリには全AIコールを保持するが、リロード後にlocalStorageから復元できる生リクエスト/レスポンスは直近30コールだけ。完全な生ログが必要な実験では、リロード前に試合JSONを書き出す。イベントと集計指標はこの30件制限とは別に保持される

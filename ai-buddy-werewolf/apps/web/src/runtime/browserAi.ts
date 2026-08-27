@@ -46,7 +46,15 @@ interface ProxyResponse {
 }
 
 class JsonValidationError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    readonly billable?: {
+      model: string;
+      usage: { inputTokens: number; outputTokens: number };
+      retries: number;
+      rawResponses: unknown[];
+    },
+  ) {
     super(message);
     this.name = 'JsonValidationError';
   }
@@ -100,7 +108,7 @@ class LabProxyProvider {
       usage: result.response.usage,
       jsonRetries: result.retries,
       rawRequest: { ...prompts, model: this.config.model, evalKind: opts.evalKind },
-      rawResponse: result.response.output,
+      rawResponse: result.rawResponses.length === 1 ? result.rawResponses[0] : result.rawResponses,
     };
   }
 
@@ -121,7 +129,7 @@ class LabProxyProvider {
       usage: result.response.usage,
       jsonRetries: result.retries,
       rawRequest: { ...prompts, model: this.config.model },
-      rawResponse: result.response.output,
+      rawResponse: result.rawResponses.length === 1 ? result.rawResponses[0] : result.rawResponses,
     };
   }
 
@@ -130,15 +138,48 @@ class LabProxyProvider {
     prompts: { system: string; user: string },
     opts: CallOpts,
     validate: (value: unknown) => T,
-  ): Promise<{ value: T; response: ProxyResponse; retries: number }> {
+  ): Promise<{
+    value: T;
+    response: ProxyResponse;
+    retries: number;
+    rawResponses: unknown[];
+  }> {
     let lastError: unknown = null;
+    let inputTokens = 0;
+    let outputTokens = 0;
+    const rawResponses: unknown[] = [];
     for (let attempt = 0; attempt <= this.config.jsonRetries; attempt++) {
       try {
         const response = await this.call(callType, prompts, opts, attempt);
-        return { value: validate(response.output), response, retries: attempt };
+        inputTokens += response.usage.inputTokens;
+        outputTokens += response.usage.outputTokens;
+        rawResponses.push(response.output);
+        return {
+          value: validate(response.output),
+          response: {
+            ...response,
+            // JSON再試行も実際の有料コールなので、成功試行だけでなく合算する。
+            usage: { inputTokens, outputTokens },
+          },
+          retries: attempt,
+          rawResponses,
+        };
       } catch (error) {
         lastError = error;
-        if (!(error instanceof JsonValidationError) || attempt === this.config.jsonRetries) throw error;
+        if (!(error instanceof JsonValidationError)) throw error;
+        if (error.billable) {
+          inputTokens += error.billable.usage.inputTokens;
+          outputTokens += error.billable.usage.outputTokens;
+          rawResponses.push(...error.billable.rawResponses);
+        }
+        if (attempt === this.config.jsonRetries) {
+          throw new JsonValidationError(error.message, {
+            model: error.billable?.model ?? this.config.model,
+            usage: { inputTokens, outputTokens },
+            retries: attempt,
+            rawResponses,
+          });
+        }
       }
     }
     throw lastError ?? new JsonValidationError('構造化出力を取得できませんでした');
@@ -188,10 +229,24 @@ class LabProxyProvider {
         }),
       });
       const body = (await response.json().catch(() => null)) as
-        | (ProxyResponse & { error?: string })
+        | (ProxyResponse & { error?: string; detail?: unknown })
         | null;
       if (!response.ok || !body) {
         const message = body?.error ?? `Live AI中継 HTTP ${response.status}`;
+        if (
+          response.status === 422 &&
+          body &&
+          typeof body.model === 'string' &&
+          typeof body.usage?.inputTokens === 'number' &&
+          typeof body.usage?.outputTokens === 'number'
+        ) {
+          throw new JsonValidationError(message, {
+            model: body.model,
+            usage: body.usage,
+            retries: 0,
+            rawResponses: [body.detail ?? body.output ?? null],
+          });
+        }
         if (response.status === 422) throw new JsonValidationError(message);
         throw new Error(message);
       }
@@ -273,7 +328,16 @@ export class BrowserAiEngine implements AiEngineLike {
       error = cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause);
       usedFallback = true;
       ok = false;
-      result = await fallback();
+      const fallbackResult = await fallback();
+      result = cause instanceof JsonValidationError && cause.billable
+        ? {
+            ...fallbackResult,
+            model: cause.billable.model,
+            usage: cause.billable.usage,
+            jsonRetries: cause.billable.retries,
+            rawResponse: cause.billable.rawResponses,
+          }
+        : fallbackResult;
     }
     const record: AiCallRecord = {
       id: `call-${opts.stepLabel}-${callType}`,

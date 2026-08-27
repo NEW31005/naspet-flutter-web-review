@@ -299,14 +299,21 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
     const selected = focusBySuspicion[0];
     const other = focusBySuspicion[1];
     if (selected) {
-      const opinions = [
-        `${selected.name}の弁明は聞いた。でも「${reason()}」ように見えて、2人ならこちらをもう少し確かめたい`,
-        `${other ? `${other.name}より` : ''}${selected.name}の説明にはまだ曖昧さが残る。抽選ではなく、話した中身を理由に見ている`,
-        `${selected.name}を狼と決めたわけじゃない。ただ、今の弁明で一番質問を重ねたいのはここ${ending()}`,
-      ];
+      const scoreGap = selected.score - (other?.score ?? 50);
+      const clearContradiction = selected.score >= 75 && scoreGap >= 20 && ev.confidence >= 70;
+      const opinions = clearContradiction
+        ? [
+            `${selected.name}の弁明は聞いた。ただ、説明と今までの主張が噛み合っていないので、ここは具体的に確かめたい`,
+            `${other ? `${other.name}より` : ''}${selected.name}の説明には明確な食い違いがある。抽選ではなく、その矛盾を理由に見ている`,
+          ]
+        : [
+            `${selected.name}の弁明は聞いた。まだ矛盾とまでは言えないので、2人の説明をもう少し比べたい`,
+            `${other ? `${other.name}と` : ''}${selected.name}の説明はどちらも決め手に欠ける。抽選だけで決めず、次の受け答えを見たい`,
+            `${selected.name}を狼と決めたわけじゃない。今は質問を重ねて判断材料を増やしたい${ending()}`,
+          ];
       return {
         text: pickOne(opinions, seed, 'opening-opinion', opts.stepLabel),
-        accusesId: selected.pairId,
+        accusesId: clearContradiction ? selected.pairId : null,
       };
     }
   }
@@ -400,26 +407,24 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
               (!turn.replyToId || entry.pairId === turn.replyToId),
         );
       if (latest) {
-        const replyTarget = topId === turn.replyToId
-          ? `${turn.replyToName ?? 'あなた'}への疑いには、説明を聞くまで根拠があると思っている`
-          : `${topId ? nameOf(topId) : '別の組'}の説明を確かめたい`;
         const reactions = turn.replyToName
           ? [
-              `${turn.replyToName}、その疑いには反対。${persona.firstPerson}は具体的な発言を見ているし、${replyTarget}`,
-              `${turn.replyToName}の指摘は聞いた。でも印象だけで決めず、${replyTarget}`,
+              `${turn.replyToName}の指摘は聞いた。${persona.firstPerson}がそう考えた理由を説明するから、内容で判断してほしい`,
+              `${turn.replyToName}、疑われたこと自体には反発しない。ただ、印象だけでなく${persona.firstPerson}の説明も比べてほしい`,
+              `${turn.replyToName}の見方は分かった。今は言い返すより、どこが矛盾して見えたのかを整理したい`,
             ]
           : isWolf
           ? [
-              `${latest.name}の今の説明だけでは弱い。${topId ? nameOf(topId) : '別の組'}への疑いは残る`,
-              `${latest.name}の今の発言は聞いた。でも${topId ? nameOf(topId) : '候補'}の方が気になるという考えは変わらない`,
+              `${latest.name}の今の説明は聞いた。すぐ否定せず、次の受け答えまで保留したい`,
+              `${latest.name}の言いたいことは分かった。ただ、その説明と投票が合うかは見ておきたい`,
+              `${latest.name}の発言には納得できる部分もある。今は結論を急がない`,
             ]
           : [
-              `${latest.name}の今の発言は筋が通っている部分もある。でも${topId ? nameOf(topId) : '全員'}への見方はまだ決めきれない`,
-              `${latest.name}の説明だけでは判断しきれない。${topId ? nameOf(topId) : '別の組'}との発言の違いを見たい`,
-              `${latest.name}の今の発言で、少なくとも論点は絞れた。${topId ? nameOf(topId) : '候補'}を引き続き見たい`,
+              `${latest.name}の今の発言は筋が通っている部分もある。いったん受け止めて、他の説明とも比べたい`,
+              `${latest.name}の説明だけではまだ決めきれない。ただ、論点は前より分かりやすくなった`,
+              `${latest.name}の今の発言で考えを少し更新した。ここでは結論を保留する`,
             ];
         lines.push(pickOne(reactions, seed, 'reaction', opts.stepLabel));
-        if (topId) accusesId = topId;
       }
     } else if (isWolf) {
       const canMisdirect = deception.some((d) => d.id === 'misdirection');

@@ -164,6 +164,7 @@ export interface ApiClient {
   view(id: string, as: string | null): Promise<ViewResponse>;
   advance(id: string): Promise<AdvanceResponse>;
   advice(id: string, pairId: string, advice: Advice): Promise<{ ok: true }>;
+  skipDiscussionAdvice(id: string, pairId: string): Promise<{ ok: true }>;
   trialChoice(id: string, pairId: string, targetId: string | null): Promise<{ ok: true }>;
   nightProposal(id: string, pairId: string, targetId: string | null): Promise<{ ok: true }>;
   rewind(id: string): Promise<{ ok: true }>;
@@ -189,6 +190,8 @@ const serverApi: ApiClient = {
   view: (id, as) => req('GET', `/api/matches/${id}/view${as ? `?as=${as}` : ''}`),
   advance: (id) => req('POST', `/api/matches/${id}/advance`),
   advice: (id, pairId, advice) => req('POST', `/api/matches/${id}/advice`, { pairId, advice }),
+  skipDiscussionAdvice: (id, pairId) =>
+    req('POST', `/api/matches/${id}/skip-discussion-advice`, { pairId }),
   trialChoice: (id, pairId, targetId) =>
     req('POST', `/api/matches/${id}/trial-choice`, { pairId, targetId }),
   nightProposal: (id, pairId, targetId) =>
@@ -225,6 +228,8 @@ const browserApi: ApiClient = {
   advance: (id) => local().advance(id),
   advice: (id, pairId, advice) =>
     resolved(() => (local().submitAdvice(id, pairId, advice), { ok: true as const })),
+  skipDiscussionAdvice: (id, pairId) =>
+    resolved(() => (local().skipDiscussionAdvice(id, pairId), { ok: true as const })),
   trialChoice: (id, pairId, targetId) =>
     resolved(() => (local().submitTrialChoice(id, pairId, targetId), { ok: true as const })),
   nightProposal: (id, pairId, targetId) =>

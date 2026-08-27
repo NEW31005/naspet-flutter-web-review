@@ -245,7 +245,13 @@ function timedDiscussionTurns(state: MatchState): DiscussionTurn[] {
       return completed <= requiredBefore;
     });
     const defenses = pending.filter((turn) => turn.kind === 'opening_defense');
-    return (defenses.length > 0 ? defenses : pending).slice(0, batchSize);
+    const candidates = defenses.length > 0 ? defenses : pending;
+    const uniqueSpeakers: DiscussionTurn[] = [];
+    for (const turn of candidates) {
+      if (uniqueSpeakers.some((candidate) => candidate.pairId === turn.pairId)) continue;
+      uniqueSpeakers.push(turn);
+    }
+    return uniqueSpeakers.slice(0, batchSize);
   }
 
   const aliveIds = alivePairs(state).map((pair) => pair.pairId);
@@ -302,28 +308,96 @@ function timedDiscussionTurns(state: MatchState): DiscussionTurn[] {
   const counts = Object.fromEntries(
     aliveIds.map((pairId) => [pairId, speeches.filter((speech) => speech.pairId === pairId).length]),
   ) as Record<PairId, number>;
-  const last = speeches[speeches.length - 1];
-  // 同時生成された複数の名指しも取りこぼさない。名指し後に対象本人がまだ
-  // 発言していないものを新しい順に拾い、対象本人の反論を優先する。
+  // 前の並列バッチで話したバディは、即座にもう一度通常発言へ選ばない。
+  // 質問への回答は上で単独処理するため、このcooldownの対象外になる。
+  // 生存者がbatchSize以下でも討論を止めないよう、最低1人は候補に残す。
+  const cooldownCount = Math.min(
+    speeches.length,
+    batchSize,
+    Math.max(0, aliveIds.length - 1),
+  );
+  const cooldownIds = new Set(
+    speeches.slice(-cooldownCount).map((speech) => speech.pairId),
+  );
+
+  // 評価コールが挙げた質問候補を、各バディ1日1回まで公開の質疑へ昇格する。
+  // 主人の質問、未回答質問、受け止めは上で先に回収済みなので優先順位は崩さない。
+  const askedToday = new Set(
+    speeches
+      .filter((speech) => speech.turnKind === 'question')
+      .map((speech) => speech.question?.askerId ?? speech.pairId),
+  );
+  const questionThemes = state.config.advice.questionThemes;
+  const fallbackThemeId =
+    questionThemes.find((theme) => theme.id === 'most_suspicious')?.id ??
+    questionThemes.find((theme) => state.day > 1 || theme.id !== 'vote_reason')?.id ??
+    null;
+  const selfQuestionCandidates = shuffle(
+    aliveIds.filter((pairId) => {
+      if (askedToday.has(pairId) || cooldownIds.has(pairId)) return false;
+      const evaluation = state.latestEvals[pairId];
+      return !!evaluation?.questionTargetId &&
+        evaluation.questionTargetId !== pairId &&
+        aliveIds.includes(evaluation.questionTargetId);
+    }),
+    state.seed,
+    'timed-self-question',
+    state.day,
+    speeches.length,
+  );
+  selfQuestionCandidates.sort((left, right) => (counts[left] ?? 0) - (counts[right] ?? 0));
+  const selfQuestioner = selfQuestionCandidates[0];
+  if (selfQuestioner) {
+    const evaluation = state.latestEvals[selfQuestioner];
+    const targetId = evaluation?.questionTargetId ?? null;
+    const requestedThemeId = evaluation?.questionTheme &&
+      questionThemes.some((theme) => theme.id === evaluation.questionTheme)
+      ? evaluation.questionTheme
+      : fallbackThemeId;
+    const configuredThemeId = state.day === 1 && requestedThemeId === 'vote_reason'
+      ? fallbackThemeId
+      : requestedThemeId;
+    if (targetId && configuredThemeId) {
+      return [{
+        pairId: selfQuestioner,
+        round: 2,
+        kind: 'question',
+        question: { askerId: selfQuestioner, targetId, themeId: configuredThemeId },
+      }];
+    }
+  }
+
+  // 同時生成された複数の名指しも取りこぼさない。対象本人が名指し後に
+  // 無関係な同時生成発言をしていても「返答済み」とはみなさず、replyToIdで
+  // 実際にその話者へ返したreaction/answer/follow_upだけを解決扱いにする。
+  // 一般告発への即時反応は1バッチ1人までにし、反論だけの連鎖も抑える。
   const unresolvedAccusations = [...speeches].reverse().filter((speech) => {
     const targetId = speech.accusesId;
     if (!targetId || targetId === speech.pairId || !aliveIds.includes(targetId)) return false;
-    return !speeches.some((later) => later.seq > speech.seq && later.pairId === targetId);
+    return !speeches.some((later) =>
+      later.seq > speech.seq &&
+      later.pairId === targetId &&
+      later.replyToId === speech.pairId &&
+      (later.turnKind === 'reaction' ||
+        later.turnKind === 'answer' ||
+        later.turnKind === 'follow_up'),
+    );
   });
   const priorityTurns: DiscussionTurn[] = [];
   for (const accusation of unresolvedAccusations) {
     const pairId = accusation.accusesId;
-    if (!pairId || priorityTurns.some((turn) => turn.pairId === pairId)) continue;
+    if (!pairId) continue;
     priorityTurns.push({
       pairId,
       round: 2,
       kind: 'reaction',
       replyToId: accusation.pairId,
     });
+    break;
   }
   const priorityIds = priorityTurns.map((turn) => turn.pairId);
   const shuffled = shuffle(
-    aliveIds.filter((pairId) => !priorityIds.includes(pairId) && pairId !== last?.pairId),
+    aliveIds.filter((pairId) => !priorityIds.includes(pairId) && !cooldownIds.has(pairId)),
     state.seed,
     'timed-discussion',
     state.day,
@@ -348,17 +422,54 @@ export function getPendingTask(state: MatchState, now?: number): PendingTask {
       const d = state.discussion;
       if (!d) return { type: 'advance_day' };
       if (d.mode === 'timed') {
-        if (now != null && now >= d.endsAt) return { type: 'close_discussion', reason: 'time_up' };
+        if (d.stage === 'awaiting_master_advice') {
+          const human = state.humanPairId
+            ? state.pairs.find((pair) => pair.pairId === state.humanPairId)
+            : null;
+          const needsHumanDecision =
+            d.masterAdviceDecision === 'pending' &&
+            human?.alive === true &&
+            state.config.rules.advicePerDay > 0 &&
+            (state.adviceUsedToday[human.pairId] ?? 0) < state.config.rules.advicePerDay;
+          if (needsHumanDecision) {
+            return {
+              type: 'wait_inputs',
+              missing: [{ pairId: human.pairId, input: 'discussion_advice' }],
+            };
+          }
+          return { type: 'start_discussion_response' };
+        }
         const speechCount = currentDaySpeeches(state).length;
-        if (speechCount >= (state.config.rules.discussionMaxMessages ?? 30)) {
+        const maxMessages = state.config.rules.discussionMaxMessages ?? 30;
+        if (d.stage === 'opening') {
+          // 総発言上限から最低1件をresponseへ残す。時間も40%を予約する。
+          const openingMessageLimit = Math.max(0, maxMessages - 1);
+          if (
+            (now != null && now >= d.stageEndsAt) ||
+            speechCount >= openingMessageLimit
+          ) {
+            return { type: 'start_discussion_response' };
+          }
+          const openingTurns = timedDiscussionTurns(state);
+          if (openingTurns.length > 0) {
+            return {
+              type: 'ai_speech_batch',
+              turns: openingTurns.slice(0, openingMessageLimit - speechCount),
+            };
+          }
+          return { type: 'start_discussion_response' };
+        }
+        if (now != null && now >= d.stageEndsAt) {
+          return { type: 'close_discussion', reason: 'time_up' };
+        }
+        if (speechCount >= maxMessages) {
           return { type: 'close_discussion', reason: 'message_limit' };
         }
         const turns = timedDiscussionTurns(state);
         if (turns.length > 0) {
-          const remaining = (state.config.rules.discussionMaxMessages ?? 30) - speechCount;
+          const remaining = maxMessages - speechCount;
           return { type: 'ai_speech_batch', turns: turns.slice(0, remaining) };
         }
-        if (d.stage === 'opening') return { type: 'start_discussion_response' };
         return { type: 'close_discussion', reason: 'message_limit' };
       }
       const next = d.queue[d.cursor];
@@ -422,20 +533,80 @@ export function applyAdvanceDay(state: MatchState, now: number): MatchEvent[] {
 
 /** 主人の相談後に第2幕を開始する。会話順はstate reducerが決定論的に構築する。 */
 export function applyStartDiscussionResponse(state: MatchState, now: number): MatchEvent[] {
+  if (state.phase !== 'discussion' || !state.discussion) {
+    throw new GameRuleError('相談後の討論を開始できる状態ではありません', 'wrong_discussion_stage');
+  }
+  const discussion = state.discussion;
+  if (discussion.mode === 'timed' && discussion.stage === 'opening') {
+    const batch = new EventBatch(state, now);
+    batch.push({
+      type: 'discussion_stage_changed',
+      visibility: PUBLIC,
+      payload: { stage: 'awaiting_master_advice' },
+    });
+    return batch.events;
+  }
   if (
-    state.phase !== 'discussion' ||
-    !state.discussion ||
-    (state.discussion.mode === 'timed'
-      ? state.discussion.stage !== 'opening'
-      : state.discussion.stage !== 'advice')
+    !(
+      (discussion.mode === 'timed' && discussion.stage === 'awaiting_master_advice') ||
+      (discussion.mode !== 'timed' && discussion.stage === 'advice')
+    )
   ) {
     throw new GameRuleError('相談後の討論を開始できる状態ではありません', 'wrong_discussion_stage');
   }
   const batch = new EventBatch(state, now);
+  if (discussion.mode === 'timed' && discussion.masterAdviceDecision === 'pending') {
+    const human = state.humanPairId
+      ? state.pairs.find((pair) => pair.pairId === state.humanPairId)
+      : null;
+    const stillNeedsHumanDecision =
+      human?.alive === true &&
+      state.config.rules.advicePerDay > 0 &&
+      (state.adviceUsedToday[human.pairId] ?? 0) < state.config.rules.advicePerDay;
+    if (stillNeedsHumanDecision) {
+      throw new GameRuleError('主人の助言またはスキップを待っています', 'master_advice_pending');
+    }
+    // Lab/CLIなど主人がいない試合も「暗黙に通過」させず、スキップをイベントへ残す。
+    batch.push({
+      type: 'discussion_advice_skipped',
+      visibility: GM,
+      payload: { pairId: human?.pairId ?? null },
+    });
+  }
   batch.push({
     type: 'discussion_stage_changed',
     visibility: PUBLIC,
     payload: { stage: 'response' },
+  });
+  return batch.events;
+}
+
+/** 時間制討論の主人ターンで、助言しない意思を明示する。 */
+export function applySkipDiscussionAdvice(
+  state: MatchState,
+  pairId: PairId,
+  now: number,
+): MatchEvent[] {
+  if (
+    state.phase !== 'discussion' ||
+    state.discussion?.mode !== 'timed' ||
+    state.discussion.stage !== 'awaiting_master_advice'
+  ) {
+    throw new GameRuleError('助言をスキップできる状態ではありません', 'wrong_discussion_stage');
+  }
+  if (state.humanPairId !== pairId) {
+    throw new GameRuleError('担当主人だけが助言をスキップできます', 'not_human_master');
+  }
+  const pair = getPair(state, pairId);
+  if (!pair.alive) throw new GameRuleError('死亡した組は助言できません', 'pair_dead');
+  if (state.discussion.masterAdviceDecision !== 'pending') {
+    throw new GameRuleError('主人の相談はすでに確定しています', 'advice_already_resolved');
+  }
+  const batch = new EventBatch(state, now);
+  batch.push({
+    type: 'discussion_advice_skipped',
+    visibility: forPair(pairId, 'both'),
+    payload: { pairId },
   });
   return batch.events;
 }
@@ -448,6 +619,15 @@ export function applyCloseDiscussion(
 ): MatchEvent[] {
   if (state.phase !== 'discussion' || !state.discussion) {
     throw new GameRuleError('討論を終了できる状態ではありません', 'wrong_phase');
+  }
+  if (reason === 'time_up' && state.discussion.pausedAt != null) {
+    throw new GameRuleError('主人の相談中は討論時間を停止しています', 'discussion_paused');
+  }
+  if (state.discussion.mode === 'timed' && state.discussion.stage === 'opening') {
+    throw new GameRuleError(
+      '冒頭討論の後は主人の相談を先に行います',
+      'master_advice_required',
+    );
   }
   const batch = new EventBatch(state, now);
   batch.push({ type: 'discussion_closed', visibility: PUBLIC, payload: { reason } });
@@ -468,6 +648,30 @@ export function applyAdvice(
 ): MatchEvent[] {
   if (state.phase !== 'discussion') {
     throw new GameRuleError('助言は討論中のみ送れます', 'advice_wrong_phase');
+  }
+  if (
+    state.discussion?.mode === 'timed' &&
+    state.discussion.stage !== 'awaiting_master_advice' &&
+    now >= state.discussion.stageEndsAt
+  ) {
+    throw new GameRuleError('討論時間が終了しています', 'discussion_deadline');
+  }
+  if (
+    state.discussion?.mode === 'timed' &&
+    state.discussion.stage !== 'awaiting_master_advice'
+  ) {
+    throw new GameRuleError(
+      '助言は冒頭討論が終わってから送れます',
+      'advice_before_intermission',
+    );
+  }
+  if (
+    state.discussion?.mode === 'timed' &&
+    state.discussion.stage === 'awaiting_master_advice' &&
+    state.humanPairId === pairId &&
+    state.discussion.masterAdviceDecision !== 'pending'
+  ) {
+    throw new GameRuleError('主人の相談はすでに確定しています', 'advice_already_resolved');
   }
   if (
     state.discussion?.mode !== 'timed' &&
@@ -504,6 +708,12 @@ export function applyAdvice(
       if (advice.kind === 'question') {
         const theme = state.config.advice.questionThemes.find((t) => t.id === advice.themeId);
         if (!theme) throw new GameRuleError('不明な質問テーマです', 'unknown_theme');
+        if (state.day === 1 && theme.id === 'vote_reason') {
+          throw new GameRuleError(
+            '1日目は前日の投票がないため、この質問は選べません',
+            'question_unavailable_day',
+          );
+        }
       }
       break;
     case 'skill_target':
@@ -557,6 +767,12 @@ export function applySpeech(
   if (state.phase !== 'discussion' || !state.discussion) {
     throw new GameRuleError('討論フェーズではありません', 'wrong_phase');
   }
+  if (state.discussion.stage === 'awaiting_master_advice') {
+    throw new GameRuleError('主人の助言またはスキップを待っています', 'master_advice_pending');
+  }
+  if (state.discussion.mode === 'timed' && now >= state.discussion.stageEndsAt) {
+    throw new GameRuleError('討論時間が終了しています', 'discussion_deadline');
+  }
   const next = turnOverride ?? state.discussion.queue[state.discussion.cursor];
   if (!next || next.pairId !== pairId ||
       (state.discussion.mode !== 'timed' && turnOverride)) {
@@ -586,6 +802,7 @@ export function applySpeech(
       round: next.round,
       turnKind: next.kind,
       question: next.question,
+      replyToId: next.replyToId,
       text,
       accusesId,
     },

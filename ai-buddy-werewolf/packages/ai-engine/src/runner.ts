@@ -25,6 +25,7 @@ import {
   applyCloseDiscussion,
   applyNight,
   applyNightProposal,
+  applySkipDiscussionAdvice,
   applySpeech,
   applyStartDiscussionResponse,
   applyTrialChoice,
@@ -234,7 +235,14 @@ export class MatchRunner {
    */
   private async doSpeechBatch(turns: DiscussionTurn[]): Promise<void> {
     const scheduledState = this.state;
-    const deadlineAt = scheduledState.discussion?.endsAt;
+    const deadlineAt = scheduledState.discussion?.stageEndsAt;
+    const canApplyToScheduledDiscussion = (completedAt: number): boolean =>
+      this.state.phase === 'discussion' &&
+      this.state.discussion?.mode === 'timed' &&
+      this.state.day === scheduledState.day &&
+      this.state.rewindNonce === scheduledState.rewindNonce &&
+      this.state.discussion.stageEndsAt === deadlineAt &&
+      (deadlineAt == null || completedAt < deadlineAt);
     const completed = await Promise.allSettled(
       turns.map(async (turn, index) => {
         const ctx = buildBuddyContext(scheduledState, turn.pairId, turn);
@@ -247,8 +255,9 @@ export class MatchRunner {
           opts,
         );
         this.pushCall(evalRes.record);
-        if (deadlineAt != null && this.now() >= deadlineAt) {
-          return { turn, completedAt: this.now(), expired: true as const };
+        const evaluatedAt = this.now();
+        if (!canApplyToScheduledDiscussion(evaluatedAt)) {
+          return { status: 'discarded' as const };
         }
         const speechRes = await this.ai.speak(
           scheduledState.provider,
@@ -259,49 +268,41 @@ export class MatchRunner {
         );
         this.pushCall(speechRes.record);
         const completedAt = this.now();
-        return {
-          turn,
-          completedAt,
-          expired: deadlineAt != null && completedAt >= deadlineAt,
-          evalRes,
-          speechRes,
-        };
+        if (!canApplyToScheduledDiscussion(completedAt)) {
+          return { status: 'discarded' as const };
+        }
+
+        // 他のAIを待たず、完成した発言から現在のstateへ正式イベントとして反映する。
+        // JSの同期区間内でappendまで完了するため、並列Promise間でもseqは重複しない。
+        appendEvents(
+          this.store,
+          applySpeech(
+            this.state,
+            turn.pairId,
+            evalRes.output,
+            evalRes.record.id,
+            speechRes.output,
+            completedAt,
+            turn,
+          ),
+        );
+        return { status: 'applied' as const };
       }),
     );
 
     const failures = completed.filter(
       (result): result is PromiseRejectedResult => result.status === 'rejected',
     );
-    if (failures.length > 0 && !(deadlineAt != null && this.now() >= deadlineAt)) {
+    const appliedCount = completed.filter(
+      (result) => result.status === 'fulfilled' && result.value.status === 'applied',
+    ).length;
+    const checkedAt = this.now();
+    if (
+      appliedCount === 0 &&
+      failures.length > 0 &&
+      canApplyToScheduledDiscussion(checkedAt)
+    ) {
       throw failures[0]?.reason;
-    }
-    const usable = completed
-      .filter((result): result is PromiseFulfilledResult<{
-        turn: DiscussionTurn;
-        completedAt: number;
-        expired: boolean;
-        evalRes: { output: EvalOutput; record: AiCallRecord };
-        speechRes: { output: SpeechOutput; record: AiCallRecord };
-      }> => result.status === 'fulfilled' && !result.value.expired &&
-        'evalRes' in result.value && 'speechRes' in result.value)
-      .map((result) => result.value)
-      .sort((left, right) => left.completedAt - right.completedAt ||
-        left.turn.pairId.localeCompare(right.turn.pairId));
-
-    for (const result of usable) {
-      if (this.state.phase !== 'discussion' || this.state.discussion?.mode !== 'timed') break;
-      appendEvents(
-        this.store,
-        applySpeech(
-          this.state,
-          result.turn.pairId,
-          result.evalRes.output,
-          result.evalRes.record.id,
-          result.speechRes.output,
-          result.completedAt,
-          result.turn,
-        ),
-      );
     }
   }
 
@@ -322,6 +323,9 @@ export class MatchRunner {
       evals[pairId] = { output: res.output, callId: res.record.id };
     }
     appendEvents(this.store, applyVotes(state, evals, this.now()));
+    if (this.state.winner && this.store.record.finishedAt == null) {
+      this.store.record.finishedAt = this.now();
+    }
   }
 
   private async doNight(wolfPairIds: PairId[], seerPairId: PairId | null): Promise<void> {
@@ -346,6 +350,9 @@ export class MatchRunner {
       evals[pairId] = { output: res.output, callId: res.record.id };
     }
     appendEvents(this.store, applyNight(state, evals, this.now()));
+    if (this.state.winner && this.store.record.finishedAt == null) {
+      this.store.record.finishedAt = this.now();
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -524,6 +531,10 @@ export class MatchRunner {
 
   submitAdvice(pairId: PairId, advice: Advice): void {
     appendEvents(this.store, applyAdvice(this.state, pairId, advice, this.now()));
+  }
+
+  skipDiscussionAdvice(pairId: PairId): void {
+    appendEvents(this.store, applySkipDiscussionAdvice(this.state, pairId, this.now()));
   }
 
   submitTrialChoice(pairId: PairId, targetId: PairId | null): void {

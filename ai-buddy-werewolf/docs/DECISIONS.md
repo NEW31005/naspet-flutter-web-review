@@ -23,14 +23,14 @@
 | 項目 | 仮決定 | 変更手段 |
 |---|---|---|
 | プリセット | Quick Test(5組/狼1/占1/3日)・Pack Test(8組/狼2/占1/4日) | `config/presets/` |
-| 討論 | 全プリセットを時間制にする（既定150秒）。初日は抽選された2人が先に弁明し、その後は各AIが個別・並列に発言する。名指しされた相手の反論と指名質問への単独回答を優先し、時間切れ後の生成は不採用 | `discussionMode`, `discussionDurationSec`, `discussionMaxMessages`, `discussionBatchSize`, `firstDayFocusCount` とプリセット |
+| 討論 | 全プリセットを時間制にし（既定150秒）、`opening → awaiting_master_advice → response` の3段階で進める。初日は抽選された2人が先に弁明し、他AIの意見まで出たら必ず主人へ返す。相談待ち中は討論時計を停止し、助言または明示的なスキップ後に残り時間で再開する。各AIは個別に処理し、名指し反論と指名質問への回答・追加反応を優先。時間切れ後の生成は不採用 | `discussionMode`, `discussionDurationSec`, `discussionMaxMessages`, `discussionBatchSize`, `firstDayFocusCount` とプリセット |
 | 助言 | 1日1回、メニュー5種、質問テーマ5種、立ち回り4種 | プリセット + `config/advice.json` |
 | 親密度補正 | 線形加算(Quick裁判の現在候補32、night 25、skill 30、主観助言20) | プリセット `trust.*` |
 | 襲撃統合 | 各狼の補正後優先度を正規化して合算、同点シード付きランダム | プリセット |
 | 同票処理 | 候補からシード付きランダム | プリセット(方式追加はコード) |
 | 最大日数到達 | 引き分け | `checkWin`/engine(コード) |
 | 死亡時の役職公開 | しない | プリセット `revealRoleOnDeath` |
-| 占い | 各夜1回。初日結果は既定なし、設定で通常抽選または白通知を有効化。結果は主人だけへ届き、同一対象の再占いは候補が尽きた時のみ | `firstNightDivination` / engine |
+| 占い | 各夜1回。現行Quick / Quick-info / Packは、初日から情報共有ループを試すため白結果1件を主人へ通知する。設定で初日なし・通常抽選へ戻せる。結果は主人だけへ届き、同一対象の再占いは候補が尽きた時のみ | `firstNightDivination` / engine |
 | 投票の公開 | 誰が誰に投票したかは公開情報 | engine(コード) |
 | 裁判の意思表示 | 主人選択はAIプロンプトに入れず、エンジンが数値補正として適用(二重計上防止) | engine(コード) |
 | 主人の意思表示の棄権 | ポリシー主人はnull可・人間主人は選択必須(UI上) | UI/engine |
@@ -39,23 +39,27 @@
 | Live評価の構造化出力 | Record回避のため配列で受けて変換。公開LabはEdgeのJSON Schema指示 + ブラウザZod検証 | `anthropic.ts` / `browserAi.ts` / Edge Function |
 | 公開確認 | GitHub Pagesの固定パス + 個人用合言葉 + noindex | 公開Lab build / Supabase secret |
 | 公開Labの保存 | 試合・設定差分は利用端末のlocalStorageのみ | `browserBackend.ts` / `staticConfig.ts` |
+| Live入力ログ | 永続的な公開イベントは保持し、発言本文は直近24件だけを評価コールへ渡す。過去全文の反復送信による原価増大を防ぐ | `promptBuilder.ts` / `runner.ts` |
+| 公開Labの生ログ保存 | 進行中メモリでは全コールを保持するが、再読込後の生リクエスト/レスポンスは直近30コールだけ保持。完全記録が必要ならリロード前にJSONを書き出す | `browserBackend.ts` |
+| 公開Labの課金保護 | Edgeで本文・プロンプト・出力token・同時実行・30分件数を制限し、Live停止スイッチを持つ。isolate単位のベストエフォートであり、プロバイダー全体の厳密な上限ではない | `supabase/functions/ai-buddy-lab/` |
 | 本番持ち越し | 13ファイル固定、設定versionとfiles SHA-256付きbundle | `MobileHandoffBundle` / `docs/MOBILE_HANDOFF.md` |
 
 ## 3. まだ未決定のこと
 
 - 助言メニューの最終ラインナップと影響度の適正値(検証で決める)
-- 討論の適正周回数・発言長(所要時間と面白さのトレードオフ)
+- 討論の適正時間・発言数・同時実行数(所要時間、読みやすさ、面白さ、API原価のトレードオフ)
 - 占い役のCO(役職公開)をどの程度AIの自由にするか
 - 引き分けの扱い(最大日数の適正値、引き分けを廃止すべきか)
 - 親密度の増減システム(Phase0は固定値。育成・変動は本番構想)
 - 先行生成の具体設計(評価の先読み深さ、助言による無効化の扱い)
 - 本番のマルチプレイ構成(Phase0はローカル単一プレイヤー)
+- Pack Testの陣営バランス（現候補モック40試合は市民8 / 狼32。Packは2狼の襲撃統合を確かめる診断用で、勝率調整済みとは扱わない）
 
 ## 4. 技術上の仮定
 
 - Node版はローカル単一ユーザー・単一プロセスで十分。公開Labは個人検証用の合言葉ゲートを持つが、本番ユーザー認証ではない
 - 永続化はJSONファイルで十分(SQLiteは不要と判断。移行するなら`MatchRecord`スキーマをそのままテーブル化)
-- クライアントはポーリング(2.5秒)で十分。リアルタイム性が必要になったらSSE/WebSocketへ
+- クライアントは通常ポーリングで、AI進行中は400ms間隔で完了済み発言を取り込む。完全なリアルタイム性が必要になったらSSE/WebSocketへ
 - LLM呼び出しはサーバー側のみ(APIキー保護)。この境界は本番でも維持
 - Node版はAnthropic、公開LabはOpenRouter経由Claudeを実装（抽象化済み）
 - Node 20+ / TypeScript strict / ESM。tsx実行(サーバーのビルド成果物は作らない)
@@ -70,3 +74,4 @@
 - 狼AIの嘘が市民AIに看破される率(虚言力・推論力の値付け)
 - 質問指定→回答の会話が成立する率(プロンプト改善の主戦場)
 - JSON構造化出力の失敗率・リトライ率(スキーマの複雑さ調整)
+- 主人相談待ちで確実に時計が止まり、助言後の質問→回答→追加反応がLiveでも読み物として成立するか。候補版Liveの比較試験は公開後に行う

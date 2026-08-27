@@ -117,6 +117,33 @@ function scenarioAfterFirstNight(seed = 'vis-seed') {
 }
 
 describe('AIコンテキストの秘密分離', () => {
+  it('当日利用可能な質問テーマIDだけを公開設定から渡す', () => {
+    const config = makeSnapshot();
+    config.advice.questionThemes.push({
+      id: 'most_suspicious',
+      label: '現在最も疑っている相手',
+      mockTemplate: '{target}は今、誰を疑ってる?',
+      promptHint: '現在の疑い先と理由を尋ねる',
+    });
+    let state = createMatch({
+      matchId: 'm-question-themes',
+      seed: 'question-themes-seed',
+      mode: 'lab',
+      provider: 'mock',
+      humanPairIndex: null,
+      config,
+      now: NOW,
+    }).state;
+    state = apply(state, applyAdvanceDay(state, NOW));
+    const ctx = buildBuddyContext(state, 'p1');
+    expect(ctx.questionThemes).toContainEqual({
+      id: 'most_suspicious',
+      label: '現在最も疑っている相手',
+    });
+    expect(ctx.questionThemes.some((theme) => theme.id === 'vote_reason')).toBe(false);
+    expect(ctx.questionThemes.every((theme) => Object.keys(theme).sort().join(',') === 'id,label')).toBe(true);
+  });
+
   it('占い結果は共有するまでバディのコンテキストに入らない', () => {
     const { state, seer, wolf } = scenarioAfterFirstNight();
     expect(seer && wolf).toBeTruthy();

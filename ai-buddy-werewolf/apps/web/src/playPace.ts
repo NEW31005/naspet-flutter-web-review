@@ -23,6 +23,14 @@ const TIMED_MOCK_BATCH_DELAY_MS: Record<Exclude<PlayPace, 'manual'>, number> = {
   relaxed: 10_000,
 };
 
+/**
+ * Liveの並列生成中は、先に完成した個別発言をすぐ画面へ出す。
+ * 通常時は従来どおり低頻度にして、不要なAPIアクセスを増やさない。
+ */
+export function viewRefreshIntervalMs(timedDiscussion: boolean, aiRunning: boolean): number {
+  return timedDiscussion && aiRunning ? 400 : 2_500;
+}
+
 export function normalizePlayPace(value: string | null | undefined): PlayPace {
   return PLAY_PACES.includes(value as PlayPace) ? (value as PlayPace) : 'standard';
 }

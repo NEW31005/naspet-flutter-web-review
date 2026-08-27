@@ -153,6 +153,12 @@ export function createServer(rootDir: string, manager: MatchManager): http.Serve
     manager.submitAdvice(params.id ?? '', b.pairId, advice);
     return { ok: true };
   });
+  on('POST', '/api/matches/:id/skip-discussion-advice', ({ params, body }) => {
+    const b = body as { pairId?: string };
+    if (!b.pairId) throw new BadRequest('pairIdが必要です');
+    manager.skipDiscussionAdvice(params.id ?? '', b.pairId);
+    return { ok: true };
+  });
   on('POST', '/api/matches/:id/trial-choice', ({ params, body }) => {
     const b = body as { pairId?: string; targetId?: string | null };
     if (!b.pairId) throw new BadRequest('pairIdが必要です');

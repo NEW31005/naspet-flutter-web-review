@@ -50,6 +50,7 @@ export type PublicLogEntry =
       round: number;
       turnKind: DiscussionTurnKind;
       question?: DiscussionTurn['question'];
+      replyToId?: PairId;
       pairId: PairId;
       name: string;
       text: string;
@@ -85,6 +86,13 @@ export interface DiscussionState {
   /** 討論開始時刻と締切。イベントのtsから復元できる。 */
   startedAt: number;
   endsAt: number;
+  /** 現在stageのAI生成締切。openingではresponse用40%を予約した時刻。 */
+  stageEndsAt: number;
+  responseReserveMs: number;
+  /** 主人入力待ちへ入った時点の残り時間。待機中は減らさず、再開時にendsAtへ戻す。 */
+  remainingMs: number;
+  pausedAt: number | null;
+  masterAdviceDecision: 'pending' | 'advice' | 'skipped';
   /** 初日に抽選された公開の討論対象。役職や内部評価とは無関係。 */
   focusPairIds: PairId[];
   queue: DiscussionTurn[];
@@ -247,11 +255,19 @@ function buildDiscussionQueue(state: MatchState, startedAt: number): DiscussionS
   }
   const mode = state.config.rules.discussionMode ?? 'turns';
   const durationSec = state.config.rules.discussionDurationSec ?? 150;
+  const durationMs = durationSec * 1000;
+  const responseReserveMs = Math.ceil(durationMs * 0.4);
+  const endsAt = startedAt + durationMs;
   return {
     stage: 'opening',
     mode,
     startedAt,
-    endsAt: startedAt + durationSec * 1000,
+    endsAt,
+    stageEndsAt: mode === 'timed' ? endsAt - responseReserveMs : endsAt,
+    responseReserveMs,
+    remainingMs: durationMs,
+    pausedAt: null,
+    masterAdviceDecision: 'pending',
     focusPairIds,
     queue,
     cursor: 0,
@@ -376,8 +392,22 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
     }
     case 'discussion_stage_changed': {
       if (!state.discussion) throw new Error('discussion state is missing');
+      if (event.payload.stage === 'awaiting_master_advice') {
+        state.discussion.remainingMs = Math.max(
+          state.discussion.responseReserveMs,
+          state.discussion.endsAt - event.ts,
+        );
+        state.discussion.stageEndsAt = event.ts;
+        state.discussion.pausedAt = event.ts;
+        state.discussion.masterAdviceDecision = 'pending';
+      }
       state.discussion.stage = event.payload.stage;
       if (event.payload.stage === 'response') {
+        if (state.discussion.pausedAt != null) {
+          state.discussion.endsAt = event.ts + state.discussion.remainingMs;
+          state.discussion.pausedAt = null;
+        }
+        state.discussion.stageEndsAt = state.discussion.endsAt;
         state.discussion.queue = buildResponseQueue(state);
         state.discussion.cursor = 0;
       }
@@ -387,6 +417,11 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
         t: 'discussion_stage',
         stage: event.payload.stage,
       });
+      break;
+    }
+    case 'discussion_advice_skipped': {
+      if (!state.discussion) throw new Error('discussion state is missing');
+      state.discussion.masterAdviceDecision = 'skipped';
       break;
     }
     case 'discussion_closed': {
@@ -426,6 +461,7 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
         round: event.payload.round,
         turnKind: event.payload.turnKind,
         question: event.payload.question,
+        replyToId: event.payload.replyToId,
         pairId: pair.pairId,
         name: pair.buddyName,
         text: event.payload.text,
@@ -443,6 +479,12 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
     }
     case 'advice_given': {
       applyAdviceToState(state, event.payload.pairId, event.payload.advice);
+      if (
+        state.discussion?.stage === 'awaiting_master_advice' &&
+        state.humanPairId === event.payload.pairId
+      ) {
+        state.discussion.masterAdviceDecision = 'advice';
+      }
       break;
     }
     case 'fact_shared': {
@@ -560,6 +602,13 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
     }
     case 'rewound': {
       state.rewindNonce = event.payload.nonce;
+      if (state.phase === 'discussion') {
+        // 巻き戻し後も切り詰め前の phase_changed.ts を使い続けると、
+        // 時間制討論が再開直後に期限切れになる。発言キューも含めて
+        // フェーズ先頭の状態へ戻し、rewound イベントの時刻から再開する。
+        state.discussion = buildDiscussionQueue(state, event.ts);
+        for (const pair of state.pairs) state.pendingQuestion[pair.pairId] = null;
+      }
       break;
     }
     case 'note':

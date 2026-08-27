@@ -170,9 +170,12 @@ export function Lab({ matchId }: { matchId: string }) {
           <h2>📊 指標</h2>
           <div className="muted small">
             コール{data.metrics.aiCallCount} / 入力{data.metrics.inputTokens}tok / 出力
-            {data.metrics.outputTokens}tok / ${data.metrics.costUsd.toFixed(4)} / AI待機
+            {data.metrics.outputTokens}tok / ${data.metrics.costUsd.toFixed(4)} / 延べAI処理
             {(data.metrics.aiWaitMs / 1000).toFixed(1)}s / エラー{data.metrics.errorCount} / JSON失敗
             {data.metrics.jsonErrorCount} / 代替処理 {data.metrics.fallbackCount}
+          </div>
+          <div className="muted small">
+            延べAI処理は並列コールも足した値で、実際の体感待機時間ではありません。
           </div>
           <div className="row">
             <button className="ghost" onClick={() => void api.downloadRecord(matchId)}>JSON</button>
@@ -190,6 +193,9 @@ export function Lab({ matchId }: { matchId: string }) {
 
         <div className="card">
           <h2>🤖 AIコール履歴({calls.length})</h2>
+          <p className="muted small">
+            公開Webでは、再読み込み後の生リクエスト・応答は秘密保護と容量対策のため直近30コールのみです。完全版は試合終了直後に上のJSONから保存してください。
+          </p>
           {calls
             .slice(-30)
             .reverse()

@@ -181,8 +181,11 @@ export function Result({ matchId }: { matchId: string }) {
                   <td>{m.wallClockMs != null ? `${(m.wallClockMs / 1000).toFixed(1)}秒` : '—'}</td>
                 </tr>
                 <tr>
-                  <th>純粋なAI待機時間</th>
-                  <td>{(m.aiWaitMs / 1000).toFixed(1)}秒</td>
+                  <th>延べAI処理時間</th>
+                  <td>
+                    {(m.aiWaitMs / 1000).toFixed(1)}秒
+                    <div className="muted small">並列コールも足した値で、実際の体感待機時間ではありません。</div>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -200,6 +203,9 @@ export function Result({ matchId }: { matchId: string }) {
               JSON書き出し
             </button>
           </div>
+          <p className="muted small">
+            公開Webでは、再読み込み後の生リクエスト・応答は秘密保護と容量対策のため直近30コールのみ残ります。完全版は試合終了直後にJSONを書き出してください。
+          </p>
         </div>
         {error && <ErrorBox error={error} onRetry={load} />}
       </div>

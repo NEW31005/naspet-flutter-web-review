@@ -58,6 +58,28 @@ export function renderPublicLog(log: PublicLogEntry[], limit?: number): string {
   return lines.length > 0 ? lines.join('\n') : '(まだ公開ログはありません)';
 }
 
+/**
+ * 評価コール向けの圧縮ログ。
+ * 投票・処刑・死亡など後から覆らない公開事実は残しつつ、会話だけを直近へ絞る。
+ * 前回評価の短い要約も別枠で渡すため、推論材料を保ったまま入力の二次増加を防ぐ。
+ */
+export function renderEvalPublicLog(log: PublicLogEntry[], speechLimit = 24): string {
+  const recentSpeeches = new Set(
+    log.filter((entry) => entry.t === 'speech').slice(-speechLimit),
+  );
+  return renderPublicLog(
+    log.filter((entry) => entry.t !== 'speech' || recentSpeeches.has(entry)),
+  );
+}
+
+export function renderQuestionThemes(
+  themes: BuddyContext['questionThemes'],
+): string {
+  return themes.length > 0
+    ? themes.map((theme) => `- ${theme.id}: ${theme.label}`).join('\n')
+    : '- 利用可能な質問テーマなし';
+}
+
 function roleBlock(ctx: BuddyContext, prompts: PromptSet): string {
   const role = ctx.self.role;
   if (role === 'werewolf') {
@@ -160,7 +182,7 @@ export function buildEvalPrompt(
     reasoningUnlocksBlock: ctx.self.unlockedReasoning
       .map((u) => `- ${u.label}: ${u.promptHint}`)
       .join('\n'),
-    publicLogBlock: renderPublicLog(ctx.publicLog),
+    publicLogBlock: renderEvalPublicLog(ctx.publicLog),
     previousEvalBlock: ctx.previousEval
       ? JSON.stringify(
           {
@@ -172,6 +194,7 @@ export function buildEvalPrompt(
           0,
         )
       : '(初回のためなし)',
+    questionThemesBlock: renderQuestionThemes(ctx.questionThemes),
     candidateIds: ctx.candidates.map((c) => `${c.pairId}=${c.name}`).join(', '),
     attackPrioritiesHint:
       ctx.self.role === 'werewolf'

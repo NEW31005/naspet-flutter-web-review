@@ -9,6 +9,7 @@ import {
   playPaceDelay,
   playPaceLabel,
   timedMockBatchDelay,
+  viewRefreshIntervalMs,
   type PlayPace,
 } from '../playPace.js';
 import { providerLabel } from '../uiLabels.js';
@@ -57,8 +58,11 @@ export function Game({ matchId }: { matchId: string }) {
   const [clockMs, setClockMs] = useState(() => Date.now());
   const logEndRef = useRef<HTMLDivElement>(null);
   const asRef = useRef<string | null>(null);
+  const refreshInFlightRef = useRef(false);
 
   const refresh = useCallback(async () => {
+    if (refreshInFlightRef.current) return;
+    refreshInFlightRef.current = true;
     try {
       // 初回は視点不明のためまず素のビューを取り、humanPairIdで再取得する
       const res = await api.view(matchId, asRef.current);
@@ -71,29 +75,36 @@ export function Game({ matchId }: { matchId: string }) {
       setError(null);
     } catch (e) {
       setError(String(e));
+    } finally {
+      refreshInFlightRef.current = false;
     }
   }, [matchId]);
-
-  useEffect(() => {
-    void refresh();
-    const t = setInterval(() => {
-      if (!acting) void refresh();
-    }, 2500);
-    return () => clearInterval(t);
-  }, [refresh, acting]);
 
   const me = data?.view.me ?? null;
   const pending = data?.view.pending;
   const timedDiscussion = data?.view.phase === 'discussion' && data.view.discussionMode === 'timed';
+  const streamingView = timedDiscussion && !data?.view.discussionPaused && (acting || data.busy);
+  const refreshIntervalMs = viewRefreshIntervalMs(timedDiscussion, streamingView);
+
+  useEffect(() => {
+    void refresh();
+    const timer = setInterval(() => void refresh(), refreshIntervalMs);
+    return () => clearInterval(timer);
+  }, [refresh, refreshIntervalMs]);
+
   const mustAct =
     !!me && (
-      (!timedDiscussion && me.needDiscussionAdvice) ||
+      me.needDiscussionAdvice ||
       me.needTrialChoice ||
       me.needNightProposal
     );
   const finished = pending?.type === 'finished';
-  const discussionRemainingSec = timedDiscussion && data.view.discussionEndsAt != null
-    ? Math.max(0, Math.ceil((data.view.discussionEndsAt - clockMs) / 1000))
+  const discussionRemainingSec = timedDiscussion
+    ? data.view.discussionPaused
+      ? Math.max(0, Math.ceil(data.view.discussionRemainingMs / 1000))
+      : data.view.discussionEndsAt != null
+        ? Math.max(0, Math.ceil((data.view.discussionEndsAt - clockMs) / 1000))
+        : null
     : null;
   const discussionExpired = discussionRemainingSec === 0;
   // 2.5秒ごとの表示更新で同一状態のdataオブジェクトが差し替わっても、
@@ -110,11 +121,11 @@ export function Game({ matchId }: { matchId: string }) {
     : 'loading';
 
   useEffect(() => {
-    if (!timedDiscussion) return;
+    if (!timedDiscussion || data?.view.discussionPaused) return;
     setClockMs(Date.now());
     const timer = setInterval(() => setClockMs(Date.now()), 250);
     return () => clearInterval(timer);
-  }, [timedDiscussion, data?.view.discussionEndsAt]);
+  }, [timedDiscussion, data?.view.discussionEndsAt, data?.view.discussionPaused]);
 
   // 役職と主人だけが得た占い結果は、見逃さないよう1件ずつ個別表示する。
   useEffect(() => {
@@ -210,6 +221,13 @@ export function Game({ matchId }: { matchId: string }) {
 
   const view = data.view;
   const aliveOthers = view.pairs.filter((p) => p.alive && !p.isSelf);
+  const selfAlive = view.pairs.find((pair) => pair.isSelf)?.alive ?? false;
+  const canPrepareTimedAdvice =
+    timedDiscussion &&
+    view.discussionStage === 'opening' &&
+    selfAlive &&
+    !!me &&
+    me.adviceUsedToday < me.advicePerDay;
   const lastComparison = me?.voteComparisons[me.voteComparisons.length - 1];
   const lastWolfReport = me?.wolfReports[me.wolfReports.length - 1];
 
@@ -230,7 +248,8 @@ export function Game({ matchId }: { matchId: string }) {
           <div className={`discussion-timer ${discussionRemainingSec <= 15 ? 'urgent' : ''}`}>
             <div className="row spread">
               <strong>
-                💬 自由討論　残り {Math.floor(discussionRemainingSec / 60)}:
+                {view.discussionPaused ? '🤝 主人相談中（討論時計は停止）' : '💬 自由討論'}　残り{' '}
+                {Math.floor(discussionRemainingSec / 60)}:
                 {String(discussionRemainingSec % 60).padStart(2, '0')}
               </strong>
               <span>{view.discussionMessageCount}/{view.discussionMaxMessages}発言</span>
@@ -243,7 +262,9 @@ export function Game({ matchId }: { matchId: string }) {
               />
             </div>
             <small>
-              AIたちは個別に考えています。名指しされた相手は優先して返答します。相談は時間内に1回送れます。
+              {view.discussionPaused
+                ? 'ここで1回だけ相談するか、相談せず再開するかを選んでください。選んでいる間、残り時間は減りません。'
+                : 'AIたちは個別に考えています。名指しされた相手は優先して返答します。冒頭討論中に相談内容を準備できます。'}
             </small>
           </div>
         )}
@@ -263,7 +284,7 @@ export function Game({ matchId }: { matchId: string }) {
         {mustAct && (
           <div className="notice">
             {me?.needDiscussionAdvice
-              ? '冒頭討論が終わりました。発言を読み返し、下の「バディに相談する」から1回だけ助言してください。その後、バディたちがもう一度話し合います。'
+              ? '冒頭討論が終わり、討論時計を止めています。1回だけ相談するか、「今回は相談せず再開」を選ぶと、バディたちがもう一度話し合います。'
               : me?.needTrialChoice
               ? '討論はここで一時停止中。内容を読み返してから、下の「処刑先を選ぶ」を押してください。'
               : '夜の行動前で一時停止中。内容を確認してから、下の「襲撃を提案する」を押してください。'}
@@ -319,17 +340,32 @@ export function Game({ matchId }: { matchId: string }) {
         <div className="actionbar">
           {me && view.phase === 'discussion' && (
             <button
-              className={me.canAdvise ? 'primary' : ''}
-              disabled={!me.canAdvise || acting || data.busy}
+              className={me.canAdvise || canPrepareTimedAdvice ? 'primary' : ''}
+              disabled={
+                (!me.canAdvise && !canPrepareTimedAdvice) ||
+                (!timedDiscussion && (acting || data.busy))
+              }
               onClick={() => setSheet('advice')}
             >
-              🗣 {me.canAdvise
+              🗣 {me.needDiscussionAdvice
                 ? 'バディに相談する'
+                : canPrepareTimedAdvice
+                  ? '相談内容を考える'
+                  : me.canAdvise
+                    ? 'バディに相談する'
                 : view.discussionMode === 'timed'
                   ? '相談済み'
                   : view.discussionStage === 'opening'
                     ? '冒頭討論中'
                     : '相談済み'}
+            </button>
+          )}
+          {me?.needDiscussionAdvice && timedDiscussion && (
+            <button
+              onClick={() => submit(() => api.skipDiscussionAdvice(matchId, me.pairId))}
+              disabled={acting || data.busy}
+            >
+              今回は相談せず再開
             </button>
           )}
           {me?.needTrialChoice && (
@@ -347,13 +383,15 @@ export function Game({ matchId }: { matchId: string }) {
               ▶ 進める
             </button>
           )}
-          <button
-            className={playPace === 'manual' ? '' : 'ghost'}
-            onClick={cyclePlayPace}
-            title="押すたびに再生速度を変更"
-          >
-            ⏱ {playPaceLabel(playPace)}
-          </button>
+          {!me?.needDiscussionAdvice && (
+            <button
+              className={playPace === 'manual' ? '' : 'ghost'}
+              onClick={cyclePlayPace}
+              title="押すたびに再生速度を変更"
+            >
+              ⏱ {playPaceLabel(playPace)}
+            </button>
+          )}
         </div>
       )}
 
@@ -372,6 +410,8 @@ export function Game({ matchId }: { matchId: string }) {
           day={view.day}
           me={me}
           aliveOthers={aliveOthers}
+          processing={acting || data.busy}
+          canSend={me.canAdvise}
           onClose={() => setSheet(null)}
           onSubmit={(advice) => submit(() => api.advice(matchId, me.pairId, advice))}
         />
@@ -475,6 +515,9 @@ function LogEntry({ entry, selfPairId }: { entry: PublicLogEntry; selfPairId: st
     case 'discussion_stage':
       if (entry.stage === 'advice') {
         return <div className="sysline strong">🤝 主人からバディへの相談時間</div>;
+      }
+      if (entry.stage === 'awaiting_master_advice') {
+        return <div className="sysline strong">🤝 主人の相談ターン（討論時計は停止）</div>;
       }
       if (entry.stage === 'response') {
         return <div className="sysline strong">💬 相談後の応答討論</div>;
@@ -589,12 +632,16 @@ function AdviceSheet({
   day,
   me,
   aliveOthers,
+  processing,
+  canSend,
   onClose,
   onSubmit,
 }: {
   day: number;
   me: Me;
   aliveOthers: PairOption[];
+  processing: boolean;
+  canSend: boolean;
   onClose: () => void;
   onSubmit: (advice: Advice) => void;
 }) {
@@ -719,14 +766,23 @@ function AdviceSheet({
           )}
           <button
             className="primary"
-            disabled={!canSubmit}
+            disabled={!canSubmit || processing || !canSend}
             onClick={() => {
               const advice = buildAdvice();
               if (advice) onSubmit(advice);
             }}
           >
-            この助言を送る
+            {processing
+              ? 'AIの発言が区切れるまで待っています…'
+              : !canSend
+                ? '冒頭討論の区切りで送れます'
+                : 'この助言を送る'}
           </button>
+          {processing && (
+            <p className="muted small">
+              内容はこのまま保持されます。現在考えているAIの発言が完了すると送信できます。
+            </p>
+          )}
           <p className="muted small">
             親密度 {me.abilities.trust}/100。高いほど、バディは自分と異なる考えでも主人の意見を優先する。確定情報との矛盾や大きな評価差がある場合は、自分の判断を選ぶこともある。
           </p>

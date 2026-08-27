@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0-timed.1",
+  "version": "0.8.0-human-turn.1",
   "presetId": "quick-info",
   "label": "クイック情報戦（5組・初日白通知・共有ループ検証用）",
   "pairCount": 5,
@@ -11,8 +11,8 @@
   "firstDayFocusCount": 2,
   "discussionMode": "timed",
   "discussionDurationSec": 150,
-  "discussionMaxMessages": 60,
-  "discussionBatchSize": 3,
+  "discussionMaxMessages": 30,
+  "discussionBatchSize": 2,
   "discussionRounds": 2,
   "speechesPerBuddyPerRound": 1,
   "advicePerDay": 1,

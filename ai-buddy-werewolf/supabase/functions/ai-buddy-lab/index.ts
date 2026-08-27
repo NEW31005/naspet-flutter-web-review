@@ -10,6 +10,46 @@ const ALLOWED_MODELS = new Set([
   'anthropic/claude-haiku-4.5',
 ]);
 
+/**
+ * Public Lab cost guardrails.
+ *
+ * The Edge Function is intentionally stateless: the in-memory window and
+ * concurrency counters are best-effort per isolate, not a globally durable
+ * quota. Hard request/output limits below remain effective on every isolate.
+ */
+export const COST_GUARD = {
+  maxBodyBytes: 192 * 1024,
+  maxSystemChars: 24_000,
+  maxUserChars: 48_000,
+  maxOutputTokens: {
+    eval: 1_200,
+    speech: 400,
+  },
+  // Pack Testの裁判は最大8バディを並列評価するため、正常系を落とさない上限。
+  defaultMaxConcurrent: 8,
+  defaultWindowMs: 30 * 60 * 1_000,
+  defaultMaxCallsPerWindow: 320,
+} as const;
+
+export interface GuardState {
+  active: number;
+  windowStartedAt: number;
+  callsInWindow: number;
+}
+
+interface HandlerDependencies {
+  envGet: (name: string) => string | undefined;
+  fetch: typeof fetch;
+  now: () => number;
+  state: GuardState;
+}
+
+const productionState: GuardState = {
+  active: 0,
+  windowStartedAt: Date.now(),
+  callsInWindow: 0,
+};
+
 const scoreEntry = {
   type: 'object',
   properties: {
@@ -68,6 +108,7 @@ function cors(origin: string | null): Record<string, string> {
     'Access-Control-Allow-Origin': origin && ALLOWED_ORIGINS.has(origin) ? origin : 'null',
     'Access-Control-Allow-Headers': 'content-type,x-lab-access',
     'Access-Control-Allow-Methods': 'POST,OPTIONS',
+    'Access-Control-Expose-Headers': 'retry-after,x-aibw-budget-remaining',
     Vary: 'Origin',
   };
 }
@@ -76,11 +117,76 @@ function json(
   body: unknown,
   status: number,
   origin: string | null,
+  headers: Record<string, string> = {},
 ): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...cors(origin), 'Content-Type': 'application/json; charset=utf-8' },
+    headers: {
+      ...cors(origin),
+      'Content-Type': 'application/json; charset=utf-8',
+      ...headers,
+    },
   });
+}
+
+function integerEnv(
+  envGet: HandlerDependencies['envGet'],
+  name: string,
+  fallback: number,
+  min: number,
+  max: number,
+): number {
+  const parsed = Number.parseInt(envGet(name) ?? '', 10);
+  if (!Number.isFinite(parsed)) return fallback;
+  return Math.max(min, Math.min(max, parsed));
+}
+
+async function readBoundedJson(request: Request): Promise<
+  | { ok: true; value: Record<string, unknown> }
+  | { ok: false; status: 400 | 413; error: string }
+> {
+  const contentLength = request.headers.get('Content-Length');
+  if (contentLength) {
+    const declared = Number.parseInt(contentLength, 10);
+    if (Number.isFinite(declared) && declared > COST_GUARD.maxBodyBytes) {
+      return { ok: false, status: 413, error: 'リクエスト本文が上限を超えています' };
+    }
+  }
+  if (!request.body) return { ok: false, status: 400, error: 'JSON本文が必要です' };
+
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > COST_GUARD.maxBodyBytes) {
+        await reader.cancel('body too large').catch(() => undefined);
+        return { ok: false, status: 413, error: 'リクエスト本文が上限を超えています' };
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  try {
+    const value = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)) as unknown;
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return { ok: false, status: 400, error: 'JSON本文が必要です' };
+    }
+    return { ok: true, value: value as Record<string, unknown> };
+  } catch {
+    return { ok: false, status: 400, error: '正しいJSON本文が必要です' };
+  }
 }
 
 async function sha256(value: string): Promise<string> {
@@ -97,8 +203,11 @@ function constantTimeEqual(left: string, right: string): boolean {
   return diff === 0;
 }
 
-async function authorized(request: Request): Promise<boolean> {
-  const expected = Deno.env.get('AI_BUDDY_LAB_ACCESS_SHA256') ?? '';
+async function authorized(
+  request: Request,
+  envGet: HandlerDependencies['envGet'],
+): Promise<boolean> {
+  const expected = envGet('AI_BUDDY_LAB_ACCESS_SHA256') ?? '';
   const supplied = (request.headers.get('X-Lab-Access') ?? '')
     .normalize('NFKC')
     .trim()
@@ -195,34 +304,118 @@ function validOutput(callType: 'eval' | 'speech', value: unknown): boolean {
     typeof record.reasonSummary === 'string';
 }
 
-Deno.serve(async (request) => {
+function reserveGeneration(deps: HandlerDependencies):
+  | { ok: true; remaining: number }
+  | { ok: false; reason: 'concurrency' | 'window'; retryAfterSec: number; remaining: number } {
+  const maxConcurrent = integerEnv(
+    deps.envGet,
+    'AI_BUDDY_LAB_MAX_CONCURRENT',
+    COST_GUARD.defaultMaxConcurrent,
+    1,
+    16,
+  );
+  const maxCalls = integerEnv(
+    deps.envGet,
+    'AI_BUDDY_LAB_MAX_CALLS_PER_WINDOW',
+    COST_GUARD.defaultMaxCallsPerWindow,
+    1,
+    1_000,
+  );
+  const now = deps.now();
+  if (now - deps.state.windowStartedAt >= COST_GUARD.defaultWindowMs) {
+    deps.state.windowStartedAt = now;
+    deps.state.callsInWindow = 0;
+  }
+  if (deps.state.active >= maxConcurrent) {
+    return {
+      ok: false,
+      reason: 'concurrency',
+      retryAfterSec: 2,
+      remaining: Math.max(0, maxCalls - deps.state.callsInWindow),
+    };
+  }
+  if (deps.state.callsInWindow >= maxCalls) {
+    return {
+      ok: false,
+      reason: 'window',
+      retryAfterSec: Math.max(
+        1,
+        Math.ceil((COST_GUARD.defaultWindowMs - (now - deps.state.windowStartedAt)) / 1_000),
+      ),
+      remaining: 0,
+    };
+  }
+  deps.state.active += 1;
+  deps.state.callsInWindow += 1;
+  return { ok: true, remaining: Math.max(0, maxCalls - deps.state.callsInWindow) };
+}
+
+export function createHandler(overrides: Partial<HandlerDependencies> = {}) {
+  const deps: HandlerDependencies = {
+    envGet: overrides.envGet ?? ((name) => Deno.env.get(name)),
+    fetch: overrides.fetch ?? fetch,
+    now: overrides.now ?? (() => Date.now()),
+    state: overrides.state ?? productionState,
+  };
+
+  return async (request: Request): Promise<Response> => {
   const origin = request.headers.get('Origin');
   if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(origin) });
   if (request.method !== 'POST') return json({ error: 'POSTのみ利用できます' }, 405, origin);
   if (origin && !ALLOWED_ORIGINS.has(origin)) return json({ error: '許可されていないOriginです' }, 403, origin);
-  if (!(await authorized(request))) {
+  if (!(await authorized(request, deps.envGet))) {
     return json({ error: '愛言葉が違うみたいです。アクセス情報をもう一度確認してね' }, 401, origin);
   }
 
-  const body = await request.json().catch(() => null) as Record<string, unknown> | null;
-  if (!body) return json({ error: 'JSON本文が必要です' }, 400, origin);
+  const parsedBody = await readBoundedJson(request);
+  if (!parsedBody.ok) return json({ error: parsedBody.error }, parsedBody.status, origin);
+  const body = parsedBody.value;
   if (body.action === 'auth') return json({ ok: true }, 200, origin);
   if (body.action !== 'generate') return json({ error: '不明な操作です' }, 400, origin);
 
+  if ((deps.envGet('AI_BUDDY_LAB_LIVE_DISABLED') ?? '').toLowerCase() === 'true') {
+    return json({ error: 'Live AIは管理者により一時停止中です' }, 503, origin);
+  }
+
   const callType = body.callType === 'speech' ? 'speech' : body.callType === 'eval' ? 'eval' : null;
   const model = text(body.model, 100);
-  const system = text(body.system, 20_000);
-  const user = text(body.user, 80_000);
+  const system = text(body.system, COST_GUARD.maxSystemChars);
+  const user = text(body.user, COST_GUARD.maxUserChars);
   const requestId = text(body.requestId, 200) ?? crypto.randomUUID();
   if (!callType || !model || !ALLOWED_MODELS.has(model) || !system || !user) {
     return json({ error: '生成条件が不正です' }, 400, origin);
   }
 
-  const maxTokensRaw = typeof body.maxTokens === 'number' ? body.maxTokens : 800;
-  const maxTokens = Math.max(128, Math.min(3000, Math.floor(maxTokensRaw)));
-  const effort = body.effort === 'high' || body.effort === 'medium' ? body.effort : 'low';
-  const apiKey = Deno.env.get('OPENROUTER_API_KEY');
+  const maxTokensRaw = typeof body.maxTokens === 'number' && Number.isFinite(body.maxTokens)
+    ? body.maxTokens
+    : 800;
+  const maxTokens = Math.max(
+    128,
+    Math.min(COST_GUARD.maxOutputTokens[callType], Math.floor(maxTokensRaw)),
+  );
+  // 公開Labは推論品質を維持しつつ、隠れたreasoning tokenの暴走を避けるためlow固定。
+  const effort = 'low';
+  const apiKey = deps.envGet('OPENROUTER_API_KEY');
   if (!apiKey) return json({ error: 'Live AIがサーバー側で設定されていません' }, 503, origin);
+
+  const reservation = reserveGeneration(deps);
+  if (!reservation.ok) {
+    const error = reservation.reason === 'concurrency'
+      ? 'Live AIの同時実行上限に達しました。少し待って再試行してください'
+      : 'Live AIの一時的な呼び出し予算に達しました。時間を空けて再試行してください';
+    return json(
+      { error },
+      429,
+      origin,
+      {
+        'Retry-After': String(reservation.retryAfterSec),
+        'X-AIBW-Budget-Remaining': String(reservation.remaining),
+      },
+    );
+  }
+  const budgetHeaders = {
+    'X-AIBW-Budget-Remaining': String(reservation.remaining),
+  };
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 90_000);
@@ -262,7 +455,7 @@ Deno.serve(async (request) => {
       requestBody.temperature = Math.max(0, Math.min(1, body.temperature));
     }
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    const response = await deps.fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -277,38 +470,48 @@ Deno.serve(async (request) => {
     if (!response.ok || !payload) {
       const error = payload?.error as { message?: unknown } | undefined;
       const message = typeof error?.message === 'string' ? error.message.slice(0, 400) : `OpenRouter HTTP ${response.status}`;
-      return json({ error: message }, response.status >= 500 ? 502 : 422, origin);
+      return json({ error: message }, response.status >= 500 ? 502 : 422, origin, budgetHeaders);
     }
 
     const choices = payload.choices as { finish_reason?: unknown; message?: { content?: unknown } }[] | undefined;
     const raw = choices?.[0]?.message?.content;
     const output = parseStructuredOutput(raw);
+    const usage = payload.usage as { prompt_tokens?: unknown; completion_tokens?: unknown } | undefined;
+    const responseUsage = {
+      inputTokens: typeof usage?.prompt_tokens === 'number' ? usage.prompt_tokens : 0,
+      outputTokens: typeof usage?.completion_tokens === 'number' ? usage.completion_tokens : 0,
+    };
+    const responseModel = typeof payload.model === 'string' ? payload.model : model;
     if (!validOutput(callType, output)) {
       const preview = responseText(raw)?.slice(0, 240) ?? '';
       return json({
         error: '構造化出力が指定スキーマに一致しませんでした',
+        model: responseModel,
+        usage: responseUsage,
         detail: {
           finishReason: choices?.[0]?.finish_reason ?? null,
           contentType: Array.isArray(raw) ? 'array' : typeof raw,
           preview,
         },
-      }, 422, origin);
+      }, 422, origin, budgetHeaders);
     }
-    const usage = payload.usage as { prompt_tokens?: unknown; completion_tokens?: unknown } | undefined;
     return json({
       output,
-      model: typeof payload.model === 'string' ? payload.model : model,
-      usage: {
-        inputTokens: typeof usage?.prompt_tokens === 'number' ? usage.prompt_tokens : 0,
-        outputTokens: typeof usage?.completion_tokens === 'number' ? usage.completion_tokens : 0,
-      },
-    }, 200, origin);
+      model: responseModel,
+      usage: responseUsage,
+    }, 200, origin, budgetHeaders);
   } catch (error) {
     const message = error instanceof DOMException && error.name === 'AbortError'
       ? 'Live AIがタイムアウトしました'
       : 'Live AI中継でエラーが発生しました';
-    return json({ error: message }, 504, origin);
+    return json({ error: message }, 504, origin, budgetHeaders);
   } finally {
     clearTimeout(timer);
+    deps.state.active = Math.max(0, deps.state.active - 1);
   }
-});
+  };
+}
+
+if (import.meta.main) {
+  Deno.serve(createHandler());
+}

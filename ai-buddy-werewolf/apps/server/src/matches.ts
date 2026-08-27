@@ -219,6 +219,11 @@ export class MatchManager {
     session.runner.submitAdvice(pairId, advice);
     this.persist(session);
   }
+  skipDiscussionAdvice(matchId: string, pairId: PairId): void {
+    const session = this.getSession(matchId);
+    session.runner.skipDiscussionAdvice(pairId);
+    this.persist(session);
+  }
   submitTrialChoice(matchId: string, pairId: PairId, targetId: PairId | null): void {
     const session = this.getSession(matchId);
     session.runner.submitTrialChoice(pairId, targetId);
@@ -294,8 +299,24 @@ export class MatchManager {
       const tmp = `${file}.${Math.random().toString(36).slice(2, 8)}.tmp`;
       try {
         await fs.promises.writeFile(tmp, JSON.stringify(record), 'utf-8');
-        await fs.promises.rename(tmp, file);
+        try {
+          await fs.promises.rename(tmp, file);
+        } catch (renameError) {
+          const code = (renameError as NodeJS.ErrnoException).code;
+          if (
+            process.platform !== 'win32' ||
+            (code !== 'EPERM' && code !== 'EACCES' && code !== 'EEXIST')
+          ) {
+            throw renameError;
+          }
+          // Windowsでは既存JSONをウイルス対策ソフト等が短時間掴み、
+          // renameによる置換だけがEPERMになることがある。書き込み済みtmpから
+          // 上書きコピーして保存を完了し、進行データを失わないようにする。
+          await fs.promises.copyFile(tmp, file);
+          await fs.promises.unlink(tmp).catch(() => undefined);
+        }
       } catch (e) {
+        await fs.promises.unlink(tmp).catch(() => undefined);
         // 保存失敗で進行を止めない(次のpersistで再保存される)
         console.warn(`[aibw] 保存に失敗: ${record.matchId}`, e);
       }

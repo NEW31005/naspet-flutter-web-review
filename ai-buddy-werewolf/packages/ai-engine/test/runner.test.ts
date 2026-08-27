@@ -1,10 +1,11 @@
 /** モックAIでの完走・決定論・フォールバック・信頼度と事実の扱いのテスト */
 import { describe, expect, it } from 'vitest';
-import type { EvalOutput, SpeechOutput } from '@aibw/shared';
+import type { AiCallRecord, EvalOutput, PairId, SpeechOutput } from '@aibw/shared';
 import { buildBuddyContext, type BuddyContext } from '@aibw/game-core';
 import { AiEngine } from '../src/calls.js';
 import { mockEvaluate, mockSpeak } from '../src/mock.js';
 import { MatchRunner, computeMetrics, rebuildStore } from '../src/runner.js';
+import type { AiEngineLike } from '../src/runner.js';
 import type { CallOpts, LlmProvider, ProviderResult } from '../src/provider.js';
 import { makeStore, testModels, testPrompts } from './fixtures.js';
 
@@ -14,6 +15,118 @@ function makeRunner(seed: string, rules?: Parameters<typeof makeStore>[1]) {
   const store = makeStore(seed, rules, 1_700_000_000_000);
   const ai = new AiEngine({ models: testModels, prompts: testPrompts, now });
   return { runner: new MatchRunner(store, ai, now), store };
+}
+
+interface Deferred<T> {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+  reject: (reason: unknown) => void;
+}
+
+function deferred<T>(): Deferred<T> {
+  let resolve!: (value: T) => void;
+  let reject!: (reason: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
+}
+
+function flushMicrotasks(): Promise<void> {
+  return Promise.resolve().then(() => Promise.resolve()).then(() => Promise.resolve());
+}
+
+function controlledEval(pairId: PairId): EvalOutput {
+  return {
+    suspicions: {},
+    primaryHypothesis: `${pairId}の仮説`,
+    altHypotheses: [],
+    confidence: 50,
+    toShare: [],
+    toWithhold: [],
+    questionTargetId: null,
+    questionTheme: null,
+    voteCandidateId: null,
+    reasonSummary: `${pairId}の判断`,
+  };
+}
+
+function controlledCall(pairId: PairId, callType: 'eval' | 'speech'): AiCallRecord {
+  return {
+    id: `${callType}-${pairId}`,
+    ts: 1_700_000_000_000,
+    pairId,
+    callType,
+    evalKind: 'discussion',
+    provider: 'controlled',
+    model: 'test',
+    latencyMs: 0,
+    inputTokens: 0,
+    outputTokens: 0,
+    costUsd: 0,
+    retries: 0,
+    jsonErrors: 0,
+    ok: true,
+    usedFallback: false,
+  };
+}
+
+class ControlledAi implements AiEngineLike {
+  readonly evalOpts = new Map<PairId, CallOpts>();
+  readonly pendingEvals = new Map<
+    PairId,
+    Deferred<{ output: EvalOutput; record: AiCallRecord }>
+  >();
+  readonly pendingSpeeches = new Map<
+    PairId,
+    Deferred<{ output: SpeechOutput; record: AiCallRecord }>
+  >();
+
+  evaluate(
+    _providerName: string,
+    pairId: PairId,
+    _ctx: BuddyContext,
+    opts: CallOpts,
+  ): Promise<{ output: EvalOutput; record: AiCallRecord }> {
+    this.evalOpts.set(pairId, opts);
+    const pending = deferred<{ output: EvalOutput; record: AiCallRecord }>();
+    this.pendingEvals.set(pairId, pending);
+    return pending.promise;
+  }
+
+  speak(
+    _providerName: string,
+    pairId: PairId,
+    _ctx: BuddyContext,
+    _evalOutput: EvalOutput,
+    _opts: CallOpts,
+  ): Promise<{ output: SpeechOutput; record: AiCallRecord }> {
+    const pending = deferred<{ output: SpeechOutput; record: AiCallRecord }>();
+    this.pendingSpeeches.set(pairId, pending);
+    return pending.promise;
+  }
+
+  resolveEval(pairId: PairId): void {
+    const pending = this.pendingEvals.get(pairId);
+    if (!pending) throw new Error(`評価待ちがありません: ${pairId}`);
+    pending.resolve({ output: controlledEval(pairId), record: controlledCall(pairId, 'eval') });
+  }
+
+  rejectEval(pairId: PairId, reason: unknown): void {
+    const pending = this.pendingEvals.get(pairId);
+    if (!pending) throw new Error(`評価待ちがありません: ${pairId}`);
+    pending.reject(reason);
+  }
+
+  resolveSpeech(pairId: PairId): void {
+    const pending = this.pendingSpeeches.get(pairId);
+    if (!pending) throw new Error(`発言待ちがありません: ${pairId}`);
+    pending.resolve({
+      output: { text: `${pairId}の発言`, accusesId: null },
+      record: controlledCall(pairId, 'speech'),
+    });
+  }
 }
 
 describe('モックAIでの一試合完走', () => {
@@ -27,6 +140,23 @@ describe('モックAIでの一試合完走', () => {
     const metrics = computeMetrics(store.record);
     expect(metrics.aiCallCount).toBe(store.record.aiCalls.length);
     expect(metrics.errorCount).toBe(0);
+  });
+
+  it('勝敗を生んだAIステップの完了時点でfinishedAtを記録する', async () => {
+    const { runner, store } = makeRunner('finish-timestamp');
+    let foundWinningStep = false;
+    for (let guard = 0; guard < 500; guard++) {
+      const result = await runner.advanceOnce();
+      if (store.state.winner) {
+        foundWinningStep = true;
+        expect(result.status).toBe('progressed');
+        expect(store.record.finishedAt).not.toBeNull();
+        expect(computeMetrics(store.record).wallClockMs).not.toBeNull();
+        break;
+      }
+      if (result.status === 'finished') break;
+    }
+    expect(foundWinningStep).toBe(true);
   });
 
   it('同じシードなら同じ結末を再現する(モックの決定論)', async () => {
@@ -239,8 +369,38 @@ describe('2幕討論のモック発言', () => {
       theme: null,
     };
     const opinion = mockSpeak(opinionCtx, mockEvaluate(opinionCtx, opts), opts);
-    expect(['p1', 'p2']).toContain(opinion.accusesId);
+    expect(opinion.accusesId).toBeNull();
     expect(opinion.text).toMatch(/弁明|抽選|説明/);
+  });
+
+  it('通常リアクションは疑い返しを固定せず、説明・保留として返す', () => {
+    const store = makeStore('reaction-mock');
+    const ctx = buildBuddyContext(store.state, 'p1');
+    ctx.publicLog = [{
+      seq: 10,
+      day: 1,
+      t: 'speech',
+      round: 2,
+      turnKind: 'reaction',
+      pairId: 'p2',
+      name: 'B2',
+      text: 'B1の具体性が足りないと思う',
+      accusesId: 'p1',
+    }];
+    ctx.discussionTurn = {
+      round: 2,
+      kind: 'reaction',
+      askerId: null,
+      askerName: null,
+      targetId: null,
+      targetName: null,
+      replyToId: 'p2',
+      replyToName: 'B2',
+      theme: null,
+    };
+    const reaction = mockSpeak(ctx, mockEvaluate(ctx, opts), opts);
+    expect(reaction.accusesId).toBeNull();
+    expect(reaction.text).toMatch(/指摘|見方|疑われ/);
   });
 
   it('指名質問は対象へ一問だけ送り、回答ターンは質問への返答だけを生成する', () => {
@@ -280,5 +440,95 @@ describe('2幕討論のモック発言', () => {
     expect(answer.text).toContain('B1への答え');
     expect(answer.text).toContain('今いちばん疑っているのは');
     expect(answer.text).not.toContain('?');
+  });
+});
+
+describe('時間制討論の並列バッチ', () => {
+  const startedAt = 1_700_000_000_000;
+  const timedRules = {
+    discussionMode: 'timed' as const,
+    discussionDurationSec: 150,
+    discussionBatchSize: 2,
+    discussionMaxMessages: 10,
+    firstDayFocusCount: 0,
+    otherMastersPolicy: 'none' as const,
+  };
+
+  it('速いAIの発言を、遅いAIの完了を待たずにイベントへ反映する', async () => {
+    let currentTime = startedAt;
+    const store = makeStore('timed-streaming', timedRules, startedAt);
+    const ai = new ControlledAi();
+    const runner = new MatchRunner(store, ai, () => currentTime);
+
+    await runner.advanceOnce(); // day_start -> discussion
+    const runningBatch = runner.advanceOnce();
+    await flushMicrotasks();
+
+    ai.resolveEval('p1');
+    await flushMicrotasks();
+    ai.resolveSpeech('p1');
+    await flushMicrotasks();
+
+    expect(
+      store.record.events.filter((event) => event.type === 'speech').map((event) =>
+        event.type === 'speech' ? event.payload.pairId : null),
+    ).toEqual(['p1']);
+    expect(ai.pendingEvals.has('p2')).toBe(true);
+
+    currentTime += 1;
+    ai.resolveEval('p2');
+    await flushMicrotasks();
+    ai.resolveSpeech('p2');
+    await runningBatch;
+
+    expect(
+      store.record.events.filter((event) => event.type === 'speech').map((event) =>
+        event.type === 'speech' ? event.payload.pairId : null),
+    ).toEqual(['p1', 'p2']);
+  });
+
+  it('締切後に完成した発言はイベントへ反映しない', async () => {
+    let currentTime = startedAt;
+    const store = makeStore(
+      'timed-late-output',
+      { ...timedRules, discussionBatchSize: 1 },
+      startedAt,
+    );
+    const ai = new ControlledAi();
+    const runner = new MatchRunner(store, ai, () => currentTime);
+
+    await runner.advanceOnce();
+    const runningBatch = runner.advanceOnce();
+    await flushMicrotasks();
+    ai.resolveEval('p1');
+    await flushMicrotasks();
+    expect(ai.evalOpts.get('p1')?.deadlineAt).toBe(startedAt + 90_000);
+
+    currentTime = startedAt + 90_000;
+    ai.resolveSpeech('p1');
+    await runningBatch;
+
+    expect(store.record.events.filter((event) => event.type === 'speech')).toHaveLength(0);
+    expect(store.record.aiCalls.map((call) => call.callType)).toEqual(['eval', 'speech']);
+  });
+
+  it('1件が失敗しても、他の成功発言を残してバッチを完了する', async () => {
+    const store = makeStore('timed-partial-failure', timedRules, startedAt);
+    const ai = new ControlledAi();
+    const runner = new MatchRunner(store, ai, () => startedAt);
+
+    await runner.advanceOnce();
+    const runningBatch = runner.advanceOnce();
+    await flushMicrotasks();
+
+    ai.rejectEval('p1', new Error('p1 evaluation failed'));
+    ai.resolveEval('p2');
+    await flushMicrotasks();
+    ai.resolveSpeech('p2');
+
+    await expect(runningBatch).resolves.toEqual({ status: 'progressed', task: 'speech_batch:2' });
+    const speeches = store.record.events.filter((event) => event.type === 'speech');
+    expect(speeches).toHaveLength(1);
+    expect(speeches[0]?.type === 'speech' ? speeches[0].payload.pairId : null).toBe('p2');
   });
 });

@@ -108,6 +108,9 @@ function validateRules(rules: RulesConfig, label: string): void {
   if (rules.advicePerDay < 0 || rules.advicePerDay > 10) {
     throw new Error(`${label}の助言回数は0〜10回にしてください。`);
   }
+  if (rules.discussionMode === 'timed' && rules.advicePerDay > 1) {
+    throw new Error(`${label}の時間制討論では、主人の助言は1日1回までです。`);
+  }
 }
 
 function NumberSetting({
@@ -302,7 +305,7 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
           </label>
           <NumberSetting
             label="1日の討論時間（秒）"
-            help="時間制の既定は150秒。人間が助言を選ぶ時間もこの中に含みます。"
+            help="時間制の既定は150秒。主人が助言を選んでいる間は時計を止め、前後のAI討論だけに使います。"
             value={rules.discussionDurationSec}
             min={15}
             max={600}
@@ -372,9 +375,10 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
           />
           <NumberSetting
             label="主人が1日に助言できる回数"
+            help={rules.discussionMode === 'timed' ? '時間制ではゲームの核として0回または1回に固定します。' : undefined}
             value={rules.advicePerDay}
             min={0}
-            max={10}
+            max={rules.discussionMode === 'timed' ? 1 : 10}
             onChange={(value) => updateRules((r) => (r.advicePerDay = value))}
           />
           <label className="field setting-field">

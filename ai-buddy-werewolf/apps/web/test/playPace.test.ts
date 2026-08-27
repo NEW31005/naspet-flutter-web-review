@@ -5,6 +5,7 @@ import {
   playPaceDelay,
   playPaceLabel,
   timedMockBatchDelay,
+  viewRefreshIntervalMs,
 } from '../src/playPace.js';
 
 describe('試合の再生速度', () => {
@@ -39,5 +40,11 @@ describe('試合の再生速度', () => {
     expect(timedMockBatchDelay('standard')).toBe(6_500);
     expect(timedMockBatchDelay('relaxed')).toBe(10_000);
     expect(timedMockBatchDelay('manual')).toBeNull();
+  });
+
+  it('時間制討論のAI生成中だけ個別発言を400ms間隔で取得する', () => {
+    expect(viewRefreshIntervalMs(true, true)).toBe(400);
+    expect(viewRefreshIntervalMs(true, false)).toBe(2_500);
+    expect(viewRefreshIntervalMs(false, true)).toBe(2_500);
   });
 });

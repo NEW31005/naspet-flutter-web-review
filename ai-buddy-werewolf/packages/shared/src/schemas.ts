@@ -116,7 +116,15 @@ export const rulesConfigSchema = z
       message: '初日白通知には、占い役本人以外の市民陣営が1組以上必要です',
       path: ['firstNightDivination'],
     },
-  );
+  )
+  .refine((c) => c.discussionMode !== 'timed' || c.advicePerDay <= 1, {
+    message: '時間制討論の主人相談は1日1回までです',
+    path: ['advicePerDay'],
+  })
+  .refine((c) => c.discussionMode !== 'timed' || c.discussionMaxMessages >= 2, {
+    message: '時間制討論は相談前後に最低1発言ずつ必要です',
+    path: ['discussionMaxMessages'],
+  });
 
 export const adviceConfigSchema = z.object({
   version: z.string(),

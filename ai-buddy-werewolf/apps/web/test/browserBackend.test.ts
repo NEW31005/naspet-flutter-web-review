@@ -73,6 +73,15 @@ describe('公開Web Labブラウザ内バックエンド', () => {
     expect(finished).toBe(true);
     expect(backend.record(created.matchId).events.length).toBeGreaterThan(1);
 
+    const persisted = JSON.parse(
+      localStorage.getItem(`aibw.lab.match.v1:${created.matchId}`) ?? '{}',
+    ) as { aiCalls?: { rawRequest?: unknown; rawResponse?: unknown }[] };
+    expect(persisted.aiCalls?.length).toBeGreaterThan(30);
+    expect(persisted.aiCalls?.slice(0, -30).every(
+      (call) => call.rawRequest === undefined && call.rawResponse === undefined,
+    )).toBe(true);
+    expect(persisted.aiCalls?.slice(-30).some((call) => call.rawRequest !== undefined)).toBe(true);
+
     const restored = new BrowserBackend();
     const summary = restored.matches().find((match) => match.matchId === created.matchId);
     expect(summary?.winner).toMatch(/citizens|wolves|draw/);
@@ -86,6 +95,32 @@ describe('公開Web Labブラウザ内バックエンド', () => {
     expect(validated.implementationContract.secretsIncluded).toBe(false);
   });
 
+  it('時間制討論の主人相談をスキップし、ブラウザ内でも討論を再開できる', async () => {
+    const backend = new BrowserBackend();
+    const created = backend.create({
+      presetId: 'quick-test',
+      mode: 'play',
+      provider: 'mock',
+      seed: 'browser-skip-advice',
+      humanPairIndex: 0,
+    });
+
+    let view = backend.view(created.matchId, created.humanPairId);
+    for (let step = 0; step < 30 && !view.view.me?.needDiscussionAdvice; step += 1) {
+      await backend.advance(created.matchId);
+      view = backend.view(created.matchId, created.humanPairId);
+    }
+    expect(view.view.discussionPaused).toBe(true);
+    expect(view.view.me?.needDiscussionAdvice).toBe(true);
+
+    backend.skipDiscussionAdvice(created.matchId, created.humanPairId ?? '');
+    expect(backend.view(created.matchId, created.humanPairId).view.me?.needDiscussionAdvice).toBe(
+      false,
+    );
+    await backend.advance(created.matchId);
+    expect(backend.view(created.matchId, created.humanPairId).view.discussionStage).toBe('response');
+  });
+
   it('愛言葉の全角英字・大文字小文字・前後空白を吸収する', () => {
     expect(normalizeLabAccessCode('  ＴＥＳＴ－ＰＡＳＳ  ')).toBe('test-pass');
   });
@@ -97,65 +132,28 @@ describe('公開Web Labブラウザ内バックエンド', () => {
     expect(encodeLabAccessHeader('  ＴＥＳＴ－ＰＡＳＳ  ')).toBe('test-pass');
   });
 
-  it('保存済みの旧Quick Testを150秒の時間制討論へ移行し、他の設定値は保持する', () => {
+  it('保存済みの旧Quick Testを版番号だけで自動上書きしない', () => {
+    const saved = {
+      version: '0.3.0-joint.1',
+      discussionRounds: 1,
+      discussionDurationSec: 210,
+      customMarker: 'keep-me',
+    };
     localStorage.setItem(
       'aibw.lab.file.v1:config/presets/quick-test.json',
-      JSON.stringify({
-        version: '0.3.0-joint.1',
-        discussionRounds: 1,
-        customMarker: 'keep-me',
-      }),
+      JSON.stringify(saved),
     );
-    const migrated = JSON.parse(readStaticFile('config', 'presets/quick-test.json')) as {
-      version: string;
-      discussionRounds: number;
-      firstDayFocusCount: number;
-      discussionMode: string;
-      discussionDurationSec: number;
-      discussionMaxMessages: number;
-      discussionBatchSize: number;
-      customMarker: string;
-    };
-    expect(migrated).toEqual({
-      version: '0.6.0-timed.1',
-      discussionRounds: 2,
-      firstDayFocusCount: 2,
-      discussionMode: 'timed',
-      discussionDurationSec: 150,
-      discussionMaxMessages: 30,
-      discussionBatchSize: 3,
-      customMarker: 'keep-me',
-    });
+    expect(JSON.parse(readStaticFile('config', 'presets/quick-test.json'))).toEqual(saved);
   });
 
-  it('保存済みの旧Pack Testも150秒の時間制討論へ移行する', () => {
+  it('保存済みの旧プロンプト本文も利用者の調整結果として保持する', () => {
+    localStorage.setItem('aibw.lab.file.v1:prompts/system.base.md', '旧版の順番制指示');
     localStorage.setItem(
-      'aibw.lab.file.v1:config/presets/pack-test.json',
-      JSON.stringify({
-        version: '0.1.1-joint.1',
-        discussionRounds: 1,
-        customMarker: 'keep-pack',
-      }),
+      'aibw.lab.file.v1:prompts/version.json',
+      JSON.stringify({ version: '0.6.0-timed.1' }),
     );
-    const migrated = JSON.parse(readStaticFile('config', 'presets/pack-test.json')) as {
-      version: string;
-      discussionRounds: number;
-      firstDayFocusCount: number;
-      discussionMode: string;
-      discussionDurationSec: number;
-      discussionMaxMessages: number;
-      discussionBatchSize: number;
-      customMarker: string;
-    };
-    expect(migrated).toEqual({
-      version: '0.3.0-timed.1',
-      discussionRounds: 2,
-      firstDayFocusCount: 2,
-      discussionMode: 'timed',
-      discussionDurationSec: 150,
-      discussionMaxMessages: 48,
-      discussionBatchSize: 4,
-      customMarker: 'keep-pack',
-    });
+
+    expect(JSON.parse(readStaticFile('prompt', 'version.json'))).toEqual({ version: '0.6.0-timed.1' });
+    expect(readStaticFile('prompt', 'system.base.md')).toBe('旧版の順番制指示');
   });
 });

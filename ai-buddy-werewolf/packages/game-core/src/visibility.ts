@@ -107,6 +107,8 @@ export interface BuddyContext {
   previousEval: EvalOutput | null;
   /** 評価対象(生存かつ自分以外) */
   candidates: { pairId: PairId; name: string }[];
+  /** 当日、AIが質問候補として返してよい公開設定のIDと表示名。 */
+  questionThemes: { id: string; label: string }[];
   /** 主観助言をどの程度重く扱うかの設定(自分自身の判断規約であり秘密情報ではない) */
   trustConfig: { subjectiveAdvice: TrustFnConfig };
 }
@@ -235,6 +237,9 @@ export function buildBuddyContext(
     candidates: alivePairs(state)
       .filter((p) => p.pairId !== pairId)
       .map((p) => ({ pairId: p.pairId, name: p.buddyName })),
+    questionThemes: config.advice.questionThemes
+      .filter((item) => state.day > 1 || item.id !== 'vote_reason')
+      .map((item) => ({ id: item.id, label: item.label })),
     trustConfig: { subjectiveAdvice: config.rules.trust.subjectiveAdvice },
   };
 }
@@ -252,6 +257,9 @@ export interface MasterView {
   discussionStage: DiscussionStage | null;
   discussionMode: 'timed' | 'turns' | null;
   discussionEndsAt: number | null;
+  /** 主人入力待ちの間は討論時計を止める。remainingMsはこの間の表示値。 */
+  discussionPaused: boolean;
+  discussionRemainingMs: number;
   discussionDurationSec: number;
   discussionMessageCount: number;
   discussionMaxMessages: number;
@@ -370,15 +378,19 @@ export function buildMasterView(state: MatchState, pairId: PairId | null): Maste
       canAdvise:
         pair.alive &&
         state.phase === 'discussion' &&
-        (state.discussion?.mode === 'timed' ||
-          state.config.rules.discussionRounds === 1 || state.discussion?.stage === 'advice') &&
+        state.discussion?.masterAdviceDecision === 'pending' &&
+        (state.discussion?.mode === 'timed'
+          ? state.discussion.stage === 'awaiting_master_advice'
+          : state.config.rules.discussionRounds === 1 || state.discussion?.stage === 'advice') &&
         (state.adviceUsedToday[pairId] ?? 0) < state.config.rules.advicePerDay,
       needDiscussionAdvice:
         pair.alive &&
         state.phase === 'discussion' &&
-        state.discussion?.mode !== 'timed' &&
-        state.config.rules.discussionRounds > 1 &&
-        state.discussion?.stage === 'advice' &&
+        state.discussion?.masterAdviceDecision === 'pending' &&
+        (state.discussion?.stage === 'awaiting_master_advice' ||
+          (state.discussion?.mode !== 'timed' &&
+            state.config.rules.discussionRounds > 1 &&
+            state.discussion?.stage === 'advice')) &&
         (state.adviceUsedToday[pairId] ?? 0) < state.config.rules.advicePerDay,
       needTrialChoice:
         pair.alive && state.phase === 'trial' && state.trialChoices[pairId] === undefined,
@@ -408,6 +420,8 @@ export function buildMasterView(state: MatchState, pairId: PairId | null): Maste
     discussionStage: state.discussion?.stage ?? null,
     discussionMode: state.discussion?.mode ?? null,
     discussionEndsAt: state.discussion?.endsAt ?? null,
+    discussionPaused: state.discussion?.pausedAt != null,
+    discussionRemainingMs: state.discussion?.remainingMs ?? 0,
     discussionDurationSec: state.config.rules.discussionDurationSec ?? 150,
     discussionMessageCount: state.publicLog.filter(
       (entry) => entry.t === 'speech' && entry.day === state.day,

@@ -17,8 +17,11 @@ export type Phase =
 
 export type MatchMode = 'play' | 'lab';
 
-/** 2幕討論の現在地。2周以上の設定では opening → advice → response と進む。 */
-export type DiscussionStage = 'opening' | 'advice' | 'response';
+/**
+ * 2幕討論の現在地。
+ * timed は opening → awaiting_master_advice → response、従来turnsは advice を使う。
+ */
+export type DiscussionStage = 'opening' | 'advice' | 'awaiting_master_advice' | 'response';
 export type DiscussionCloseReason = 'time_up' | 'message_limit';
 
 /** 公開発言の会話上の役割。質問と回答を発言順でも明示する。 */
@@ -201,6 +204,7 @@ export type MatchEvent = MatchEventBase &
     | { type: 'roles_assigned'; payload: { roles: Record<PairId, Role> } }
     | { type: 'phase_changed'; payload: { day: number; phase: Phase } }
     | { type: 'discussion_stage_changed'; payload: { stage: DiscussionStage } }
+    | { type: 'discussion_advice_skipped'; payload: { pairId: PairId | null } }
     | { type: 'discussion_closed'; payload: { reason: DiscussionCloseReason } }
     | {
         type: 'day_started';
@@ -213,6 +217,8 @@ export type MatchEvent = MatchEventBase &
           round: number;
           turnKind: DiscussionTurnKind;
           question?: DiscussionQuestionRef;
+          /** 名指しへの直接返答なら、その発言者。旧イベントとの互換のためoptional。 */
+          replyToId?: PairId;
           text: string;
           accusesId: PairId | null;
         };

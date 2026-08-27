@@ -29,6 +29,8 @@ function renderLogEntry(e: PublicLogEntry): string {
       if (e.phase === 'trial') return `--- ${e.day}日目の裁判 ---`;
       if (e.phase === 'night') return `--- ${e.day}日目の夜 ---`;
       return '';
+    case 'discussion_focus':
+      return `[初日の討論対象] ${e.pairs.map((pair) => pair.name).join('、')}。シード付き抽選で選ばれただけで、狼の証拠ではない。`;
     case 'discussion_stage':
       if (e.stage === 'advice') return '--- 主人からバディへの相談時間 ---';
       if (e.stage === 'response') return '--- 相談後の応答討論 ---';
@@ -175,7 +177,9 @@ export function buildEvalPrompt(
       ctx.self.role === 'seer'
         ? 'skillTargetPriorities: 次の夜に占いたい優先度0-100。'
         : 'skillTargetPriorities: あなたは占い役ではないため空配列でよい。',
-  });
+  }) + (ctx.discussionFocus.length > 0
+    ? `\n\n# 初日の討論対象\n${ctx.discussionFocus.map((pair) => `${pair.name}(${pair.pairId})`).join('、')}。抽選で選ばれただけなので、その事実自体を狼の根拠にしてはならない。弁明内容と他者の反応を評価すること。`
+    : '');
   return { system, user };
 }
 
@@ -239,6 +243,17 @@ function buildDirectiveBlock(ctx: BuddyContext): string {
   if (turn?.kind === 'opening') {
     parts.push(
       '# 今回の会話役割\nこれは冒頭討論。現時点の仮説と根拠を1つ出し、後の相手が反応できる論点を残す。',
+    );
+  } else if (turn?.kind === 'opening_defense') {
+    const others = ctx.discussionFocus.filter((pair) => pair.pairId !== ctx.self.pairId);
+    parts.push(
+      '# 今回の会話役割: 初日の弁明',
+      `あなたは初日の討論対象へ抽選された。抽選は狼の証拠ではない。まず自分が狼憑きではないと主張し、今後どんな発言や矛盾を見てほしいかを具体的に1点話す。${others.length > 0 ? `もう一人の対象は${others.map((pair) => pair.name).join('、')}。根拠なく狼と断定しない。` : ''}`,
+    );
+  } else if (turn?.kind === 'opening_opinion') {
+    parts.push(
+      '# 今回の会話役割: 初日の焦点評価',
+      `討論対象は${ctx.discussionFocus.map((pair) => pair.name).join('、')}。直前までの弁明を比較し、気になった具体的な言葉、納得した点、追加で確かめたい点のうち1つを述べる。抽選された事実そのものは疑いの根拠にしない。`,
     );
   } else if (turn?.kind === 'question' && turn.targetName && turn.theme) {
     parts.push(

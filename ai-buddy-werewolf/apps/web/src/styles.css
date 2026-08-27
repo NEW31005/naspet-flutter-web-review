@@ -268,6 +268,21 @@ h3 {
   color: var(--warn);
   font-weight: 700;
 }
+.sysline.focusline {
+  margin: 4px 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(245, 158, 11, 0.55);
+  border-radius: 10px;
+  color: #fcd34d;
+  background: rgba(120, 53, 15, 0.18);
+  font-weight: 700;
+}
+.sysline.focusline small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-weight: 400;
+}
 .bubble {
   max-width: 88%;
   background: var(--panel);

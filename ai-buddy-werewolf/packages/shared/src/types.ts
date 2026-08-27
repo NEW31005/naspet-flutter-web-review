@@ -23,6 +23,8 @@ export type DiscussionStage = 'opening' | 'advice' | 'response';
 /** 公開発言の会話上の役割。質問と回答を発言順でも明示する。 */
 export type DiscussionTurnKind =
   | 'opening'
+  | 'opening_defense'
+  | 'opening_opinion'
   | 'question'
   | 'answer'
   | 'follow_up'
@@ -367,6 +369,8 @@ export interface RulesConfig {
   maxDays: number;
   /** 初日の朝に占い役へ0日目占い結果を1件配る。true=ランダム対象 / 'white'=白確定のみ(古典の初日白通知) */
   firstNightDivination: boolean | 'white';
+  /** 初日に抽選で討論の焦点へ置く人数。0なら通常の冒頭討論。 */
+  firstDayFocusCount: number;
   discussionRounds: number; // 1日の討論周回数
   speechesPerBuddyPerRound: number; // 周回ごとの各バディ発言回数
   advicePerDay: number; // 主人の討論中助言回数

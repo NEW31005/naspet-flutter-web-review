@@ -278,6 +278,39 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
   const reason = () => pickOne(reasons, seed, 'reason', opts.stepLabel);
   const hideRole = directive === 'hide_role';
 
+  if (turn?.kind === 'opening_defense') {
+    const otherFocus = ctx.discussionFocus.find((pair) => pair.pairId !== self.pairId);
+    const defenses = isWolf
+      ? [
+          `${exclaim()}${persona.firstPerson}は狼憑きではない。抽選だけで決めず、この後に理由なく便乗する人を見てほしい`,
+          `先に言うけれど、${persona.firstPerson}は狼憑きではない。${otherFocus ? `${otherFocus.name}も含めて、` : ''}言葉と次の投票が合うかで判断してほしい`,
+        ]
+      : [
+          `${exclaim()}${persona.firstPerson}は狼憑きではない。抽選で選ばれただけだから、この後の受け答えと投票まで見て判断してほしい`,
+          `身の潔白を先に話すなら、${persona.firstPerson}は市民側だ。${otherFocus ? `${otherFocus.name}も抽選だけでは決めつけず、` : ''}説明の中身を比べてほしい`,
+        ];
+    return { text: pickOne(defenses, seed, 'opening-defense', opts.stepLabel), accusesId: null };
+  }
+
+  if (turn?.kind === 'opening_opinion' && ctx.discussionFocus.length > 0) {
+    const focusBySuspicion = ctx.discussionFocus
+      .map((pair) => ({ ...pair, score: ev.suspicions[pair.pairId] ?? 50 }))
+      .sort((a, b) => b.score - a.score);
+    const selected = focusBySuspicion[0];
+    const other = focusBySuspicion[1];
+    if (selected) {
+      const opinions = [
+        `${selected.name}の弁明は聞いた。でも「${reason()}」ように見えて、2人ならこちらをもう少し確かめたい`,
+        `${other ? `${other.name}より` : ''}${selected.name}の説明にはまだ曖昧さが残る。抽選ではなく、話した中身を理由に見ている`,
+        `${selected.name}を狼と決めたわけじゃない。ただ、今の弁明で一番質問を重ねたいのはここ${ending()}`,
+      ];
+      return {
+        text: pickOne(opinions, seed, 'opening-opinion', opts.stepLabel),
+        accusesId: selected.pairId,
+      };
+    }
+  }
+
   // 2幕討論では役割を先に固定する。指名された回答者が話題をそらさないことを
   // モックでも保証し、Liveと同じ会話構造を検証できるようにする。
   if (turn?.kind === 'question' && turn.theme && turn.targetName) {

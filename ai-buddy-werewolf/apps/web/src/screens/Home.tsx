@@ -82,7 +82,7 @@ export function Home() {
             <div className="muted small">
               {preset.pairCount}組 / 狼憑き{preset.roleSetup.werewolf}組 / 占い役
               {preset.roleSetup.seer}組 / 最大{preset.maxDays}日 / 助言{preset.advicePerDay}回/日
-              <br />討論: {preset.discussionRounds === 1 ? '1段階' : `冒頭 → 相談 → 応答（${preset.discussionRounds}段階）`}
+              <br />討論: {preset.discussionRounds === 1 ? '1段階' : `初日2人の弁明 → 全員評価 → 相談 → 応答（${preset.discussionRounds}段階）`}
               <br />他の主人: {masterPolicyLabel(preset.otherMastersPolicy)}
             </div>
           )}

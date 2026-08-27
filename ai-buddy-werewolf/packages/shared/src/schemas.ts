@@ -82,6 +82,7 @@ export const rulesConfigSchema = z
     }),
     maxDays: z.number().int().min(1).max(20),
     firstNightDivination: z.union([z.boolean(), z.literal('white')]).default(false),
+    firstDayFocusCount: z.number().int().min(0).max(4).default(2),
     discussionRounds: z.number().int().min(1).max(10),
     speechesPerBuddyPerRound: z.number().int().min(1).max(3),
     advicePerDay: z.number().int().min(0).max(10),

@@ -90,17 +90,42 @@ function stored(path: string): string | null {
 export function readStaticFile(kind: EditableKind, name: string): string {
   const path = pathOf(kind, name);
   const saved = stored(path);
-  // 旧公開Labで保存済みのQuick Testだけは、今回の2幕討論へ安全に移行する。
+  // 旧公開Labで保存済みの既定プリセットだけは、焦点型の初日討論へ安全に移行する。
   // 他の数値・人格・プロンプトは保持し、明示的な旧バージョンだけを対象にする。
-  if (path === 'config/presets/quick-test.json' && saved) {
+  if (saved && (path === 'config/presets/quick-test.json' || path === 'config/presets/pack-test.json')) {
     try {
-      const value = JSON.parse(saved) as { version?: unknown; discussionRounds?: unknown };
-      if (value.version === '0.3.0-joint.1' && value.discussionRounds === 1) {
+      const value = JSON.parse(saved) as {
+        version?: unknown;
+        discussionRounds?: unknown;
+        firstDayFocusCount?: unknown;
+      };
+      const quickLegacy = path === 'config/presets/quick-test.json' &&
+        (value.version === '0.3.0-joint.1' || value.version === '0.4.0-dialogue.1');
+      const packLegacy = path === 'config/presets/pack-test.json' &&
+        value.version === '0.1.1-joint.1';
+      if (quickLegacy || packLegacy) {
         const migrated = JSON.stringify(
-          { ...value, version: '0.4.0-dialogue.1', discussionRounds: 2 },
+          {
+            ...value,
+            version: quickLegacy ? '0.5.0-focus.1' : '0.2.0-focus.1',
+            firstDayFocusCount: 2,
+            discussionRounds: 2,
+          },
           null,
           2,
         );
+        localStorage.setItem(storageKey(path), migrated);
+        return migrated;
+      }
+    } catch {
+      // 不正JSONは従来どおり後段の検証で利用者へ示す。
+    }
+  }
+  if (path === 'prompts/version.json' && saved) {
+    try {
+      const value = JSON.parse(saved) as { version?: unknown };
+      if (value.version === '0.4.0-dialogue.1') {
+        const migrated = JSON.stringify({ ...value, version: '0.5.0-focus.1' }, null, 2);
         localStorage.setItem(storageKey(path), migrated);
         return migrated;
       }

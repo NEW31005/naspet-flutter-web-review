@@ -204,6 +204,45 @@ describe('2幕討論のモック発言', () => {
     evalKind: 'discussion',
   };
 
+  it('初日の抽選対象は先に弁明し、他のバディは2人の弁明を比較する', () => {
+    const store = makeStore('focus-mock');
+    const defenseCtx = buildBuddyContext(store.state, 'p1');
+    defenseCtx.discussionFocus = [
+      { pairId: 'p1', name: defenseCtx.self.buddyName },
+      { pairId: 'p2', name: 'B2' },
+    ];
+    defenseCtx.discussionTurn = {
+      round: 1,
+      kind: 'opening_defense',
+      askerId: null,
+      askerName: null,
+      targetId: null,
+      targetName: null,
+      theme: null,
+    };
+    const defense = mockSpeak(defenseCtx, mockEvaluate(defenseCtx, opts), opts);
+    expect(defense.text).toMatch(/狼憑き(じゃ|では)ない/);
+    expect(defense.accusesId).toBeNull();
+
+    const opinionCtx = buildBuddyContext(store.state, 'p3');
+    opinionCtx.discussionFocus = [
+      { pairId: 'p1', name: 'B1' },
+      { pairId: 'p2', name: 'B2' },
+    ];
+    opinionCtx.discussionTurn = {
+      round: 1,
+      kind: 'opening_opinion',
+      askerId: null,
+      askerName: null,
+      targetId: null,
+      targetName: null,
+      theme: null,
+    };
+    const opinion = mockSpeak(opinionCtx, mockEvaluate(opinionCtx, opts), opts);
+    expect(['p1', 'p2']).toContain(opinion.accusesId);
+    expect(opinion.text).toMatch(/弁明|抽選|説明/);
+  });
+
   it('指名質問は対象へ一問だけ送り、回答ターンは質問への返答だけを生成する', () => {
     const store = makeStore('dialogue-mock');
     const questionCtx = buildBuddyContext(store.state, 'p1');

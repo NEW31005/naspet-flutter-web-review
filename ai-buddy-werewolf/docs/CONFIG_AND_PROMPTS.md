@@ -14,7 +14,7 @@ Web UIでは、よく使うルール・親密度・助言・AIモデル・単価
 | 変えたいもの | ファイル | 主なキー |
 |---|---|---|
 | 組数・狼数・役職構成 | `config/presets/*.json` | `pairCount`, `roleSetup.werewolf`, `roleSetup.seer`(残りは市民) |
-| 最大日数・討論段階・発言回数 | 同上 | `maxDays`, `discussionRounds`, `speechesPerBuddyPerRound`。`discussionRounds` が2以上なら冒頭討論の後に主人の相談待ちを挟み、指名質問では質問者→対象の単独回答→質問者の受け止め→周囲の反応になる |
+| 最大日数・討論段階・発言回数 | 同上 | `maxDays`, `firstDayFocusCount`, `discussionRounds`, `speechesPerBuddyPerRound`。初日は `firstDayFocusCount` 人が先に弁明し、残りが評価する。`discussionRounds` が2以上なら主人の相談待ちを挟み、指名質問では質問者→対象の単独回答→質問者の受け止め→周囲の反応になる |
 | 初日の占い結果 | 同上 | `firstNightDivination`: `false` / `true` / `"white"` |
 | 主人の助言回数 | 同上 | `advicePerDay` |
 | 同票処理 | 同上 | `tieBreak`(現状 `random` のみ) |

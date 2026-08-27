@@ -20,7 +20,7 @@ import type {
   Role,
   Winner,
 } from '@aibw/shared';
-import { ROLE_TEAM } from '@aibw/shared';
+import { ROLE_TEAM, shuffle } from '@aibw/shared';
 
 export interface PairState {
   pairId: PairId;
@@ -36,6 +36,12 @@ export interface PairState {
 export type PublicLogEntry =
   | { seq: number; day: number; t: 'day_start'; deaths: { pairId: PairId; name: string }[] }
   | { seq: number; day: number; t: 'phase'; phase: Phase }
+  | {
+      seq: number;
+      day: number;
+      t: 'discussion_focus';
+      pairs: { pairId: PairId; name: string }[];
+    }
   | {
       seq: number;
       day: number;
@@ -73,6 +79,8 @@ export type PublicLogEntry =
 
 export interface DiscussionState {
   stage: DiscussionStage;
+  /** 初日に抽選された公開の討論対象。役職や内部評価とは無関係。 */
+  focusPairIds: PairId[];
   queue: DiscussionTurn[];
   cursor: number;
 }
@@ -211,10 +219,27 @@ function initialState(ev: Extract<MatchEvent, { type: 'match_created' }>, config
 function buildDiscussionQueue(state: MatchState): DiscussionState {
   const order = alivePairs(state).map((p) => p.pairId);
   const queue: DiscussionTurn[] = [];
+  const focusCount = state.day === 1
+    ? Math.min(state.config.rules.firstDayFocusCount, order.length)
+    : 0;
+  const focusPairIds = focusCount > 0
+    ? shuffle(order, state.seed, 'first-day-focus', state.day).slice(0, focusCount)
+    : [];
+
   for (let rep = 0; rep < state.config.rules.speechesPerBuddyPerRound; rep++) {
-    for (const pairId of order) queue.push({ pairId, round: 1, kind: 'opening' });
+    if (focusPairIds.length > 0) {
+      // 初日は、抽選された2人の弁明を先に聞いてから残り全員が評価する。
+      for (const pairId of focusPairIds) {
+        queue.push({ pairId, round: 1, kind: 'opening_defense' });
+      }
+      for (const pairId of order.filter((id) => !focusPairIds.includes(id))) {
+        queue.push({ pairId, round: 1, kind: 'opening_opinion' });
+      }
+    } else {
+      for (const pairId of order) queue.push({ pairId, round: 1, kind: 'opening' });
+    }
   }
-  return { stage: 'opening', queue, cursor: 0 };
+  return { stage: 'opening', focusPairIds, queue, cursor: 0 };
 }
 
 /**
@@ -312,6 +337,17 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
       if (state.phase === 'discussion') {
         state.discussion = buildDiscussionQueue(state);
         state.publicLog.push({ seq: event.seq, day: state.day, t: 'phase', phase: 'discussion' });
+        if (state.discussion.focusPairIds.length > 0) {
+          state.publicLog.push({
+            seq: event.seq,
+            day: state.day,
+            t: 'discussion_focus',
+            pairs: state.discussion.focusPairIds.map((pairId) => ({
+              pairId,
+              name: getPair(state, pairId).buddyName,
+            })),
+          });
+        }
       } else if (state.phase === 'trial') {
         state.discussion = null;
         state.trialChoices = {};

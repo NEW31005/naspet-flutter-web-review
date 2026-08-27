@@ -87,6 +87,7 @@ export function makeSnapshot(
     roleSetup: { werewolf: 1, seer: 1 },
     maxDays: 3,
     firstNightDivination: false,
+    firstDayFocusCount: 0,
     discussionRounds: 1,
     speechesPerBuddyPerRound: 1,
     advicePerDay: 1,

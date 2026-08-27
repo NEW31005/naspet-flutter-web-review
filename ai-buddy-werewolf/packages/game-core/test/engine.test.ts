@@ -530,6 +530,55 @@ describe('初日占い(firstNightDivination)', () => {
 });
 
 describe('2幕討論と指名質問', () => {
+  it('初日はシード付き抽選の2人が先に弁明し、残り全員がその後に評価する', () => {
+    const config = makeSnapshot({
+      firstDayFocusCount: 2,
+      discussionRounds: 2,
+      advicePerDay: 1,
+    });
+    const create = () => {
+      let { state } = createMatch({
+        matchId: 'm-first-focus',
+        seed: 'first-focus-seed',
+        mode: 'play',
+        provider: 'mock',
+        humanPairIndex: 0,
+        config,
+        now: NOW,
+      });
+      state = apply(state, applyAdvanceDay(state, NOW));
+      return state;
+    };
+    const state = create();
+    const replayed = create();
+    const discussion = state.discussion;
+    if (!discussion) throw new Error('discussion missing');
+
+    expect(discussion.focusPairIds).toHaveLength(2);
+    expect(new Set(discussion.focusPairIds).size).toBe(2);
+    expect(replayed.discussion?.focusPairIds).toEqual(discussion.focusPairIds);
+    expect(discussion.queue.slice(0, 2)).toEqual(
+      discussion.focusPairIds.map((pairId) => ({
+        pairId,
+        round: 1,
+        kind: 'opening_defense',
+      })),
+    );
+    expect(discussion.queue.slice(2)).toHaveLength(3);
+    expect(discussion.queue.slice(2).every((turn) => turn.kind === 'opening_opinion')).toBe(true);
+    expect(
+      discussion.queue.slice(2).every((turn) => !discussion.focusPairIds.includes(turn.pairId)),
+    ).toBe(true);
+    const focusLog = state.publicLog.find((entry) => entry.t === 'discussion_focus');
+    expect(focusLog).toMatchObject({
+      t: 'discussion_focus',
+      pairs: discussion.focusPairIds.map((pairId) => ({ pairId })),
+    });
+    expect(buildBuddyContext(state, 'p1').discussionFocus.map((pair) => pair.pairId)).toEqual(
+      discussion.focusPairIds,
+    );
+  });
+
   it('冒頭討論の後で主人を待ち、質問者→対象の単独回答→受け止めの順に進む', () => {
     const config = makeSnapshot({ discussionRounds: 2, advicePerDay: 1 });
     let { state } = createMatch({

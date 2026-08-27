@@ -97,7 +97,7 @@ describe('公開Web Labブラウザ内バックエンド', () => {
     expect(encodeLabAccessHeader('  ＴＥＳＴ－ＰＡＳＳ  ')).toBe('test-pass');
   });
 
-  it('保存済みの旧Quick Testを2幕討論へ移行し、他の設定値は保持する', () => {
+  it('保存済みの旧Quick Testを焦点型の2幕討論へ移行し、他の設定値は保持する', () => {
     localStorage.setItem(
       'aibw.lab.file.v1:config/presets/quick-test.json',
       JSON.stringify({
@@ -109,12 +109,37 @@ describe('公開Web Labブラウザ内バックエンド', () => {
     const migrated = JSON.parse(readStaticFile('config', 'presets/quick-test.json')) as {
       version: string;
       discussionRounds: number;
+      firstDayFocusCount: number;
       customMarker: string;
     };
     expect(migrated).toEqual({
-      version: '0.4.0-dialogue.1',
+      version: '0.5.0-focus.1',
       discussionRounds: 2,
+      firstDayFocusCount: 2,
       customMarker: 'keep-me',
+    });
+  });
+
+  it('保存済みの旧Pack Testも初日焦点型の2幕討論へ移行する', () => {
+    localStorage.setItem(
+      'aibw.lab.file.v1:config/presets/pack-test.json',
+      JSON.stringify({
+        version: '0.1.1-joint.1',
+        discussionRounds: 1,
+        customMarker: 'keep-pack',
+      }),
+    );
+    const migrated = JSON.parse(readStaticFile('config', 'presets/pack-test.json')) as {
+      version: string;
+      discussionRounds: number;
+      firstDayFocusCount: number;
+      customMarker: string;
+    };
+    expect(migrated).toEqual({
+      version: '0.2.0-focus.1',
+      discussionRounds: 2,
+      firstDayFocusCount: 2,
+      customMarker: 'keep-pack',
     });
   });
 });

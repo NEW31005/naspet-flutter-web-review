@@ -310,6 +310,13 @@ function LogEntry({ entry, selfPairId }: { entry: PublicLogEntry; selfPairId: st
       if (entry.phase === 'night') return <div className="sysline strong">🌙 夜が訪れた</div>;
       if (entry.phase === 'discussion') return <div className="sysline">💬 討論開始</div>;
       return null;
+    case 'discussion_focus':
+      return (
+        <div className="sysline focusline">
+          🎯 初日の討論対象：{entry.pairs.map((pair) => pair.name).join('・')}
+          <small>抽選で選ばれた2人です。狼の証拠ではありません。</small>
+        </div>
+      );
     case 'discussion_stage':
       if (entry.stage === 'advice') {
         return <div className="sysline strong">🤝 主人からバディへの相談時間</div>;
@@ -321,7 +328,11 @@ function LogEntry({ entry, selfPairId }: { entry: PublicLogEntry; selfPairId: st
     case 'speech': {
       const self = entry.pairId === selfPairId;
       const turnLabel =
-        entry.turnKind === 'question'
+        entry.turnKind === 'opening_defense'
+          ? '初日弁明'
+          : entry.turnKind === 'opening_opinion'
+            ? '焦点評価'
+            : entry.turnKind === 'question'
           ? '指名質問'
           : entry.turnKind === 'answer'
             ? '単独回答'

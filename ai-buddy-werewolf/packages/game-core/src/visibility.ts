@@ -82,6 +82,8 @@ export interface BuddyContext {
     revealedRole: Role | null;
   }[];
   publicLog: PublicLogEntry[];
+  /** 初日に抽選された公開の討論対象。抽選結果であり、役職の根拠ではない。 */
+  discussionFocus: { pairId: PairId; name: string }[];
   /** 今回の発言が冒頭・質問・単独回答・追質問・周囲反応のどれか。公開会話の進行だけを含む。 */
   discussionTurn: null | {
     round: number;
@@ -198,6 +200,10 @@ export function buildBuddyContext(state: MatchState, pairId: PairId): BuddyConte
           : null,
     })),
     publicLog: state.publicLog,
+    discussionFocus: (state.discussion?.focusPairIds ?? []).map((focusId) => ({
+      pairId: focusId,
+      name: getPair(state, focusId).buddyName,
+    })),
     discussionTurn: rawTurn
       ? {
           round: rawTurn.round,

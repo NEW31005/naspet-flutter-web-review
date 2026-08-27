@@ -87,6 +87,9 @@ function validateRules(rules: RulesConfig, label: string): void {
   if (rules.maxDays < 1 || rules.maxDays > 20) {
     throw new Error(`${label}の最大日数は1〜20日にしてください。`);
   }
+  if (rules.firstDayFocusCount < 0 || rules.firstDayFocusCount > 4) {
+    throw new Error(`${label}の初日討論対象は0〜4人にしてください。`);
+  }
   if (rules.discussionRounds < 1 || rules.discussionRounds > 10) {
     throw new Error(`${label}の討論回数は1〜10周にしてください。`);
   }
@@ -308,7 +311,7 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
           />
           <NumberSetting
             label="1日の討論段階数"
-            help="2以上なら「AIだけの冒頭討論 → 主人の相談 → 応答討論」になります。3以上は応答討論を追加します。"
+            help="2以上なら「初日2人の弁明と全員の評価 → 主人の相談 → 応答討論」になります。3以上は応答討論を追加します。"
             value={rules.discussionRounds}
             min={1}
             max={10}
@@ -364,6 +367,14 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
             onChange={(event) =>
               updateRules((r) => (r.firstNightDivination = event.target.checked ? 'white' : false))
             }
+          />
+          <NumberSetting
+            label="初日に抽選する討論対象"
+            help="最初に身の潔白を話す人数です。選ばれたこと自体は狼の証拠ではありません。おすすめは2人。"
+            value={rules.firstDayFocusCount}
+            min={0}
+            max={4}
+            onChange={(value) => updateRules((r) => (r.firstDayFocusCount = value))}
           />
           <span>
             <strong>初日の朝に、占い主人へ白結果を1件届ける</strong>

@@ -1,5 +1,5 @@
 {
-  "version": "0.3.0-mari.1",
+  "version": "0.4.0-focus.1",
   "defaultProvider": "mock",
   "providers": {
     "mock": {
@@ -19,7 +19,7 @@
       "jsonRetries": 2,
       "prices": {
         "claude-opus-5": { "inputPerMTok": 5, "outputPerMTok": 25 },
-        "claude-sonnet-5": { "inputPerMTok": 3, "outputPerMTok": 15 },
+        "claude-sonnet-5": { "inputPerMTok": 2, "outputPerMTok": 10 },
         "claude-haiku-4-5": { "inputPerMTok": 1, "outputPerMTok": 5 },
         "claude-fable-5": { "inputPerMTok": 10, "outputPerMTok": 50 }
       }

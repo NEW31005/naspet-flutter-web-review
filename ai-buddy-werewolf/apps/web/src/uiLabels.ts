@@ -86,8 +86,8 @@ export function masterPolicyLabel(policy: string): string {
 
 export function providerLabel(name: string, type?: string): string {
   if (name === 'mock' || type === 'mock') return 'モックAI（無料・動作確認向け）';
-  if (name === 'lab-live' || type === 'labProxy') return 'Claude Live（実際の会話を検証）';
-  if (name === 'anthropic' || type === 'anthropic') return 'Claude Live（ローカル開発用）';
+  if (name === 'lab-live' || type === 'labProxy') return 'Live AI（OpenRouter経由・有料）';
+  if (name === 'anthropic' || type === 'anthropic') return 'Claude API（ローカル開発用）';
   return name;
 }
 

@@ -35,6 +35,10 @@ function renderLogEntry(e: PublicLogEntry): string {
       if (e.stage === 'advice') return '--- 主人からバディへの相談時間 ---';
       if (e.stage === 'response') return '--- 相談後の応答討論 ---';
       return '';
+    case 'discussion_closed':
+      return e.reason === 'time_up'
+        ? '--- 討論時間終了 ---'
+        : '--- 発言上限により討論終了 ---';
     case 'speech':
       return `${e.name}: ${e.text}`;
     case 'vote':
@@ -268,9 +272,9 @@ function buildDirectiveBlock(ctx: BuddyContext): string {
       `# 今回の会話役割: 返答の受け止め\n${turn.targetName}の直前の回答を具体的に取り上げ、納得した点か残った矛盾を1つだけ述べる。`,
     );
   } else if (turn?.kind === 'reaction') {
-    parts.push(
-      '# 今回の会話役割: 応答討論\n冒頭討論または直前の質疑から具体的な発言を1つ取り上げ、賛成・反論・評価更新のいずれかを示す。',
-    );
+    parts.push(turn.replyToName
+      ? `# 今回の会話役割: 名指しへの返答\n${turn.replyToName}があなたへ疑いを向けた。まず相手の具体的な主張へ短く答え、そのうえで反論・説明・別の疑いのいずれかを返す。呼びかけ先が分かるよう相手の名前を入れる。`
+      : '# 今回の会話役割: 自発的な応答討論\n直近の会話から具体的な発言を1つ取り上げ、賛成・反論・質問・評価更新のいずれかを示す。ほかのAIと同時に考えているため、同じ論点の言い換えだけにしない。');
   }
   if (ctx.pendingQuestion) {
     parts.push(

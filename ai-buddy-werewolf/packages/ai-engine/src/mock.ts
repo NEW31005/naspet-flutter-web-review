@@ -396,10 +396,19 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
         .reverse()
         .find(
           (entry): entry is Extract<(typeof ctx.publicLog)[number], { t: 'speech' }> =>
-            entry.t === 'speech' && entry.pairId !== self.pairId,
+            entry.t === 'speech' && entry.pairId !== self.pairId &&
+              (!turn.replyToId || entry.pairId === turn.replyToId),
         );
       if (latest) {
-        const reactions = isWolf
+        const replyTarget = topId === turn.replyToId
+          ? `${turn.replyToName ?? 'あなた'}への疑いには、説明を聞くまで根拠があると思っている`
+          : `${topId ? nameOf(topId) : '別の組'}の説明を確かめたい`;
+        const reactions = turn.replyToName
+          ? [
+              `${turn.replyToName}、その疑いには反対。${persona.firstPerson}は具体的な発言を見ているし、${replyTarget}`,
+              `${turn.replyToName}の指摘は聞いた。でも印象だけで決めず、${replyTarget}`,
+            ]
+          : isWolf
           ? [
               `${latest.name}の今の説明だけでは弱い。${topId ? nameOf(topId) : '別の組'}への疑いは残る`,
               `${latest.name}の今の発言は聞いた。でも${topId ? nameOf(topId) : '候補'}の方が気になるという考えは変わらない`,
@@ -422,7 +431,9 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
         lines.push(`${exclaim()}${persona.firstPerson}は狼憑きじゃない。それだけは本当${ending()}`);
       } else if (canMisdirect && topId) {
         lines.push(
-          `${exclaim()}${persona.firstPerson}が引っかかっているのは${nameOf(topId)}の昨日からの動き${ending()}。発言と投票が噛み合っていないのが理由${ending()}`,
+          ctx.matchInfo.day === 1
+            ? `${exclaim()}${persona.firstPerson}が引っかかっているのは${nameOf(topId)}の今の誘導${ending()}。疑い先と理由が噛み合っていないのが理由${ending()}`
+            : `${exclaim()}${persona.firstPerson}が引っかかっているのは${nameOf(topId)}の昨日からの動き${ending()}。発言と投票が噛み合っていないのが理由${ending()}`,
         );
         accusesId = topId;
       } else if (canReason && topId) {

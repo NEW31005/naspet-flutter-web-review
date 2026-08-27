@@ -126,6 +126,7 @@ export class AiEngine {
     try {
       result = await exec(this.getProvider(providerName));
     } catch (e) {
+      if (opts.deadlineAt != null && this.now() >= opts.deadlineAt) throw e;
       error = e instanceof Error ? `${e.name}: ${e.message}` : String(e);
       usedFallback = true;
       ok = false;

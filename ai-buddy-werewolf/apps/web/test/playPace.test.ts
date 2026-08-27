@@ -4,6 +4,7 @@ import {
   normalizePlayPace,
   playPaceDelay,
   playPaceLabel,
+  timedMockBatchDelay,
 } from '../src/playPace.js';
 
 describe('試合の再生速度', () => {
@@ -31,5 +32,12 @@ describe('試合の再生速度', () => {
   it('内部値ではなく日本語表示名を返す', () => {
     expect(playPaceLabel('standard')).toBe('標準');
     expect(playPaceLabel('manual')).toBe('手動');
+  });
+
+  it('生成が一瞬のモック自由討論は150秒を読める間隔で刻む', () => {
+    expect(timedMockBatchDelay('fast')).toBe(2_000);
+    expect(timedMockBatchDelay('standard')).toBe(6_500);
+    expect(timedMockBatchDelay('relaxed')).toBe(10_000);
+    expect(timedMockBatchDelay('manual')).toBeNull();
   });
 });

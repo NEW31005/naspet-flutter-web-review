@@ -13,6 +13,7 @@ import type {
   Advice,
   BehaviorDirective,
   DiscussionStage,
+  DiscussionTurn,
   DiscussionTurnKind,
   EvalKind,
   EvalOutput,
@@ -92,6 +93,8 @@ export interface BuddyContext {
     askerName: string | null;
     targetId: PairId | null;
     targetName: string | null;
+    replyToId?: PairId | null;
+    replyToName?: string | null;
     theme: QuestionTheme | null;
   };
   /** 主人から共有された確定情報のみ(未共有の占い結果は含まれない) */
@@ -108,7 +111,11 @@ export interface BuddyContext {
   trustConfig: { subjectiveAdvice: TrustFnConfig };
 }
 
-export function buildBuddyContext(state: MatchState, pairId: PairId): BuddyContext {
+export function buildBuddyContext(
+  state: MatchState,
+  pairId: PairId,
+  turnOverride?: DiscussionTurn,
+): BuddyContext {
   const pair = getPair(state, pairId);
   const config = state.config;
   const buddy = config.buddies.find((b) => b.id === pair.buddyId);
@@ -162,7 +169,7 @@ export function buildBuddyContext(state: MatchState, pairId: PairId): BuddyConte
   const directive = behavior
     ? (config.advice.behaviorDirectives.find((d) => d.id === behavior) ?? null)
     : null;
-  const rawTurn = state.discussion?.queue[state.discussion.cursor] ?? null;
+  const rawTurn = turnOverride ?? state.discussion?.queue[state.discussion.cursor] ?? null;
   const turnQuestion = rawTurn?.question;
   const turnTheme = turnQuestion
     ? (config.advice.questionThemes.find((t) => t.id === turnQuestion.themeId) ?? null)
@@ -212,6 +219,8 @@ export function buildBuddyContext(state: MatchState, pairId: PairId): BuddyConte
           askerName: turnQuestion ? getPair(state, turnQuestion.askerId).buddyName : null,
           targetId: turnQuestion?.targetId ?? null,
           targetName: turnQuestion ? getPair(state, turnQuestion.targetId).buddyName : null,
+          replyToId: rawTurn.replyToId ?? null,
+          replyToName: rawTurn.replyToId ? getPair(state, rawTurn.replyToId).buddyName : null,
           theme: turnTheme,
         }
       : null,
@@ -241,6 +250,11 @@ export interface MasterView {
   day: number;
   phase: Phase;
   discussionStage: DiscussionStage | null;
+  discussionMode: 'timed' | 'turns' | null;
+  discussionEndsAt: number | null;
+  discussionDurationSec: number;
+  discussionMessageCount: number;
+  discussionMaxMessages: number;
   maxDays: number;
   winner: Winner | null;
   finishReason: string | null;
@@ -306,7 +320,9 @@ export function buildMasterView(state: MatchState, pairId: PairId | null): Maste
   } else {
     const descriptions: Record<string, string> = {
       ai_speech: 'バディが発言を考えています',
+      ai_speech_batch: '複数のバディが同時に考えています',
       start_discussion_response: '相談を受けた討論を始めています',
+      close_discussion: '討論を締め切っています',
       ai_votes: 'バディたちが投票を判断しています',
       ai_night: '夜の判断が行われています',
       advance_day: '討論の開始を待っています',
@@ -354,11 +370,13 @@ export function buildMasterView(state: MatchState, pairId: PairId | null): Maste
       canAdvise:
         pair.alive &&
         state.phase === 'discussion' &&
-        (state.config.rules.discussionRounds === 1 || state.discussion?.stage === 'advice') &&
+        (state.discussion?.mode === 'timed' ||
+          state.config.rules.discussionRounds === 1 || state.discussion?.stage === 'advice') &&
         (state.adviceUsedToday[pairId] ?? 0) < state.config.rules.advicePerDay,
       needDiscussionAdvice:
         pair.alive &&
         state.phase === 'discussion' &&
+        state.discussion?.mode !== 'timed' &&
         state.config.rules.discussionRounds > 1 &&
         state.discussion?.stage === 'advice' &&
         (state.adviceUsedToday[pairId] ?? 0) < state.config.rules.advicePerDay,
@@ -388,6 +406,13 @@ export function buildMasterView(state: MatchState, pairId: PairId | null): Maste
     day: state.day,
     phase: state.phase,
     discussionStage: state.discussion?.stage ?? null,
+    discussionMode: state.discussion?.mode ?? null,
+    discussionEndsAt: state.discussion?.endsAt ?? null,
+    discussionDurationSec: state.config.rules.discussionDurationSec ?? 150,
+    discussionMessageCount: state.publicLog.filter(
+      (entry) => entry.t === 'speech' && entry.day === state.day,
+    ).length,
+    discussionMaxMessages: state.config.rules.discussionMaxMessages ?? 30,
     maxDays: state.config.rules.maxDays,
     winner: state.winner,
     finishReason: state.finishReason,

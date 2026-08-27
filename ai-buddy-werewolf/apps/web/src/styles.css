@@ -258,6 +258,64 @@ h3 {
   flex-direction: column;
   gap: 8px;
 }
+.discussion-timer {
+  position: sticky;
+  top: 58px;
+  z-index: 12;
+  margin: -4px 0 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(139, 92, 246, 0.55);
+  border-radius: 12px;
+  background: rgba(24, 22, 38, 0.96);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+.discussion-timer small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.discussion-timer.urgent {
+  border-color: rgba(245, 158, 11, 0.8);
+}
+.timer-track {
+  height: 5px;
+  margin-top: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--panel2);
+}
+.timer-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8b5cf6, #c084fc);
+  transition: width 0.25s linear;
+}
+.discussion-timer.urgent .timer-track span {
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+}
+.private-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  text-align: center;
+  border: 1px solid rgba(139, 92, 246, 0.55);
+  border-radius: 14px;
+  background: rgba(139, 92, 246, 0.12);
+}
+.private-result strong {
+  font-size: 22px;
+}
+.private-result.safe {
+  border-color: rgba(59, 130, 246, 0.65);
+  background: rgba(59, 130, 246, 0.12);
+}
+.private-result.danger {
+  border-color: rgba(239, 68, 68, 0.7);
+  background: rgba(239, 68, 68, 0.12);
+}
 .sysline {
   text-align: center;
   color: var(--muted);

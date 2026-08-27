@@ -70,6 +70,9 @@ export function createServer(rootDir: string, manager: MatchManager): http.Serve
         pairCount: r.pairCount,
         roleSetup: r.roleSetup,
         maxDays: r.maxDays,
+        discussionMode: r.discussionMode,
+        discussionDurationSec: r.discussionDurationSec,
+        discussionBatchSize: r.discussionBatchSize,
         discussionRounds: r.discussionRounds,
         advicePerDay: r.advicePerDay,
         otherMastersPolicy: r.otherMastersPolicy,
@@ -85,6 +88,8 @@ export function createServer(rootDir: string, manager: MatchManager): http.Serve
             k,
             v.type === 'anthropic'
               ? { type: v.type, model: v.model, apiKeyEnv: v.apiKeyEnv, hasKey: !!process.env[v.apiKeyEnv] }
+              : v.type === 'labProxy'
+                ? { type: v.type, model: v.model, hasKey: true }
               : { type: v.type },
           ]),
         ),

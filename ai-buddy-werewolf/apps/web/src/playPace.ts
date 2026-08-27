@@ -15,6 +15,14 @@ const SPEECH_DELAY_MS: Record<Exclude<PlayPace, 'manual'>, number> = {
   relaxed: 3_200,
 };
 
+// モックは生成が一瞬なので、そのままだと150秒枠を数十秒で使い切ってしまう。
+// 自由討論だけは人が読める発言間隔を作り、Liveは実通信の待ち時間をそのまま使う。
+const TIMED_MOCK_BATCH_DELAY_MS: Record<Exclude<PlayPace, 'manual'>, number> = {
+  fast: 2_000,
+  standard: 6_500,
+  relaxed: 10_000,
+};
+
 export function normalizePlayPace(value: string | null | undefined): PlayPace {
   return PLAY_PACES.includes(value as PlayPace) ? (value as PlayPace) : 'standard';
 }
@@ -32,4 +40,9 @@ export function playPaceLabel(pace: PlayPace): string {
 export function playPaceDelay(pace: PlayPace, isSpeechStep: boolean): number | null {
   if (pace === 'manual') return null;
   return isSpeechStep ? SPEECH_DELAY_MS[pace] : 450;
+}
+
+export function timedMockBatchDelay(pace: PlayPace): number | null {
+  if (pace === 'manual') return null;
+  return TIMED_MOCK_BATCH_DELAY_MS[pace];
 }

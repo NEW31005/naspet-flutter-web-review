@@ -4,6 +4,7 @@ import {
   GameRuleError,
   applyAdvanceDay,
   applyAdvice,
+  applyCloseDiscussion,
   applyNight,
   applyNightProposal,
   applySpeech,
@@ -713,5 +714,124 @@ describe('2幕討論と指名質問', () => {
         expect.objectContaining({ stage: 'response' }),
       ]),
     );
+  });
+});
+
+describe('時間制の独立AI討論', () => {
+  it('焦点2人を並列候補にし、完了順で発言でき、名指し相手を次の返答へ優先する', () => {
+    const config = makeSnapshot({
+      discussionMode: 'timed',
+      discussionDurationSec: 150,
+      discussionMaxMessages: 30,
+      discussionBatchSize: 3,
+      firstDayFocusCount: 2,
+      discussionRounds: 2,
+    });
+    let { state } = createMatch({
+      matchId: 'm-timed-floor',
+      seed: 'timed-floor-seed',
+      mode: 'play',
+      provider: 'mock',
+      humanPairIndex: 0,
+      config,
+      now: NOW,
+    });
+    state = apply(state, applyAdvanceDay(state, NOW));
+    expect(state.discussion?.endsAt).toBe(NOW + 150_000);
+
+    const firstTask = getPendingTask(state, NOW + 1);
+    expect(firstTask.type).toBe('ai_speech_batch');
+    if (firstTask.type !== 'ai_speech_batch') throw new Error('timed batch missing');
+    expect(firstTask.turns).toHaveLength(2);
+    expect(firstTask.turns.every((turn) => turn.kind === 'opening_defense')).toBe(true);
+
+    // 並列処理は固定順でなく、先に完了した側から正式化できる。
+    for (const turn of [...firstTask.turns].reverse()) {
+      const output = makeEval(
+        Object.fromEntries(
+          state.pairs.filter((pair) => pair.pairId !== turn.pairId).map((pair) => [pair.pairId, 50]),
+        ),
+      );
+      state = apply(state, applySpeech(
+        state,
+        turn.pairId,
+        output,
+        `timed-${turn.pairId}`,
+        { text: '時間制の弁明', accusesId: null },
+        NOW + 2,
+        turn,
+      ));
+    }
+    const opinions = getPendingTask(state, NOW + 3);
+    expect(opinions.type).toBe('ai_speech_batch');
+    if (opinions.type !== 'ai_speech_batch') throw new Error('opinion batch missing');
+    for (const turn of opinions.turns) {
+      const targetId = state.pairs.find((pair) => pair.pairId !== turn.pairId)?.pairId ?? null;
+      state = apply(state, applySpeech(
+        state,
+        turn.pairId,
+        makeEval(Object.fromEntries(
+          state.pairs.filter((pair) => pair.pairId !== turn.pairId).map((pair) => [pair.pairId, 50]),
+        )),
+        `opinion-${turn.pairId}`,
+        { text: '弁明を比べた意見', accusesId: targetId },
+        NOW + 4,
+        turn,
+      ));
+    }
+    expect(getPendingTask(state, NOW + 5)).toEqual({ type: 'start_discussion_response' });
+    state = apply(state, applyStartDiscussionResponse(state, NOW + 5));
+
+    const response = getPendingTask(state, NOW + 6);
+    expect(response.type).toBe('ai_speech_batch');
+    if (response.type !== 'ai_speech_batch') throw new Error('response batch missing');
+    const speaker = response.turns[0];
+    if (!speaker) throw new Error('response speaker missing');
+    const accused = state.pairs.find((pair) => pair.pairId !== speaker.pairId)?.pairId ?? 'p2';
+    state = apply(state, applySpeech(
+      state,
+      speaker.pairId,
+      makeEval(Object.fromEntries(
+        state.pairs.filter((pair) => pair.pairId !== speaker.pairId).map((pair) => [pair.pairId, 50]),
+      )),
+      'accusation',
+      { text: '名指しして疑う', accusesId: accused },
+      NOW + 7,
+      speaker,
+    ));
+    const reply = getPendingTask(state, NOW + 8);
+    expect(reply.type).toBe('ai_speech_batch');
+    if (reply.type === 'ai_speech_batch') {
+      expect(reply.turns[0]).toMatchObject({ pairId: accused, replyToId: speaker.pairId });
+    }
+  });
+
+  it('助言は時間内なら冒頭から送れ、期限到達時に討論を閉じて裁判へ進む', () => {
+    const config = makeSnapshot({ discussionMode: 'timed', discussionDurationSec: 150 });
+    let { state } = createMatch({
+      matchId: 'm-timed-deadline',
+      seed: 'timed-deadline-seed',
+      mode: 'play',
+      provider: 'mock',
+      humanPairIndex: 0,
+      config,
+      now: NOW,
+    });
+    state = apply(state, applyAdvanceDay(state, NOW));
+    expect(() => applyAdvice(
+      state,
+      'p1',
+      { kind: 'suspicion', targetId: 'p2' },
+      NOW + 1,
+    )).not.toThrow();
+    expect(getPendingTask(state, NOW + 150_000)).toEqual({
+      type: 'close_discussion',
+      reason: 'time_up',
+    });
+    state = apply(state, applyCloseDiscussion(state, 'time_up', NOW + 150_000));
+    expect(state.phase).toBe('trial');
+    expect(state.publicLog).toEqual(expect.arrayContaining([
+      expect.objectContaining({ t: 'discussion_closed', reason: 'time_up' }),
+    ]));
   });
 });

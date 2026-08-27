@@ -97,7 +97,7 @@ describe('公開Web Labブラウザ内バックエンド', () => {
     expect(encodeLabAccessHeader('  ＴＥＳＴ－ＰＡＳＳ  ')).toBe('test-pass');
   });
 
-  it('保存済みの旧Quick Testを焦点型の2幕討論へ移行し、他の設定値は保持する', () => {
+  it('保存済みの旧Quick Testを150秒の時間制討論へ移行し、他の設定値は保持する', () => {
     localStorage.setItem(
       'aibw.lab.file.v1:config/presets/quick-test.json',
       JSON.stringify({
@@ -110,17 +110,25 @@ describe('公開Web Labブラウザ内バックエンド', () => {
       version: string;
       discussionRounds: number;
       firstDayFocusCount: number;
+      discussionMode: string;
+      discussionDurationSec: number;
+      discussionMaxMessages: number;
+      discussionBatchSize: number;
       customMarker: string;
     };
     expect(migrated).toEqual({
-      version: '0.5.0-focus.1',
+      version: '0.6.0-timed.1',
       discussionRounds: 2,
       firstDayFocusCount: 2,
+      discussionMode: 'timed',
+      discussionDurationSec: 150,
+      discussionMaxMessages: 30,
+      discussionBatchSize: 3,
       customMarker: 'keep-me',
     });
   });
 
-  it('保存済みの旧Pack Testも初日焦点型の2幕討論へ移行する', () => {
+  it('保存済みの旧Pack Testも150秒の時間制討論へ移行する', () => {
     localStorage.setItem(
       'aibw.lab.file.v1:config/presets/pack-test.json',
       JSON.stringify({
@@ -133,12 +141,20 @@ describe('公開Web Labブラウザ内バックエンド', () => {
       version: string;
       discussionRounds: number;
       firstDayFocusCount: number;
+      discussionMode: string;
+      discussionDurationSec: number;
+      discussionMaxMessages: number;
+      discussionBatchSize: number;
       customMarker: string;
     };
     expect(migrated).toEqual({
-      version: '0.2.0-focus.1',
+      version: '0.3.0-timed.1',
       discussionRounds: 2,
       firstDayFocusCount: 2,
+      discussionMode: 'timed',
+      discussionDurationSec: 150,
+      discussionMaxMessages: 48,
+      discussionBatchSize: 4,
       customMarker: 'keep-pack',
     });
   });

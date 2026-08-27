@@ -7,6 +7,7 @@ import type {
   Advice,
   BehaviorDirective,
   ConfigSnapshot,
+  DiscussionCloseReason,
   DiscussionStage,
   DiscussionTurn,
   DiscussionTurnKind,
@@ -56,6 +57,7 @@ export type PublicLogEntry =
       accusesId: PairId | null;
     }
   | { seq: number; day: number; t: 'discussion_stage'; stage: DiscussionStage }
+  | { seq: number; day: number; t: 'discussion_closed'; reason: DiscussionCloseReason }
   | {
       seq: number;
       day: number;
@@ -79,6 +81,10 @@ export type PublicLogEntry =
 
 export interface DiscussionState {
   stage: DiscussionStage;
+  mode: 'timed' | 'turns';
+  /** 討論開始時刻と締切。イベントのtsから復元できる。 */
+  startedAt: number;
+  endsAt: number;
   /** 初日に抽選された公開の討論対象。役職や内部評価とは無関係。 */
   focusPairIds: PairId[];
   queue: DiscussionTurn[];
@@ -216,7 +222,7 @@ function initialState(ev: Extract<MatchEvent, { type: 'match_created' }>, config
   };
 }
 
-function buildDiscussionQueue(state: MatchState): DiscussionState {
+function buildDiscussionQueue(state: MatchState, startedAt: number): DiscussionState {
   const order = alivePairs(state).map((p) => p.pairId);
   const queue: DiscussionTurn[] = [];
   const focusCount = state.day === 1
@@ -239,7 +245,17 @@ function buildDiscussionQueue(state: MatchState): DiscussionState {
       for (const pairId of order) queue.push({ pairId, round: 1, kind: 'opening' });
     }
   }
-  return { stage: 'opening', focusPairIds, queue, cursor: 0 };
+  const mode = state.config.rules.discussionMode ?? 'turns';
+  const durationSec = state.config.rules.discussionDurationSec ?? 150;
+  return {
+    stage: 'opening',
+    mode,
+    startedAt,
+    endsAt: startedAt + durationSec * 1000,
+    focusPairIds,
+    queue,
+    cursor: 0,
+  };
 }
 
 /**
@@ -335,7 +351,7 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
       state.day = event.payload.day;
       state.phase = event.payload.phase;
       if (state.phase === 'discussion') {
-        state.discussion = buildDiscussionQueue(state);
+        state.discussion = buildDiscussionQueue(state, event.ts);
         state.publicLog.push({ seq: event.seq, day: state.day, t: 'phase', phase: 'discussion' });
         if (state.discussion.focusPairIds.length > 0) {
           state.publicLog.push({
@@ -370,6 +386,15 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
         day: event.day,
         t: 'discussion_stage',
         stage: event.payload.stage,
+      });
+      break;
+    }
+    case 'discussion_closed': {
+      state.publicLog.push({
+        seq: event.seq,
+        day: event.day,
+        t: 'discussion_closed',
+        reason: event.payload.reason,
       });
       break;
     }

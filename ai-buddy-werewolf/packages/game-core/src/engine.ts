@@ -7,6 +7,8 @@
 import type {
   Advice,
   ConfigSnapshot,
+  DiscussionCloseReason,
+  DiscussionTurn,
   EvalOutput,
   Fact,
   MasterPolicy,
@@ -49,7 +51,9 @@ export type PendingTask =
       }[];
     }
   | { type: 'ai_speech'; pairId: PairId; round: number }
+  | { type: 'ai_speech_batch'; turns: DiscussionTurn[] }
   | { type: 'start_discussion_response' }
+  | { type: 'close_discussion'; reason: DiscussionCloseReason }
   | { type: 'ai_votes'; pairIds: PairId[] }
   | { type: 'ai_night'; wolfPairIds: PairId[]; seerPairId: PairId | null }
   | { type: 'advance_day' }
@@ -208,8 +212,134 @@ export function createMatch(params: CreateMatchParams): { events: MatchEvent[]; 
   return { events: [created, ...batch.events], state };
 }
 
-/** 次にやるべきことを返す。 */
-export function getPendingTask(state: MatchState): PendingTask {
+function currentDaySpeeches(state: MatchState) {
+  return state.publicLog.filter(
+    (entry): entry is Extract<(typeof state.publicLog)[number], { t: 'speech' }> =>
+      entry.t === 'speech' && entry.day === state.day,
+  );
+}
+
+function sameQuestion(
+  left: DiscussionTurn['question'] | undefined,
+  right: DiscussionTurn['question'] | undefined,
+): boolean {
+  return !!left && !!right && left.askerId === right.askerId &&
+    left.targetId === right.targetId && left.themeId === right.themeId;
+}
+
+/** 時間制討論で次に独立実行するAI群を決める。順番ではなく会話上の必要性と発言数を使う。 */
+function timedDiscussionTurns(state: MatchState): DiscussionTurn[] {
+  const discussion = state.discussion;
+  if (!discussion) return [];
+  const speeches = currentDaySpeeches(state);
+  const batchSize = state.config.rules.discussionBatchSize ?? 3;
+
+  if (discussion.stage === 'opening') {
+    const pending = discussion.queue.filter((turn) => {
+      const requiredBefore = discussion.queue.filter(
+        (candidate) => candidate.pairId === turn.pairId && candidate.kind === turn.kind,
+      ).indexOf(turn);
+      const completed = speeches.filter(
+        (speech) => speech.pairId === turn.pairId && speech.turnKind === turn.kind,
+      ).length;
+      return completed <= requiredBefore;
+    });
+    const defenses = pending.filter((turn) => turn.kind === 'opening_defense');
+    return (defenses.length > 0 ? defenses : pending).slice(0, batchSize);
+  }
+
+  const aliveIds = alivePairs(state).map((pair) => pair.pairId);
+  const pendingQuestioner = aliveIds.find((pairId) => {
+    const question = state.pendingQuestion[pairId];
+    return !!question && aliveIds.includes(question.targetId) && question.targetId !== pairId;
+  });
+  if (pendingQuestioner) {
+    const question = state.pendingQuestion[pendingQuestioner];
+    if (question) {
+      return [{
+        pairId: pendingQuestioner,
+        round: 2,
+        kind: 'question',
+        question: { askerId: pendingQuestioner, targetId: question.targetId, themeId: question.themeId },
+      }];
+    }
+  }
+
+  // まだ回答されていない直近の指名質問を最優先する。
+  const unresolvedQuestion = [...speeches].reverse().find((speech) => {
+    if (speech.turnKind !== 'question' || !speech.question) return false;
+    return !speeches.some(
+      (later) => later.seq > speech.seq && later.turnKind === 'answer' &&
+        later.pairId === speech.question?.targetId && sameQuestion(later.question, speech.question),
+    );
+  });
+  if (unresolvedQuestion?.question) {
+    return [{
+      pairId: unresolvedQuestion.question.targetId,
+      round: 2,
+      kind: 'answer',
+      question: unresolvedQuestion.question,
+    }];
+  }
+
+  // 回答済みだが質問者が受け止めていない質疑も回収する。
+  const unresolvedAnswer = [...speeches].reverse().find((speech) => {
+    if (speech.turnKind !== 'answer' || !speech.question) return false;
+    return !speeches.some(
+      (later) => later.seq > speech.seq && later.turnKind === 'follow_up' &&
+        later.pairId === speech.question?.askerId && sameQuestion(later.question, speech.question),
+    );
+  });
+  if (unresolvedAnswer?.question) {
+    return [{
+      pairId: unresolvedAnswer.question.askerId,
+      round: 2,
+      kind: 'follow_up',
+      question: unresolvedAnswer.question,
+    }];
+  }
+
+  const counts = Object.fromEntries(
+    aliveIds.map((pairId) => [pairId, speeches.filter((speech) => speech.pairId === pairId).length]),
+  ) as Record<PairId, number>;
+  const last = speeches[speeches.length - 1];
+  // 同時生成された複数の名指しも取りこぼさない。名指し後に対象本人がまだ
+  // 発言していないものを新しい順に拾い、対象本人の反論を優先する。
+  const unresolvedAccusations = [...speeches].reverse().filter((speech) => {
+    const targetId = speech.accusesId;
+    if (!targetId || targetId === speech.pairId || !aliveIds.includes(targetId)) return false;
+    return !speeches.some((later) => later.seq > speech.seq && later.pairId === targetId);
+  });
+  const priorityTurns: DiscussionTurn[] = [];
+  for (const accusation of unresolvedAccusations) {
+    const pairId = accusation.accusesId;
+    if (!pairId || priorityTurns.some((turn) => turn.pairId === pairId)) continue;
+    priorityTurns.push({
+      pairId,
+      round: 2,
+      kind: 'reaction',
+      replyToId: accusation.pairId,
+    });
+  }
+  const priorityIds = priorityTurns.map((turn) => turn.pairId);
+  const shuffled = shuffle(
+    aliveIds.filter((pairId) => !priorityIds.includes(pairId) && pairId !== last?.pairId),
+    state.seed,
+    'timed-discussion',
+    state.day,
+    speeches.length,
+  );
+  shuffled.sort((left, right) => (counts[left] ?? 0) - (counts[right] ?? 0));
+  const remainingTurns = shuffled.map((pairId): DiscussionTurn => ({
+    pairId,
+    round: 2,
+    kind: 'reaction',
+  }));
+  return [...priorityTurns, ...remainingTurns].slice(0, batchSize);
+}
+
+/** 次にやるべきことを返す。nowを渡すのは時間制討論を実行するときだけ。 */
+export function getPendingTask(state: MatchState, now?: number): PendingTask {
   if (state.winner || state.phase === 'finished') return { type: 'finished' };
   switch (state.phase) {
     case 'day_start':
@@ -217,6 +347,20 @@ export function getPendingTask(state: MatchState): PendingTask {
     case 'discussion': {
       const d = state.discussion;
       if (!d) return { type: 'advance_day' };
+      if (d.mode === 'timed') {
+        if (now != null && now >= d.endsAt) return { type: 'close_discussion', reason: 'time_up' };
+        const speechCount = currentDaySpeeches(state).length;
+        if (speechCount >= (state.config.rules.discussionMaxMessages ?? 30)) {
+          return { type: 'close_discussion', reason: 'message_limit' };
+        }
+        const turns = timedDiscussionTurns(state);
+        if (turns.length > 0) {
+          const remaining = (state.config.rules.discussionMaxMessages ?? 30) - speechCount;
+          return { type: 'ai_speech_batch', turns: turns.slice(0, remaining) };
+        }
+        if (d.stage === 'opening') return { type: 'start_discussion_response' };
+        return { type: 'close_discussion', reason: 'message_limit' };
+      }
       const next = d.queue[d.cursor];
       if (!next) {
         if (d.stage === 'advice') {
@@ -281,7 +425,9 @@ export function applyStartDiscussionResponse(state: MatchState, now: number): Ma
   if (
     state.phase !== 'discussion' ||
     !state.discussion ||
-    state.discussion.stage !== 'advice'
+    (state.discussion.mode === 'timed'
+      ? state.discussion.stage !== 'opening'
+      : state.discussion.stage !== 'advice')
   ) {
     throw new GameRuleError('相談後の討論を開始できる状態ではありません', 'wrong_discussion_stage');
   }
@@ -290,6 +436,25 @@ export function applyStartDiscussionResponse(state: MatchState, now: number): Ma
     type: 'discussion_stage_changed',
     visibility: PUBLIC,
     payload: { stage: 'response' },
+  });
+  return batch.events;
+}
+
+/** 時間切れまたは安全上限で討論を閉じ、未完の生成を採用せず裁判へ移る。 */
+export function applyCloseDiscussion(
+  state: MatchState,
+  reason: DiscussionCloseReason,
+  now: number,
+): MatchEvent[] {
+  if (state.phase !== 'discussion' || !state.discussion) {
+    throw new GameRuleError('討論を終了できる状態ではありません', 'wrong_phase');
+  }
+  const batch = new EventBatch(state, now);
+  batch.push({ type: 'discussion_closed', visibility: PUBLIC, payload: { reason } });
+  batch.push({
+    type: 'phase_changed',
+    visibility: PUBLIC,
+    payload: { day: state.day, phase: 'trial' },
   });
   return batch.events;
 }
@@ -305,6 +470,7 @@ export function applyAdvice(
     throw new GameRuleError('助言は討論中のみ送れます', 'advice_wrong_phase');
   }
   if (
+    state.discussion?.mode !== 'timed' &&
     state.config.rules.discussionRounds > 1 &&
     state.discussion?.stage !== 'advice'
   ) {
@@ -386,12 +552,14 @@ export function applySpeech(
   callId: string,
   speech: SpeechOutput,
   now: number,
+  turnOverride?: DiscussionTurn,
 ): MatchEvent[] {
   if (state.phase !== 'discussion' || !state.discussion) {
     throw new GameRuleError('討論フェーズではありません', 'wrong_phase');
   }
-  const next = state.discussion.queue[state.discussion.cursor];
-  if (!next || next.pairId !== pairId) {
+  const next = turnOverride ?? state.discussion.queue[state.discussion.cursor];
+  if (!next || next.pairId !== pairId ||
+      (state.discussion.mode !== 'timed' && turnOverride)) {
     throw new GameRuleError('発言順ではありません', 'not_your_turn');
   }
   const pair = getPair(state, pairId);
@@ -424,7 +592,7 @@ export function applySpeech(
   });
   // 第1幕終了なら主人の相談待ちへ。第2幕以降が終われば裁判へ。
   const after = batch.current;
-  if (after.discussion && after.discussion.cursor >= after.discussion.queue.length) {
+  if (after.discussion?.mode !== 'timed' && after.discussion && after.discussion.cursor >= after.discussion.queue.length) {
     if (
       after.discussion.stage === 'opening' &&
       after.config.rules.discussionRounds > 1

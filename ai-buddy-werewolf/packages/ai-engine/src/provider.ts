@@ -13,6 +13,8 @@ export interface CallOpts {
   /** このコールを一意に識別するラベル(例: d1-discussion-p2-3) */
   stepLabel: string;
   evalKind: EvalKind;
+  /** 時間制討論の絶対締切。プロバイダーは可能なら通信を中断する。 */
+  deadlineAt?: number;
 }
 
 export interface ProviderUsage {

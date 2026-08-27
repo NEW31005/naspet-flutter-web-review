@@ -10,7 +10,7 @@ export type Winner = Team | 'draw';
 
 export type Phase =
   | 'day_start' // 朝: 前夜の結果発表
-  | 'discussion' // 討論(バディが順番に公開発言)
+  | 'discussion' // 討論(時間制または従来の順番制で公開発言)
   | 'trial' // 裁判: 主人の意思表示を収集
   | 'night' // 夜: 占い/襲撃
   | 'finished';
@@ -19,6 +19,7 @@ export type MatchMode = 'play' | 'lab';
 
 /** 2幕討論の現在地。2周以上の設定では opening → advice → response と進む。 */
 export type DiscussionStage = 'opening' | 'advice' | 'response';
+export type DiscussionCloseReason = 'time_up' | 'message_limit';
 
 /** 公開発言の会話上の役割。質問と回答を発言順でも明示する。 */
 export type DiscussionTurnKind =
@@ -41,6 +42,8 @@ export interface DiscussionTurn {
   round: number;
   kind: DiscussionTurnKind;
   question?: DiscussionQuestionRef;
+  /** 名指し・疑いを受けて返答する場合の直前話者。 */
+  replyToId?: PairId;
 }
 
 /** 他の主人(非人間)の助言ポリシー */
@@ -198,6 +201,7 @@ export type MatchEvent = MatchEventBase &
     | { type: 'roles_assigned'; payload: { roles: Record<PairId, Role> } }
     | { type: 'phase_changed'; payload: { day: number; phase: Phase } }
     | { type: 'discussion_stage_changed'; payload: { stage: DiscussionStage } }
+    | { type: 'discussion_closed'; payload: { reason: DiscussionCloseReason } }
     | {
         type: 'day_started';
         payload: { day: number; deaths: { pairId: PairId; cause: 'attack' }[] };
@@ -371,6 +375,14 @@ export interface RulesConfig {
   firstNightDivination: boolean | 'white';
   /** 初日に抽選で討論の焦点へ置く人数。0なら通常の冒頭討論。 */
   firstDayFocusCount: number;
+  /** timed=制限時間内に各AIが独立して発言 / turns=従来の固定順。 */
+  discussionMode: 'timed' | 'turns';
+  /** 時間制討論の制限時間(秒)。 */
+  discussionDurationSec: number;
+  /** 暴走と原価超過を防ぐ1日あたりの公開発言上限。 */
+  discussionMaxMessages: number;
+  /** 同じ公開ログを読んで並列に考えるAIの最大数。 */
+  discussionBatchSize: number;
   discussionRounds: number; // 1日の討論周回数
   speechesPerBuddyPerRound: number; // 周回ごとの各バディ発言回数
   advicePerDay: number; // 主人の討論中助言回数

@@ -90,6 +90,15 @@ function validateRules(rules: RulesConfig, label: string): void {
   if (rules.firstDayFocusCount < 0 || rules.firstDayFocusCount > 4) {
     throw new Error(`${label}の初日討論対象は0〜4人にしてください。`);
   }
+  if (rules.discussionDurationSec < 15 || rules.discussionDurationSec > 600) {
+    throw new Error(`${label}の討論時間は15〜600秒にしてください。`);
+  }
+  if (rules.discussionMaxMessages < 5 || rules.discussionMaxMessages > 100) {
+    throw new Error(`${label}の討論発言上限は5〜100件にしてください。`);
+  }
+  if (rules.discussionBatchSize < 1 || rules.discussionBatchSize > 8) {
+    throw new Error(`${label}の同時思考AI数は1〜8人にしてください。`);
+  }
   if (rules.discussionRounds < 1 || rules.discussionRounds > 10) {
     throw new Error(`${label}の討論回数は1〜10周にしてください。`);
   }
@@ -279,6 +288,42 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
           <input value={rules.version} onChange={(event) => updateRules((r) => (r.version = event.target.value))} />
         </label>
         <div className="settings-grid">
+          <label className="field setting-field">
+            討論の進め方
+            <span className="setting-help">時間制では、各AIが独立して名指し・反論・質問を続けます。</span>
+            <select
+              value={rules.discussionMode}
+              onChange={(event) => updateRules((r) =>
+                (r.discussionMode = event.target.value as RulesConfig['discussionMode']))}
+            >
+              <option value="timed">時間制の自由討論</option>
+              <option value="turns">従来の順番制</option>
+            </select>
+          </label>
+          <NumberSetting
+            label="1日の討論時間（秒）"
+            help="時間制の既定は150秒。人間が助言を選ぶ時間もこの中に含みます。"
+            value={rules.discussionDurationSec}
+            min={15}
+            max={600}
+            onChange={(value) => updateRules((r) => (r.discussionDurationSec = value))}
+          />
+          <NumberSetting
+            label="1日のAI発言上限"
+            help="時間内でも原価が増えすぎないための安全上限です。"
+            value={rules.discussionMaxMessages}
+            min={5}
+            max={100}
+            onChange={(value) => updateRules((r) => (r.discussionMaxMessages = value))}
+          />
+          <NumberSetting
+            label="同時に考えるAI数"
+            help="固定の発言順ではなく、この人数まで個別AI処理を並列実行します。"
+            value={rules.discussionBatchSize}
+            min={1}
+            max={8}
+            onChange={(value) => updateRules((r) => (r.discussionBatchSize = value))}
+          />
           <NumberSetting
             label="参加ペア数"
             help="人間の主人とAIバディで1組です。"
@@ -311,7 +356,7 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
           />
           <NumberSetting
             label="1日の討論段階数"
-            help="2以上なら「初日2人の弁明と全員の評価 → 主人の相談 → 応答討論」になります。3以上は応答討論を追加します。"
+            help="従来の順番制で使います。時間制では設定しても進行へ影響しません。"
             value={rules.discussionRounds}
             min={1}
             max={10}
@@ -319,7 +364,7 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
           />
           <NumberSetting
             label="各段階でバディが話す回数"
-            help="指名質問の日は、質問・単独回答・受け止め・周囲の反応を優先します。"
+            help="従来の順番制で使います。時間制では発言上限を使います。"
             value={rules.speechesPerBuddyPerRound}
             min={1}
             max={3}

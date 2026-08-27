@@ -7,6 +7,7 @@
 import type {
   Advice,
   AiCallRecord,
+  DiscussionTurn,
   EvalOutput,
   MasterPolicy,
   MatchEvent,
@@ -21,6 +22,7 @@ import {
   alivePairs,
   applyAdvanceDay,
   applyAdvice,
+  applyCloseDiscussion,
   applyNight,
   applyNightProposal,
   applySpeech,
@@ -107,12 +109,17 @@ export class MatchRunner {
     return this.state.humanPairId === pairId;
   }
 
-  private callOpts(evalKind: CallOpts['evalKind'], stepLabel: string): CallOpts {
+  private callOpts(
+    evalKind: CallOpts['evalKind'],
+    stepLabel: string,
+    deadlineAt?: number,
+  ): CallOpts {
     return {
       seed: this.state.seed,
       nonce: this.state.rewindNonce,
       stepLabel,
       evalKind,
+      ...(deadlineAt == null ? {} : { deadlineAt }),
     };
   }
 
@@ -131,7 +138,7 @@ export class MatchRunner {
     }
     // 入力待ちのポリシー主人を自動解決してから本体タスクへ
     for (let guard = 0; guard < 4; guard++) {
-      const task = getPendingTask(this.state);
+      const task = getPendingTask(this.state, this.now());
       switch (task.type) {
         case 'finished': {
           if (this.store.record.finishedAt == null && this.state.winner) {
@@ -156,10 +163,18 @@ export class MatchRunner {
           await this.doSpeech(task.pairId, task.round);
           return { status: 'progressed', task: `speech:${task.pairId}` };
         }
+        case 'ai_speech_batch': {
+          await this.doSpeechBatch(task.turns);
+          return { status: 'progressed', task: `speech_batch:${task.turns.length}` };
+        }
         case 'start_discussion_response': {
           this.injectPolicyAdvices();
           appendEvents(this.store, applyStartDiscussionResponse(this.state, this.now()));
           return { status: 'progressed', task: 'discussion_response' };
+        }
+        case 'close_discussion': {
+          appendEvents(this.store, applyCloseDiscussion(this.state, task.reason, this.now()));
+          return { status: 'progressed', task: `discussion_closed:${task.reason}` };
         }
         case 'ai_votes': {
           await this.doVotes(task.pairIds);
@@ -211,6 +226,83 @@ export class MatchRunner {
       this.store,
       applySpeech(state, pairId, evalRes.output, evalRes.record.id, speechRes.output, this.now()),
     );
+  }
+
+  /**
+   * 時間制討論の独立AI処理。同じ公開ログを読んだ複数バディが並列に考え、
+   * 完了した順に発言を採用する。締切後に完成した文章は記録せず破棄する。
+   */
+  private async doSpeechBatch(turns: DiscussionTurn[]): Promise<void> {
+    const scheduledState = this.state;
+    const deadlineAt = scheduledState.discussion?.endsAt;
+    const completed = await Promise.allSettled(
+      turns.map(async (turn, index) => {
+        const ctx = buildBuddyContext(scheduledState, turn.pairId, turn);
+        const label = `d${scheduledState.day}-timed-${turn.pairId}-m${scheduledState.discussion?.cursor ?? 0}-b${index}-n${scheduledState.rewindNonce}`;
+        const opts = this.callOpts('discussion', label, deadlineAt);
+        const evalRes = await this.ai.evaluate(
+          scheduledState.provider,
+          turn.pairId,
+          ctx,
+          opts,
+        );
+        this.pushCall(evalRes.record);
+        if (deadlineAt != null && this.now() >= deadlineAt) {
+          return { turn, completedAt: this.now(), expired: true as const };
+        }
+        const speechRes = await this.ai.speak(
+          scheduledState.provider,
+          turn.pairId,
+          ctx,
+          evalRes.output,
+          opts,
+        );
+        this.pushCall(speechRes.record);
+        const completedAt = this.now();
+        return {
+          turn,
+          completedAt,
+          expired: deadlineAt != null && completedAt >= deadlineAt,
+          evalRes,
+          speechRes,
+        };
+      }),
+    );
+
+    const failures = completed.filter(
+      (result): result is PromiseRejectedResult => result.status === 'rejected',
+    );
+    if (failures.length > 0 && !(deadlineAt != null && this.now() >= deadlineAt)) {
+      throw failures[0]?.reason;
+    }
+    const usable = completed
+      .filter((result): result is PromiseFulfilledResult<{
+        turn: DiscussionTurn;
+        completedAt: number;
+        expired: boolean;
+        evalRes: { output: EvalOutput; record: AiCallRecord };
+        speechRes: { output: SpeechOutput; record: AiCallRecord };
+      }> => result.status === 'fulfilled' && !result.value.expired &&
+        'evalRes' in result.value && 'speechRes' in result.value)
+      .map((result) => result.value)
+      .sort((left, right) => left.completedAt - right.completedAt ||
+        left.turn.pairId.localeCompare(right.turn.pairId));
+
+    for (const result of usable) {
+      if (this.state.phase !== 'discussion' || this.state.discussion?.mode !== 'timed') break;
+      appendEvents(
+        this.store,
+        applySpeech(
+          this.state,
+          result.turn.pairId,
+          result.evalRes.output,
+          result.evalRes.record.id,
+          result.speechRes.output,
+          result.completedAt,
+          result.turn,
+        ),
+      );
+    }
   }
 
   private async doVotes(pairIds: PairId[]): Promise<void> {

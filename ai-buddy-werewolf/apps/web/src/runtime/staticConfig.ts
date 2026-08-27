@@ -100,15 +100,23 @@ export function readStaticFile(kind: EditableKind, name: string): string {
         firstDayFocusCount?: unknown;
       };
       const quickLegacy = path === 'config/presets/quick-test.json' &&
-        (value.version === '0.3.0-joint.1' || value.version === '0.4.0-dialogue.1');
+        (value.version === '0.3.0-joint.1' || value.version === '0.4.0-dialogue.1' ||
+          value.version === '0.5.0-focus.1');
       const packLegacy = path === 'config/presets/pack-test.json' &&
-        value.version === '0.1.1-joint.1';
+        (value.version === '0.1.1-joint.1' || value.version === '0.2.0-focus.1');
       if (quickLegacy || packLegacy) {
+        const pairCount = typeof (value as { pairCount?: unknown }).pairCount === 'number'
+          ? (value as { pairCount: number }).pairCount
+          : quickLegacy ? 5 : 8;
         const migrated = JSON.stringify(
           {
             ...value,
-            version: quickLegacy ? '0.5.0-focus.1' : '0.2.0-focus.1',
+            version: quickLegacy ? '0.6.0-timed.1' : '0.3.0-timed.1',
             firstDayFocusCount: 2,
+            discussionMode: 'timed',
+            discussionDurationSec: 150,
+            discussionMaxMessages: pairCount <= 5 ? 30 : 48,
+            discussionBatchSize: pairCount <= 5 ? 3 : 4,
             discussionRounds: 2,
           },
           null,
@@ -124,8 +132,8 @@ export function readStaticFile(kind: EditableKind, name: string): string {
   if (path === 'prompts/version.json' && saved) {
     try {
       const value = JSON.parse(saved) as { version?: unknown };
-      if (value.version === '0.4.0-dialogue.1') {
-        const migrated = JSON.stringify({ ...value, version: '0.5.0-focus.1' }, null, 2);
+      if (value.version === '0.4.0-dialogue.1' || value.version === '0.5.0-focus.1') {
+        const migrated = JSON.stringify({ ...value, version: '0.6.0-timed.1' }, null, 2);
         localStorage.setItem(storageKey(path), migrated);
         return migrated;
       }

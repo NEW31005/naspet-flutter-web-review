@@ -152,8 +152,17 @@ class LabProxyProvider {
   ): Promise<ProxyResponse> {
     const accessCode = getLabAccessCode();
     if (!accessCode) throw new Error('愛言葉のセッションがありません。再ログインしてください');
+    if (opts.deadlineAt != null && Date.now() >= opts.deadlineAt) {
+      throw new DOMException('討論時間が終了しました', 'AbortError');
+    }
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.config.timeoutMs);
+    const deadlineRemaining = opts.deadlineAt == null
+      ? this.config.timeoutMs
+      : Math.max(1, opts.deadlineAt - Date.now());
+    const timer = setTimeout(
+      () => controller.abort(),
+      Math.min(this.config.timeoutMs, deadlineRemaining),
+    );
     try {
       const response = await fetch(this.config.endpoint, {
         method: 'POST',
@@ -260,6 +269,7 @@ export class BrowserAiEngine implements AiEngineLike {
     try {
       result = await execute(this.provider(providerName));
     } catch (cause) {
+      if (opts.deadlineAt != null && this.now() >= opts.deadlineAt) throw cause;
       error = cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause);
       usedFallback = true;
       ok = false;

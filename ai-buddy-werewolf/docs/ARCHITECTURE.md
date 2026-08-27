@@ -47,8 +47,8 @@ Static:  apps/web/browserBackend ─────────▶ ai-engine/browse
 stateDiagram-v2
     [*] --> day_start : createMatch(役職配布)
     day_start --> discussion : advance(ポリシー主人の助言注入)
-    discussion --> discussion : ai_speech(評価→発言) × 生存者×周回
-    discussion --> trial : 発言キュー消化
+    discussion --> discussion : ai_speech_batch(個別評価→個別発言を並列)
+    discussion --> trial : 期限到達 or 発言安全上限
     trial --> trial : 主人の意思表示を収集(人間は待つ/他はポリシー)
     trial --> night : ai_votes(並列評価→補正→投票→処刑) 勝敗未決
     trial --> finished : 勝敗決定
@@ -57,7 +57,7 @@ stateDiagram-v2
     finished --> [*]
 ```
 
-進行は**プル型**: `getPendingTask(state)` が次にやるべき1単位(`ai_speech` / `wait_inputs` / `ai_votes` / `ai_night` / `advance_day` / `finished`)を返し、`MatchRunner.advanceOnce()` がそれを実行する。クライアントは「進める」/自動ループで advance を叩くだけで、人間の入力が必要なときは `waiting` が返る。
+進行は**プル型**: `getPendingTask(state, now)` が次にやるべき1単位(`ai_speech_batch` / `close_discussion` / `wait_inputs` / `ai_votes` / `ai_night` / `advance_day` / `finished`)を返し、`MatchRunner.advanceOnce()` がそれを実行する。時間制討論では複数AIの評価・発言を独立したPromiseで並列実行し、完了順に検証・イベント化する。制限時刻を越えて完了した発言は採用しない。クライアントは「進める」/自動ループで advance を叩くだけで、人間の入力が必要なときは `waiting` が返る。
 
 ## データフロー(1回の発言ステップ)
 
@@ -84,7 +84,7 @@ flowchart LR
 | 目的 | 内部状態の更新(怪しい度・襲撃優先度・仮説・投票候補) | 円卓での公開発言文の生成 |
 | 出力 | **Zod検証付き構造化JSON**(`EvalOutput`) | `{text, accusesId}` |
 | 人格 | **含めない**(判断と表現の分離) | 含める(口調・語尾・長さ) |
-| 実行 | **並列可**(裁判・夜は全員分を `Promise.all`) | **逐次**(前の発言を聞いて次が話す) |
+| 実行 | **個別・並列**(時間制討論、裁判、夜) | 時間制討論ではAIごとに独立して並列生成し、完了順に公開。指名応答だけ優先順位を持つ |
 | CoT | 保存しない(短い `reasonSummary` のみ) | — |
 
 先行生成への備え: 評価と発言は疎結合で、評価結果(`eval_recorded`)は公開ログの時点に紐づいて保存される。助言で未来の発言が無効になっても、過去ログに対する評価は再利用できる(Phase0では先行生成自体は未実装)。

@@ -7,7 +7,7 @@
  * - 評価プロンプト: 判断専用。人格・口調は含めない。
  * - 発言プロンプト: 表現専用。人格・口調・虚言力(狼のみ)を含める。
  */
-import type { EvalOutput } from '@aibw/shared';
+import { ROLE_LABEL, type EvalOutput } from '@aibw/shared';
 import type { BuddyContext, PublicLogEntry } from '@aibw/game-core';
 import type { PromptSet } from './provider.js';
 
@@ -21,7 +21,9 @@ function renderLogEntry(e: PublicLogEntry): string {
       const deaths =
         e.deaths.length > 0
           ? ` 昨夜、${e.deaths.map((d) => d.name).join('と')}が襲撃されて死亡した。`
-          : '';
+          : e.day > 1
+            ? ' 昨夜の犠牲者はいなかった。'
+            : '';
       return `--- ${e.day}日目の朝 ---${deaths}`;
     }
     case 'phase':
@@ -41,6 +43,8 @@ function renderLogEntry(e: PublicLogEntry): string {
         : '--- 発言上限により討論終了 ---';
     case 'speech':
       return `${e.name}: ${e.text}`;
+    case 'role_declared':
+      return `[役職の名乗り] ${e.name}は「${ROLE_LABEL[e.claimedRole]}」として名乗り出た。本当の役職かどうかは公開されていない。`;
     case 'vote':
       return `[投票] ${e.name} → ${e.targetName}`;
     case 'execution':
@@ -95,6 +99,20 @@ function roleBlock(ctx: BuddyContext, prompts: PromptSet): string {
     });
   }
   if (role === 'seer') return prompts.roleSeer;
+  if (role === 'guardian') {
+    return prompts.roleGuardian ?? [
+      '# あなたの役職: 騎士',
+      '夜に生存者を1人護衛する。自分自身と前夜と同じ相手は護衛できない。',
+      '主人の対象提案は判断材料だが、最終対象は自分で決める。役職と護衛先は公開情報ではない。',
+    ].join('\n');
+  }
+  if (role === 'medium') {
+    return prompts.roleMedium ?? [
+      '# あなたの役職: 霊媒師',
+      '処刑された相手が狼憑きかどうかを主人が知る。主人から共有された結果だけを確定情報として扱う。',
+      '役職をいつ公開するかは盤面を見て判断する。',
+    ].join('\n');
+  }
   return prompts.roleVillager;
 }
 
@@ -107,10 +125,10 @@ function factsBlock(ctx: BuddyContext): string {
   return (
     '- 主人から共有された確定情報(ゲームシステムが保証する事実。疑ってはならない):\n' +
     ctx.sharedFacts
-      .map(
-        (f) =>
-          `  - ${f.day}日目の占い: ${nameOf(f.targetId)}(${f.targetId})は${f.isWolf ? '狼憑きである' : '狼憑きではない'}`,
-      )
+      .map((f) => {
+        const source = f.source === 'medium' ? '霊媒' : '占い';
+        return `  - ${f.day}日目の${source}: ${nameOf(f.targetId)}(${f.targetId})は${f.isWolf ? '狼憑きである' : '狼憑きではない'}`;
+      })
       .join('\n')
   );
 }
@@ -137,6 +155,13 @@ function advicesBlock(ctx: BuddyContext): string {
         break;
       case 'behavior':
         lines.push(`  - [${a.day}日目/立ち回り] ${ad.directiveId}`);
+        break;
+      case 'role_claim':
+        lines.push(
+          ad.claimedRole === null
+            ? `  - [${a.day}日目/役職の名乗り方] 主人は今日はまだ役職を名乗らないでほしいと考えている`
+            : `  - [${a.day}日目/役職の名乗り方] 主人は${ROLE_LABEL[ad.claimedRole]}として名乗ってほしいと考えている（本当の役職と異なる場合もある。最終判断はあなた）`,
+        );
         break;
       case 'fact_share':
         break; // factsBlockで表示済み
@@ -203,7 +228,9 @@ export function buildEvalPrompt(
     skillPrioritiesHint:
       ctx.self.role === 'seer'
         ? 'skillTargetPriorities: 次の夜に占いたい優先度0-100。'
-        : 'skillTargetPriorities: あなたは占い役ではないため空配列でよい。',
+        : ctx.self.role === 'guardian'
+          ? `skillTargetPriorities: 今夜護衛したい優先度0-100。自分自身${ctx.lastGuardTarget ? `と前夜の護衛先${ctx.lastGuardTarget.name}(${ctx.lastGuardTarget.pairId})` : ''}は候補に含めない。`
+          : 'skillTargetPriorities: 夜に対象を選ぶ役職ではないため空配列でよい。',
   }) + (ctx.discussionFocus.length > 0
     ? `\n\n# 初日の討論対象\n${ctx.discussionFocus.map((pair) => `${pair.name}(${pair.pairId})`).join('、')}。抽選で選ばれただけなので、その事実自体を狼の根拠にしてはならない。弁明内容と他者の反応を評価すること。`
     : '');
@@ -257,11 +284,55 @@ export function buildSpeechPrompt(
         ? '# 注意\nあなたは狼憑きだが、市民のふりをして発言する。使える騙しの技術はシステムプロンプトのリストに限る。'
         : '',
     directiveBlock: buildDirectiveBlock(ctx),
+    roleClaimBlock: buildRoleClaimBlock(ctx),
     recentLogBlock: renderPublicLog(ctx.publicLog, 20),
     lengthLimit: verbosityHints[persona.verbosity],
     candidateIds: ctx.candidates.map((c) => `${c.pairId}=${c.name}`).join(', '),
   });
   return { system, user };
+}
+
+function buildRoleClaimBlock(ctx: BuddyContext): string {
+  const labels: Record<string, string> = {
+    villager: '市民',
+    seer: '占い師',
+    guardian: '騎士',
+    medium: '霊媒師',
+    werewolf: '狼憑き',
+  };
+  const nameOf = (id: string) =>
+    ctx.participants.find((participant) => participant.pairId === id)?.name ?? id;
+  const publicClaims = Object.entries(ctx.publicRoleClaims);
+  const publicBlock = publicClaims.length === 0
+    ? '円卓で役職を名乗っている参加者はまだいない。'
+    : `現在までの公開された名乗り:\n${publicClaims
+        .map(([pairId, claim]) =>
+          `- ${nameOf(pairId)}: ${labels[claim.claimedRole] ?? claim.claimedRole}（${claim.day}日目に名乗った。真偽は不明）`,
+        )
+        .join('\n')}`;
+  const proposal = ctx.roleClaimProposal;
+  if (!proposal) {
+    return `# 役職の名乗り状況\n${publicBlock}\n主人から今日の名乗り方について相談は届いていない。`;
+  }
+  if (proposal.claimedRole === null) {
+    return [
+      '# 役職の名乗り状況',
+      publicBlock,
+      '主人は今日はまだ役職を名乗らないでほしいと考えている。命令ではないが、親密度に応じて重く受け止める。',
+      'この相談自体は秘密。採用しても「主人に言われた」とは話さず、declaredRoleはnullにする。',
+    ].join('\n');
+  }
+  const requested = labels[proposal.claimedRole] ?? proposal.claimedRole;
+  const truth = proposal.claimedRole === ctx.self.role
+    ? '本当の役職を明かす提案'
+    : '本当とは異なる役職として名乗る提案';
+  return [
+    '# 役職の名乗り状況',
+    publicBlock,
+    `主人は今日、${requested}として名乗ってほしいと考えている（${truth}）。命令ではないが、親密度に応じて重く受け止める。`,
+    '実際に採用する場合だけ、発言本文で役職名をはっきり名乗り、declaredRoleへ対応するIDを返す。延期・拒否する場合はdeclaredRoleをnullにする。',
+    '相談内容や本当の役職は、採用すると決めた範囲を超えて漏らさない。別役職を名乗っても、知らない能力結果は作らない。',
+  ].join('\n');
 }
 
 function buildDirectiveBlock(ctx: BuddyContext): string {

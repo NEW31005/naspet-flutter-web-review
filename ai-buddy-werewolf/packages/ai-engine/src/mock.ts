@@ -5,7 +5,7 @@
  * シード+ラベルから導出する乱数のみを使うため、同じシードなら同じ試合を再現できる。
  */
 import type { EvalOutput, PairId, SpeechOutput } from '@aibw/shared';
-import { pickOne, rand } from '@aibw/shared';
+import { ROLE_LABEL, pickOne, rand } from '@aibw/shared';
 import { trustBonus } from '@aibw/game-core';
 import type { BuddyContext } from '@aibw/game-core';
 import type { CallOpts, LlmProvider, ProviderResult } from './provider.js';
@@ -169,7 +169,8 @@ export function mockEvaluate(ctx: BuddyContext, opts: CallOpts): EvalOutput {
     }
   }
 
-  // 占い先優先度(占い役のみ): 疑わしいが確定していない相手
+  // スキル対象優先度。
+  // 占い役は疑わしい未確定者、騎士は比較的信頼できる生存者を優先する。
   let skillTargetPriorities: Record<PairId, number> | undefined;
   if (self.role === 'seer') {
     skillTargetPriorities = {};
@@ -178,6 +179,14 @@ export function mockEvaluate(ctx: BuddyContext, opts: CallOpts): EvalOutput {
       const base = known.has(c.pairId) ? 5 : (suspicions[c.pairId] ?? 50);
       skillTargetPriorities[c.pairId] = clamp(
         base + rand(seed, 'skill', opts.stepLabel, c.pairId) * 10 - 5,
+      );
+    }
+  } else if (self.role === 'guardian') {
+    skillTargetPriorities = {};
+    for (const c of ctx.candidates) {
+      if (c.pairId === ctx.lastGuardTarget?.pairId) continue;
+      skillTargetPriorities[c.pairId] = clamp(
+        100 - (suspicions[c.pairId] ?? 50) + rand(seed, 'guard', opts.stepLabel, c.pairId) * 10,
       );
     }
   }
@@ -205,9 +214,18 @@ export function mockEvaluate(ctx: BuddyContext, opts: CallOpts): EvalOutput {
   const toShare: string[] = [];
   const toWithhold: string[] = [];
   if (self.role === 'seer') {
-    toWithhold.push('自分が占い役であること(状況次第で公開)');
+    toWithhold.push('自分が占い師であること(状況次第で公開)');
     for (const f of ctx.sharedFacts) {
       if (f.isWolf) toShare.push(`${nameOf(f.targetId)}が狼憑きだという確定情報`);
+    }
+  } else if (self.role === 'guardian') {
+    toWithhold.push('自分が騎士であることと護衛先');
+  } else if (self.role === 'medium') {
+    toWithhold.push('自分が霊媒師であること(状況次第で公開)');
+    for (const f of ctx.sharedFacts) {
+      if (f.source === 'medium') {
+        toShare.push(`${nameOf(f.targetId)}の霊媒結果`);
+      }
     }
   } else if (isWolf) {
     toWithhold.push('自分が狼憑きであること');
@@ -264,6 +282,7 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
   const topId = (ev.voteCandidateId ?? sorted[0]?.[0] ?? null) as PairId | null;
   const lines: string[] = [];
   let accusesId: PairId | null = null;
+  let declaredRole: SpeechOutput['declaredRole'] = null;
   const turn = ctx.discussionTurn;
   // 語尾は「名詞止め+語尾」の形で接続する(どの口調でも自然になる)
   const reasons =
@@ -278,6 +297,32 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
   const reason = () => pickOne(reasons, seed, 'reason', opts.stepLabel);
   const hideRole = directive === 'hide_role';
 
+  // 主人から届いた「役職をどう名乗るか」の相談を、親密度と虚言力を含めて
+  // 決定論的に採否判断する。信頼100でも必ず採用にはしない。
+  const roleProposal = ctx.roleClaimProposal;
+  if (roleProposal?.claimedRole) {
+    const requestedRole = roleProposal.claimedRole;
+    const currentClaim = ctx.publicRoleClaims[self.pairId]?.claimedRole ?? null;
+    if (currentClaim !== requestedRole) {
+      const isTruth = requestedRole === self.role;
+      const trustWeight = self.abilities.trust / 100;
+      const deceptionWeight = self.abilities.deception / 100;
+      const changePenalty = currentClaim === null ? 0 : 0.15;
+      const adoptionChance = Math.min(
+        0.95,
+        (isTruth ? 0.3 : 0.1) + trustWeight * 0.65 + (isTruth ? 0 : deceptionWeight * 0.2) - changePenalty,
+      );
+      if (rand(seed, 'role-claim', self.pairId, ctx.matchInfo.day, opts.stepLabel) < adoptionChance) {
+        declaredRole = requestedRole;
+        lines.push(
+          isTruth
+            ? `${exclaim()}${persona.firstPerson}は${ROLE_LABEL[requestedRole]}。ここで役職を明かす`
+            : `${exclaim()}${persona.firstPerson}は${ROLE_LABEL[requestedRole]}として名乗る`,
+        );
+      }
+    }
+  }
+
   if (turn?.kind === 'opening_defense') {
     const otherFocus = ctx.discussionFocus.find((pair) => pair.pairId !== self.pairId);
     const defenses = isWolf
@@ -289,7 +334,11 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
           `${exclaim()}${persona.firstPerson}は狼憑きではない。抽選で選ばれただけだから、この後の受け答えと投票まで見て判断してほしい`,
           `身の潔白を先に話すなら、${persona.firstPerson}は市民側だ。${otherFocus ? `${otherFocus.name}も抽選だけでは決めつけず、` : ''}説明の中身を比べてほしい`,
         ];
-    return { text: pickOne(defenses, seed, 'opening-defense', opts.stepLabel), accusesId: null };
+    return {
+      text: pickOne(defenses, seed, 'opening-defense', opts.stepLabel),
+      accusesId: null,
+      declaredRole: null,
+    };
   }
 
   if (turn?.kind === 'opening_opinion' && ctx.discussionFocus.length > 0) {
@@ -314,6 +363,7 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
       return {
         text: pickOne(opinions, seed, 'opening-opinion', opts.stepLabel),
         accusesId: clearContradiction ? selected.pairId : null,
+        declaredRole: null,
       };
     }
   }
@@ -324,6 +374,7 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
     return {
       text: turn.theme.mockTemplate.replace('{target}', turn.targetName),
       accusesId: null,
+      declaredRole: null,
     };
   }
   if (turn?.kind === 'answer' && turn.theme && turn.askerName) {
@@ -338,13 +389,14 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
       co_plan:
         self.role === 'seer' && !hideRole
           ? `必要になれば役職は明かす。でも今この場で明かすかは、もう少し発言を見て決める${ending()}`
-          : `今のところ役職を名乗る予定はない${ending()}`,
+          : `${persona.firstPerson}は今のところ、役職を名乗る予定はない`,
       why_cover: `庇うつもりではなく、今ある発言だけでは決めつけられないと言っただけ${ending()}`,
       why_changed: `直前の発言を聞いて評価を更新した。変えた理由はそこ${ending()}`,
     };
     return {
       text: `${turn.askerName}への答え。${answerByTheme[turn.theme.id] ?? `今ある公開情報だけで答える${ending()}`}`,
       accusesId: turn.theme.id === 'most_suspicious' ? topId : null,
+      declaredRole: null,
     };
   }
   if (turn?.kind === 'follow_up' && turn.targetName) {
@@ -361,28 +413,33 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
     return {
       text: pickOne(reactions, seed, 'follow-up', opts.stepLabel),
       accusesId: null,
+      declaredRole: null,
     };
   }
 
-  // 1) 確定情報の公開(占い役が共有済みの狼情報を持つ場合)
+  // 1) 確定情報の公開(占い役/霊媒師が共有済みの狼情報を持つ場合)
   const wolfFact = ctx.sharedFacts.find((f) => f.isWolf);
   if (
-    self.role === 'seer' &&
+    (self.role === 'seer' || self.role === 'medium') &&
     wolfFact &&
     !hideRole &&
     ctx.candidates.some((c) => c.pairId === wolfFact.targetId) &&
     rand(seed, 'reveal', ctx.matchInfo.day) < 0.75
   ) {
+    const sourceRole = wolfFact.source === 'medium' ? '霊媒師' : '占い師';
+    const sourceAction = wolfFact.source === 'medium' ? '霊媒' : '占い';
     lines.push(
-      `${exclaim()}${persona.firstPerson}は占い役${ending()}。占いで分かっている、狼憑きは${nameOf(wolfFact.targetId)}${ending()}`,
+      `${exclaim()}${persona.firstPerson}は${sourceRole}${ending()}。${sourceAction}で分かっている、狼憑きは${nameOf(wolfFact.targetId)}${ending()}`,
     );
+    declaredRole = self.role;
     accusesId = wolfFact.targetId;
   }
 
   // 1b) 白確の言及(共有済みの白ファクトがあれば時々卓へ出す)
   const whiteFact = ctx.sharedFacts.find((f) => !f.isWolf);
   if (whiteFact && !hideRole && lines.length === 0 && rand(seed, 'white', opts.stepLabel) < 0.6) {
-    lines.push(`${nameOf(whiteFact.targetId)}は占いで白と分かっている${ending()}。疑うだけ無駄${ending()}`);
+    const source = whiteFact.source === 'medium' ? '霊媒' : '占い';
+    lines.push(`${nameOf(whiteFact.targetId)}は${source}で白と分かっている${ending()}。疑うだけ無駄${ending()}`);
   }
 
   // 2) 主人からの質問指示(最優先で消化。質問文自体には語尾を付けない)
@@ -471,5 +528,5 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
 
   const maxLines = persona.verbosity === 'short' ? 1 : persona.verbosity === 'medium' ? 2 : 3;
   const text = lines.slice(0, maxLines).join(' ');
-  return { text, accusesId };
+  return { text, accusesId, declaredRole };
 }

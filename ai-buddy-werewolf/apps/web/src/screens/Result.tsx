@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api, type MatchRecord, type ReplayData, type ViewResponse } from '../api.js';
 import { ErrorBox, Spinner, TopBar } from '../components.js';
-import { configVersionLabel, providerLabel } from '../uiLabels.js';
+import { configVersionLabel, providerLabel, roleLabel } from '../uiLabels.js';
 
 export function Result({ matchId }: { matchId: string }) {
   const [data, setData] = useState<ViewResponse | null>(null);
@@ -84,6 +84,43 @@ export function Result({ matchId }: { matchId: string }) {
           ))}
         </div>
 
+        {replay && replay.roleClaimDetails.length > 0 && (
+          <div className="card">
+            <h2>役職を名乗る相談と実際の名乗り</h2>
+            <p className="muted small">
+              主人の相談はバディだけに届き、円卓にはバディが実際に名乗った内容だけが公開されました。本当だったかは試合終了後のここで確認できます。
+            </p>
+            {replay.roleClaimDetails.map((detail) => (
+              <div key={`${detail.day}-${detail.pairId}`} className="role-claim-result">
+                <div className="row spread">
+                  <strong>{detail.day}日目・{detail.pairName}</strong>
+                  <span className="badge">本当の役職：{detail.trueRoleLabel}</span>
+                </div>
+                <div className="muted small">
+                  🔒 主人からの相談：
+                  {!detail.masterProposalSet
+                    ? '相談なし'
+                    : detail.masterProposal == null
+                      ? '今日はまだ名乗らないでほしい'
+                      : `${roleLabel(detail.masterProposal)}として名乗ってほしい`}
+                </div>
+                {detail.publicClaims.length === 0 ? (
+                  <div className="muted small">🎭 円卓での名乗り：なし</div>
+                ) : (
+                  detail.publicClaims.map((claim) => (
+                    <div key={claim.seq} className="muted small">
+                      🎭 円卓での名乗り：<strong>{claim.claimedRoleLabel}</strong>{' '}
+                      <span className={`badge ${claim.isTruth ? 'ok' : 'warn'}`}>
+                        {claim.isTruth ? '本当の役職' : '本当とは異なる名乗り'}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
         {replay && (
           <div className="card">
             <h2>各日の裁判と夜</h2>
@@ -116,11 +153,35 @@ export function Result({ matchId }: { matchId: string }) {
             ))}
             {replay.nightDetails.map((n) => (
               <div key={n.day} className="muted small">
-                🌙 {n.day}日目の夜:{' '}
-                {n.attack
-                  ? `襲撃 → ${nameOf(n.attack.targetId)}(狼${n.attack.perWolf.length}体の統合${n.attack.tie ? '/同点抽選' : ''})`
-                  : '襲撃なし'}
-                {n.divination && ` / 占い → ${nameOf(n.divination.targetId)}`}
+                <div>
+                  🌙 {n.day}日目の夜:{' '}
+                  {n.attack
+                    ? `襲撃候補 → ${nameOf(n.attack.targetId)}(狼${n.attack.perWolf.length}体の統合${n.attack.tie ? '/同点抽選' : ''})`
+                    : '襲撃なし'}
+                  {n.divination && ` / 占い → ${nameOf(n.divination.targetId)}`}
+                </div>
+                {(() => {
+                  const guard = replay.events.find(
+                    (event) => event.type === 'guard_detail' && event.day === n.day,
+                  );
+                  if (!guard || guard.type !== 'guard_detail') return null;
+                  return (
+                    <div>
+                      🛡️ 騎士の護衛 → {nameOf(guard.payload.targetId)}
+                      {guard.payload.blockedAttack ? '（襲撃を防いだ）' : ''}
+                    </div>
+                  );
+                })()}
+                {replay.events
+                  .filter((event) => event.type === 'medium_result' && event.day === n.day)
+                  .map((event) =>
+                    event.type === 'medium_result' ? (
+                      <div key={event.seq}>
+                        🕯️ 霊媒結果 → {nameOf(event.payload.targetId)}は
+                        {event.payload.fact.isWolf ? '狼憑き' : '狼憑きではない'}
+                      </div>
+                    ) : null,
+                  )}
               </div>
             ))}
           </div>
@@ -214,21 +275,53 @@ export function Result({ matchId }: { matchId: string }) {
 }
 
 export function describeAdvice(
-  advice: { kind: string; targetId?: string; themeId?: string; factId?: string; directiveId?: string },
+  advice: {
+    kind: string;
+    targetId?: string;
+    themeId?: string;
+    factId?: string;
+    directiveId?: string;
+    claimedRole?: string | null;
+  },
   nameOf: (id: string | null) => string,
 ): string {
   switch (advice.kind) {
     case 'suspicion':
       return `主観的な疑い → ${nameOf(advice.targetId ?? null)}`;
     case 'question':
-      return `質問指定 → ${nameOf(advice.targetId ?? null)} (${advice.themeId})`;
+      return `質問指定 → ${nameOf(advice.targetId ?? null)}（${questionThemeLabel(advice.themeId)}）`;
     case 'fact_share':
       return `確定情報の共有 (${advice.factId})`;
     case 'skill_target':
-      return `次回スキル対象の提案 → ${nameOf(advice.targetId ?? null)}`;
+      return `次回の占い・護衛先候補 → ${nameOf(advice.targetId ?? null)}`;
+    case 'role_claim':
+      return advice.claimedRole == null
+        ? '役職を名乗る相談 → 今日はまだ名乗らないでほしい'
+        : `役職を名乗る相談 → ${roleLabel(advice.claimedRole)}として名乗ってほしい`;
     case 'behavior':
-      return `立ち回りの提案 (${advice.directiveId})`;
+      return `立ち回りの提案（${behaviorDirectiveLabel(advice.directiveId)}）`;
     default:
       return advice.kind;
   }
+}
+
+function questionThemeLabel(themeId: string | undefined): string {
+  const labels: Record<string, string> = {
+    vote_reason: '昨日の投票理由',
+    most_suspicious: '現在最も疑っている相手',
+    co_plan: '役職を名乗る予定があるか',
+    why_cover: '特定人物を庇った理由',
+    why_changed: '発言が変化した理由',
+  };
+  return themeId ? (labels[themeId] ?? themeId) : '質問内容なし';
+}
+
+function behaviorDirectiveLabel(directiveId: string | undefined): string {
+  const labels: Record<string, string> = {
+    low_profile: '目立たないで',
+    push_hard: '強く追及して',
+    hide_role: '役職を伏せて',
+    own_judgement: '自分の判断を優先して',
+  };
+  return directiveId ? (labels[directiveId] ?? directiveId) : '内容なし';
 }

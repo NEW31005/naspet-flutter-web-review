@@ -1,18 +1,69 @@
 /** モックAIでの完走・決定論・フォールバック・信頼度と事実の扱いのテスト */
 import { describe, expect, it } from 'vitest';
-import type { AiCallRecord, EvalOutput, PairId, SpeechOutput } from '@aibw/shared';
-import { buildBuddyContext, type BuddyContext } from '@aibw/game-core';
+import {
+  ROLE_LABEL,
+  type AiCallRecord,
+  type EvalOutput,
+  type MatchRecord,
+  type PairId,
+  type Role,
+  type SpeechOutput,
+} from '@aibw/shared';
+import { buildBuddyContext, canSeeEvent, createMatch, type BuddyContext } from '@aibw/game-core';
 import { AiEngine } from '../src/calls.js';
 import { mockEvaluate, mockSpeak } from '../src/mock.js';
 import { MatchRunner, computeMetrics, rebuildStore } from '../src/runner.js';
 import type { AiEngineLike } from '../src/runner.js';
 import type { CallOpts, LlmProvider, ProviderResult } from '../src/provider.js';
-import { makeStore, testModels, testPrompts } from './fixtures.js';
+import { makeSnapshot, makeStore, testModels, testPrompts } from './fixtures.js';
 
 function makeRunner(seed: string, rules?: Parameters<typeof makeStore>[1]) {
   let t = 1_700_000_000_000;
   const now = () => (t += 10);
   const store = makeStore(seed, rules, 1_700_000_000_000);
+  const ai = new AiEngine({ models: testModels, prompts: testPrompts, now });
+  return { runner: new MatchRunner(store, ai, now), store };
+}
+
+function makePlayRunner(
+  seed: string,
+  abilities: { trust: number; deception: number },
+) {
+  let t = 1_700_000_000_000;
+  const now = () => (t += 10);
+  const config = makeSnapshot(
+    {
+      discussionMode: 'turns',
+      discussionRounds: 2,
+      firstDayFocusCount: 2,
+      otherMastersPolicy: 'none',
+    },
+    { b1: abilities },
+  );
+  const created = createMatch({
+    matchId: `m-${seed}`,
+    seed,
+    mode: 'play',
+    provider: 'mock',
+    humanPairIndex: 0,
+    config,
+    now: t,
+  });
+  const record: MatchRecord = {
+    schemaVersion: 1,
+    matchId: `m-${seed}`,
+    seed,
+    createdAt: t,
+    startedAt: null,
+    finishedAt: null,
+    mode: 'play',
+    provider: 'mock',
+    humanPairId: 'p1',
+    configSnapshot: config,
+    events: created.events,
+    aiCalls: [],
+  };
+  const store = rebuildStore(record);
   const ai = new AiEngine({ models: testModels, prompts: testPrompts, now });
   return { runner: new MatchRunner(store, ai, now), store };
 }
@@ -291,6 +342,142 @@ describe('モック評価の信頼度・確定情報の扱い', () => {
       opts,
     );
     expect(withHumanFact.suspicions['p3']).toBeLessThanOrEqual(10);
+  });
+});
+
+describe('モックの役職を名乗る相談', () => {
+  it('高親密度では別役職の提案も採用し得るが、偽の能力結果は作らない', () => {
+    const store = makeStore('mock-role-claim');
+    const ctx = buildBuddyContext(store.state, 'p1');
+    ctx.self.abilities = { ...ctx.self.abilities, trust: 100, deception: 100 };
+    const claimedRole = ctx.self.role === 'seer' ? 'medium' : 'seer';
+    ctx.roleClaimProposal = { day: 1, claimedRole };
+    ctx.advices.push({ day: 1, advice: { kind: 'role_claim', claimedRole } });
+
+    const declarations = Array.from({ length: 20 }, (_, index) => {
+      const opts: CallOpts = {
+        seed: 'role-claim-seed',
+        nonce: 0,
+        stepLabel: `role-claim-${index}`,
+        evalKind: 'discussion',
+      };
+      return mockSpeak(ctx, mockEvaluate(ctx, opts), opts);
+    }).filter((speech) => speech.declaredRole === claimedRole);
+
+    expect(declarations.length).toBeGreaterThan(0);
+    for (const speech of declarations) {
+      expect(speech.text).toContain(ROLE_LABEL[claimedRole]);
+      expect(speech.text).not.toMatch(/占いで分か|霊媒で分か|護衛.*成功/);
+    }
+  });
+
+  it('今日は名乗らない提案なら公開宣言を返さない', () => {
+    const store = makeStore('mock-role-wait');
+    const ctx = buildBuddyContext(store.state, 'p1');
+    ctx.roleClaimProposal = { day: 1, claimedRole: null };
+    const opts: CallOpts = {
+      seed: 'role-wait-seed',
+      nonce: 0,
+      stepLabel: 'role-wait',
+      evalKind: 'discussion',
+    };
+    expect(mockSpeak(ctx, mockEvaluate(ctx, opts), opts).declaredRole).toBeNull();
+  });
+});
+
+describe('役職を名乗る相談の進行統合', () => {
+  const roles: Role[] = ['villager', 'seer', 'guardian', 'medium', 'werewolf'];
+
+  async function reachOwnerAdvice(
+    runner: MatchRunner,
+    store: ReturnType<typeof makePlayRunner>['store'],
+  ): Promise<void> {
+    const waiting = await runner.advanceUntilBlocked(100);
+    expect(waiting).toEqual({
+      status: 'waiting',
+      missing: [{ pairId: 'p1', input: 'discussion_advice' }],
+    });
+    expect(store.state.discussion?.stage).toBe('advice');
+  }
+
+  it('主人の秘密相談を第2幕のモック発言へ渡し、実際に名乗った内容だけを公開する', async () => {
+    const { runner, store } = makePlayRunner(
+      'role-claim-e2e-adopts',
+      { trust: 100, deception: 100 },
+    );
+    await reachOwnerAdvice(runner, store);
+
+    const actualRole = store.state.pairs.find((pair) => pair.pairId === 'p1')?.role;
+    if (!actualRole) throw new Error('p1の役職がありません');
+    const claimedRole = roles.find((role) => role !== actualRole);
+    if (!claimedRole) throw new Error('別の役職がありません');
+    expect(
+      store.record.events.some(
+        (event) => event.type === 'role_declared' && event.payload.pairId === 'p1',
+      ),
+    ).toBe(false);
+
+    runner.submitAdvice('p1', { kind: 'role_claim', claimedRole });
+    const adviceEvent = store.record.events.at(-1);
+    expect(adviceEvent?.type).toBe('advice_given');
+    if (!adviceEvent) throw new Error('相談イベントがありません');
+    expect(canSeeEvent(adviceEvent, { kind: 'public' })).toBe(false);
+
+    const afterResponse = await runner.advanceUntilBlocked(100);
+    expect(afterResponse).toMatchObject({ status: 'waiting' });
+    expect(
+      store.record.events.some(
+        (event) =>
+          event.type === 'speech' &&
+          event.payload.pairId === 'p1' &&
+          event.payload.round === 2,
+      ),
+    ).toBe(true);
+
+    const declarations = store.record.events.filter(
+      (event) => event.type === 'role_declared' && event.payload.pairId === 'p1',
+    );
+    expect(declarations).toHaveLength(1);
+    const declaration = declarations[0];
+    if (!declaration || declaration.type !== 'role_declared') {
+      throw new Error('公開された役職宣言がありません');
+    }
+    expect(declaration.visibility).toEqual({ kind: 'public' });
+    expect(declaration.payload).toEqual({ pairId: 'p1', claimedRole });
+    expect(Object.keys(declaration.payload).sort()).toEqual(['claimedRole', 'pairId']);
+    expect(JSON.stringify(declaration)).not.toMatch(/trueRole|isTruth/);
+  });
+
+  it('同じ秘密相談でも低い親密度では採用しない場合があり、相談を命令にしない', async () => {
+    const { runner, store } = makePlayRunner(
+      'role-claim-e2e-refuses',
+      { trust: 0, deception: 0 },
+    );
+    await reachOwnerAdvice(runner, store);
+
+    const actualRole = store.state.pairs.find((pair) => pair.pairId === 'p1')?.role;
+    if (!actualRole) throw new Error('p1の役職がありません');
+    const claimedRole = roles.find((role) => role !== actualRole);
+    if (!claimedRole) throw new Error('別の役職がありません');
+
+    runner.submitAdvice('p1', { kind: 'role_claim', claimedRole });
+    await runner.advanceUntilBlocked(100);
+
+    expect(
+      store.record.events.some(
+        (event) =>
+          event.type === 'speech' &&
+          event.payload.pairId === 'p1' &&
+          event.payload.round === 2,
+      ),
+    ).toBe(true);
+    expect(
+      store.record.events.some(
+        (event) => event.type === 'role_declared' && event.payload.pairId === 'p1',
+      ),
+    ).toBe(false);
+    expect(store.state.roleClaimProposal.p1).toEqual({ day: 1, claimedRole });
+    expect(store.state.publicRoleClaims).not.toHaveProperty('p1');
   });
 });
 

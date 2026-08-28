@@ -21,7 +21,7 @@ import type {
   SpeechOutput,
   Visibility,
 } from '@aibw/shared';
-import { ROLE_TEAM, pickOne, shuffle } from '@aibw/shared';
+import { ROLE_LABEL, ROLE_TEAM, pickOne, shuffle } from '@aibw/shared';
 import {
   alivePairs,
   aliveWolves,
@@ -55,7 +55,12 @@ export type PendingTask =
   | { type: 'start_discussion_response' }
   | { type: 'close_discussion'; reason: DiscussionCloseReason }
   | { type: 'ai_votes'; pairIds: PairId[] }
-  | { type: 'ai_night'; wolfPairIds: PairId[]; seerPairId: PairId | null }
+  | {
+      type: 'ai_night';
+      wolfPairIds: PairId[];
+      seerPairIds: PairId[];
+      guardianPairIds: PairId[];
+    }
   | { type: 'advance_day' }
   | { type: 'finished' };
 
@@ -146,6 +151,8 @@ export function createMatch(params: CreateMatchParams): { events: MatchEvent[]; 
   const roleList: Role[] = [];
   for (let i = 0; i < rules.roleSetup.werewolf; i++) roleList.push('werewolf');
   for (let i = 0; i < rules.roleSetup.seer; i++) roleList.push('seer');
+  for (let i = 0; i < (rules.roleSetup.guardian ?? 0); i++) roleList.push('guardian');
+  for (let i = 0; i < (rules.roleSetup.medium ?? 0); i++) roleList.push('medium');
   while (roleList.length < rules.pairCount) roleList.push('villager');
   const shuffled = shuffle(roleList, params.seed, 'roles');
   const roles: Record<PairId, Role> = {};
@@ -176,19 +183,27 @@ export function createMatch(params: CreateMatchParams): { events: MatchEvent[]; 
   batch.push({ type: 'roles_assigned', visibility: GM, payload: { roles } });
   if (rules.firstNightDivination) {
     // 0日目占い: 主人にのみ届く。共有するかは主人(またはポリシー)の判断(原則1は不変)
-    const seerId = pairs.find((p) => roles[p.pairId] === 'seer')?.pairId;
-    if (seerId) {
+    const seerIds = pairs
+      .filter((p) => roles[p.pairId] === 'seer')
+      .map((p) => p.pairId);
+    for (const seerId of seerIds) {
       const candidates = pairs
         .map((p) => p.pairId)
         .filter((id) => id !== seerId)
         .filter((id) => rules.firstNightDivination !== 'white' || ROLE_TEAM[roles[id] ?? 'villager'] !== 'wolves');
       if (candidates.length === 0) {
         throw new GameRuleError(
-          '初日占いの対象がいません。白通知を使う場合は、占い役以外の市民陣営を1組以上設定してください',
+          '初日占いの対象がいません。白通知を使う場合は、占い師以外の市民陣営を1組以上設定してください',
           'first_divination_no_target',
         );
       }
-      const targetId = pickOne(candidates, params.seed, 'first-divination');
+      // 占い役1組の既存presetでは従来の抽選結果を維持する。
+      const targetId = pickOne(
+        candidates,
+        params.seed,
+        'first-divination',
+        ...(seerIds.length > 1 ? [seerId] : []),
+      );
       const fact: Fact = {
         id: `fact-d0-${seerId}`,
         day: 0,
@@ -505,11 +520,15 @@ export function getPendingTask(state: MatchState, now?: number): PendingTask {
         .filter((p) => state.nightProposals[p.pairId] === undefined)
         .map((p) => ({ pairId: p.pairId, input: 'night_proposal' as const }));
       if (missing.length > 0) return { type: 'wait_inputs', missing };
-      const seer = alivePairs(state).find((p) => p.role === 'seer');
       return {
         type: 'ai_night',
         wolfPairIds: aliveWolves(state).map((p) => p.pairId),
-        seerPairId: seer?.pairId ?? null,
+        seerPairIds: alivePairs(state)
+          .filter((p) => p.role === 'seer')
+          .map((p) => p.pairId),
+        guardianPairIds: alivePairs(state)
+          .filter((p) => p.role === 'guardian')
+          .map((p) => p.pairId),
       };
     }
   }
@@ -718,10 +737,27 @@ export function applyAdvice(
       break;
     case 'skill_target':
       assertTarget(advice.targetId);
-      if (pair.role !== 'seer') {
+      if (pair.role !== 'seer' && pair.role !== 'guardian') {
         throw new GameRuleError('スキルを持つ役職ではありません', 'no_skill');
       }
+      if (
+        pair.role === 'guardian' &&
+        [...state.guardHistory]
+          .reverse()
+          .find((entry) => entry.guardianPairId === pairId)?.targetId === advice.targetId
+      ) {
+        throw new GameRuleError('前夜と同じ相手は続けて護衛できません', 'guardian_repeat_target');
+      }
       break;
+    case 'role_claim': {
+      if (
+        advice.claimedRole !== null &&
+        !state.config.advice.roleClaimOptions.some((option) => option.role === advice.claimedRole)
+      ) {
+        throw new GameRuleError('選べない役職の名乗り方です', 'unknown_role_claim');
+      }
+      break;
+    }
     case 'behavior': {
       const d = state.config.advice.behaviorDirectives.find((x) => x.id === advice.directiveId);
       if (!d) throw new GameRuleError('不明な立ち回り指示です', 'unknown_directive');
@@ -787,6 +823,11 @@ export function applySpeech(
     speech.accusesId && state.pairs.some((p) => p.pairId === speech.accusesId && p.alive)
       ? speech.accusesId
       : null;
+  // 旧保存データや旧テスト入力にフィールドがない場合は「名乗らない」として扱う。
+  const declaredRole = speech.declaredRole ?? null;
+  if (declaredRole !== null && !Object.hasOwn(ROLE_LABEL, declaredRole)) {
+    throw new GameRuleError('存在しない役職は名乗れません', 'invalid_declared_role');
+  }
 
   const batch = new EventBatch(state, now);
   batch.push({
@@ -807,6 +848,16 @@ export function applySpeech(
       accusesId,
     },
   });
+  if (
+    declaredRole !== null &&
+    state.publicRoleClaims[pairId]?.claimedRole !== declaredRole
+  ) {
+    batch.push({
+      type: 'role_declared',
+      visibility: PUBLIC,
+      payload: { pairId, claimedRole: declaredRole },
+    });
+  }
   // 第1幕終了なら主人の相談待ちへ。第2幕以降が終われば裁判へ。
   const after = batch.current;
   if (after.discussion?.mode !== 'timed' && after.discussion && after.discussion.cursor >= after.discussion.queue.length) {
@@ -1044,11 +1095,36 @@ export function applyNight(
   const trustOf = (buddyId: string): number =>
     state.config.buddies.find((b) => b.id === buddyId)?.abilities.trust ?? 0;
 
+  // --- 霊媒 ---
+  // 当日処刑された組の陣営結果を、夜を迎えられた霊媒師の主人だけへ渡す。
+  // この後に霊媒師自身が襲撃されても、夜に発動した結果は翌朝の記録へ残る。
+  const mediums = alivePairs(state).filter((p) => p.role === 'medium');
+  const execution = [...state.executionHistory]
+    .reverse()
+    .find((entry) => entry.day === state.day && entry.targetId != null);
+  if (execution?.targetId) {
+    const target = getPair(state, execution.targetId);
+    for (const medium of mediums) {
+      const fact: Fact = {
+        id: `fact-medium-d${state.day}-${medium.pairId}`,
+        day: state.day,
+        targetId: target.pairId,
+        isWolf: ROLE_TEAM[target.role] === 'wolves',
+        source: 'medium',
+      };
+      batch.push({
+        type: 'medium_result',
+        visibility: forPair(medium.pairId, 'master'),
+        payload: { mediumPairId: medium.pairId, targetId: target.pairId, fact },
+      });
+    }
+  }
+
   // --- 占い ---
-  const seer = alivePairs(state).find((p) => p.role === 'seer');
-  if (seer) {
+  const seers = alivePairs(state).filter((p) => p.role === 'seer');
+  for (const seer of seers) {
     const entry = evals[seer.pairId];
-    if (!entry) throw new GameRuleError(`占い役の評価がありません: ${seer.pairId}`, 'eval_missing');
+    if (!entry) throw new GameRuleError(`占い師の評価がありません: ${seer.pairId}`, 'eval_missing');
     const output = sanitizeEval(state, seer.pairId, entry.output);
     const divined = new Set(state.divined[seer.pairId] ?? []);
     let candidates = alivePairs(state)
@@ -1102,6 +1178,65 @@ export function applyNight(
         });
       }
     }
+  }
+
+  // --- 騎士の護衛 ---
+  // 襲撃対象を解決する前に護衛行動を確定するため、騎士自身が同じ夜に
+  // 襲撃されても、この夜の護衛は有効になる。
+  const guardians = alivePairs(state).filter((p) => p.role === 'guardian');
+  const guardResolutions: {
+    guardianPairId: PairId;
+    targetId: PairId | null;
+    basePriorities: Record<PairId, number>;
+    adjustedPriorities: Record<PairId, number>;
+    masterProposalId: PairId | null;
+  }[] = [];
+  for (const guardian of guardians) {
+    const entry = evals[guardian.pairId];
+    if (!entry) {
+      throw new GameRuleError(`騎士の評価がありません: ${guardian.pairId}`, 'eval_missing');
+    }
+    const output = sanitizeEval(state, guardian.pairId, entry.output);
+    const previousTarget = [...state.guardHistory]
+      .reverse()
+      .find((history) => history.guardianPairId === guardian.pairId)?.targetId ?? null;
+    const candidates = alivePairs(state)
+      .filter(
+        (pair) => pair.pairId !== guardian.pairId && pair.pairId !== previousTarget,
+      )
+      .map((pair) => pair.pairId);
+    const proposal = state.skillProposal[guardian.pairId] ?? null;
+    const decision = decideWithTrust({
+      candidates,
+      baseScores: output.skillTargetPriorities ?? {},
+      defaultScore: 50,
+      masterProposalId: proposal && candidates.includes(proposal) ? proposal : null,
+      trust: trustOf(guardian.buddyId),
+      trustCfg: state.config.rules.trust.skillProposal,
+      seed: state.seed,
+      rngLabels: ['guard-tie', state.day, guardian.pairId, state.rewindNonce],
+    });
+    batch.push({
+      type: 'eval_recorded',
+      visibility: GM,
+      payload: { pairId: guardian.pairId, kind: 'night', callId: entry.callId, output },
+    });
+    batch.push({
+      type: 'guard_resolved',
+      visibility: forPair(guardian.pairId, 'both'),
+      payload: {
+        guardianPairId: guardian.pairId,
+        targetId: decision.targetId,
+        masterProposalId: proposal,
+      },
+    });
+    guardResolutions.push({
+      guardianPairId: guardian.pairId,
+      targetId: decision.targetId,
+      basePriorities: decision.baseScores,
+      adjustedPriorities: decision.adjustedScores,
+      masterProposalId: proposal,
+    });
   }
 
   // --- 狼の襲撃 ---
@@ -1180,13 +1315,30 @@ export function applyNight(
           },
         });
       }
-      batch.push({
-        type: 'attack_resolved',
-        visibility: GM,
-        payload: { targetId: attackTargetId },
-      });
     }
   }
+
+  const blockedAttack =
+    attackTargetId != null &&
+    guardResolutions.some((resolution) => resolution.targetId === attackTargetId);
+  for (const guardResolution of guardResolutions) {
+    batch.push({
+      type: 'guard_detail',
+      visibility: GM,
+      payload: {
+        ...guardResolution,
+        attackTargetId,
+        blockedAttack:
+          attackTargetId != null && guardResolution.targetId === attackTargetId,
+      },
+    });
+  }
+  const deathTargetId = blockedAttack ? null : attackTargetId;
+  batch.push({
+    type: 'attack_resolved',
+    visibility: GM,
+    payload: { targetId: deathTargetId },
+  });
 
   // --- 勝敗と翌日 ---
   const after = batch.current;
@@ -1221,7 +1373,7 @@ export function applyNight(
       phase: 'day_start',
       payload: {
         day: nextDay,
-        deaths: attackTargetId ? [{ pairId: attackTargetId, cause: 'attack' as const }] : [],
+        deaths: deathTargetId ? [{ pairId: deathTargetId, cause: 'attack' as const }] : [],
       },
     });
   }

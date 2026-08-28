@@ -12,6 +12,10 @@ export const CONFIG_FILE_META: Record<string, { label: string; description: stri
     label: '情報戦テストの全ルール',
     description: '初日白通知で「占い→共有→反応」のループを最初から回すプリセットの詳細JSONです。',
   },
+  'presets/standard-nine.json': {
+    label: '9人本格テストの全ルール',
+    description: '狼憑き2・占い師1・騎士1・霊媒師1を含む9組の標準プリセットです。',
+  },
   'advice.json': {
     label: '助言メニュー・質問内容',
     description: '主人からバディへ送れる助言と選択肢の詳細JSONです。',
@@ -48,8 +52,16 @@ export const PROMPT_FILE_META: Record<string, { label: string; description: stri
     description: '市民として情報を集め、狼憑きを探すための追加指示です。',
   },
   'role.seer.md': {
-    label: '占い役の考え方',
+    label: '占い師の考え方',
     description: '占い結果の扱い方と、次に占う相手を決める追加指示です。',
+  },
+  'role.guardian.md': {
+    label: '騎士の考え方',
+    description: '今夜守る相手を選び、襲撃から市民を守るための追加指示です。',
+  },
+  'role.medium.md': {
+    label: '霊媒師の考え方',
+    description: '処刑された相手の正体を知り、その情報を扱うための追加指示です。',
   },
   'role.werewolf.md': {
     label: '狼憑きの嘘・判断',
@@ -115,7 +127,20 @@ export function presetIdLabel(presetId: string): string {
       ? '群れテスト'
       : presetId === 'quick-info'
         ? 'クイック情報戦'
+        : presetId === 'standard-nine'
+          ? '9人本格テスト'
         : presetId;
+}
+
+export function roleLabel(role: string | null | undefined): string {
+  const labels: Record<string, string> = {
+    villager: '市民',
+    seer: '占い師',
+    guardian: '騎士',
+    medium: '霊媒師',
+    werewolf: '狼憑き',
+  };
+  return role == null ? 'まだ名乗らない' : (labels[role] ?? role);
 }
 
 export function phaseLabel(phase: string): string {

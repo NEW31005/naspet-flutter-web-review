@@ -12,10 +12,11 @@ import { ErrorBox, Spinner } from '../components.js';
 import { isStaticLab } from '../runtime/access.js';
 import { masterPolicyLabel, modelLabel, providerLabel } from '../uiLabels.js';
 
-type PresetKey = 'quick' | 'pack';
+type PresetKey = 'quick' | 'pack' | 'standardNine';
 type Draft = {
   quick: RulesConfig;
   pack: RulesConfig;
+  standardNine: RulesConfig;
   advice: AdviceConfig;
   models: ModelsConfig;
 };
@@ -24,6 +25,7 @@ type LiveProvider = Exclude<ProviderConfig, { type: 'mock' }>;
 const PRESET_META: Record<PresetKey, { label: string; file: string }> = {
   quick: { label: 'クイックテスト', file: 'presets/quick-test.json' },
   pack: { label: '群れテスト（狼2組）', file: 'presets/pack-test.json' },
+  standardNine: { label: '9人本格テスト', file: 'presets/standard-nine.json' },
 };
 
 const TRUST_META: {
@@ -44,7 +46,7 @@ const TRUST_META: {
   {
     key: 'skillProposal',
     label: '次回スキル対象の提案',
-    help: '主人が提案した占い先などを、バディがどれだけ重く見るか。',
+    help: '主人が提案した占い先や護衛先を、バディがどれだけ重く見るか。',
   },
   {
     key: 'subjectiveAdvice',
@@ -65,6 +67,17 @@ function isLiveProvider(provider: ProviderConfig | undefined): provider is LiveP
   return !!provider && provider.type !== 'mock';
 }
 
+function withSpecialRoleDefaults(rules: RulesConfig): RulesConfig {
+  return {
+    ...rules,
+    roleSetup: {
+      ...rules.roleSetup,
+      guardian: rules.roleSetup.guardian ?? 0,
+      medium: rules.roleSetup.medium ?? 0,
+    },
+  };
+}
+
 function validateRules(rules: RulesConfig, label: string): void {
   if (!Number.isInteger(rules.pairCount) || rules.pairCount < 3 || rules.pairCount > 20) {
     throw new Error(`${label}の参加ペア数は3〜20組にしてください。`);
@@ -73,17 +86,25 @@ function validateRules(rules: RulesConfig, label: string): void {
     throw new Error(`${label}の狼憑きは1組以上にしてください。`);
   }
   if (!Number.isInteger(rules.roleSetup.seer) || rules.roleSetup.seer < 0) {
-    throw new Error(`${label}の占い役は0組以上にしてください。`);
+    throw new Error(`${label}の占い師は0組以上にしてください。`);
   }
-  if (rules.roleSetup.werewolf + rules.roleSetup.seer > rules.pairCount) {
-    throw new Error(`${label}の狼憑きと占い役の合計が、参加ペア数を超えています。`);
+  const guardian = rules.roleSetup.guardian ?? 0;
+  const medium = rules.roleSetup.medium ?? 0;
+  if (!Number.isInteger(guardian) || guardian < 0) {
+    throw new Error(`${label}の騎士は0組以上にしてください。`);
+  }
+  if (!Number.isInteger(medium) || medium < 0) {
+    throw new Error(`${label}の霊媒師は0組以上にしてください。`);
+  }
+  if (rules.roleSetup.werewolf + rules.roleSetup.seer + guardian + medium > rules.pairCount) {
+    throw new Error(`${label}の役職数の合計が、参加ペア数を超えています。`);
   }
   if (
     rules.firstNightDivination === 'white' &&
     rules.roleSetup.seer > 0 &&
     rules.pairCount - rules.roleSetup.werewolf < 2
   ) {
-    throw new Error(`${label}の初日白通知には、占い役以外の市民陣営が1組以上必要です。`);
+    throw new Error(`${label}の初日白通知には、占い師以外の市民陣営が1組以上必要です。`);
   }
   if (rules.maxDays < 1 || rules.maxDays > 20) {
     throw new Error(`${label}の最大日数は1〜20日にしてください。`);
@@ -171,13 +192,15 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
     void Promise.all([
       api.readFile('config', PRESET_META.quick.file),
       api.readFile('config', PRESET_META.pack.file),
+      api.readFile('config', PRESET_META.standardNine.file),
       api.readFile('config', 'advice.json'),
       api.readFile('config', 'models.json'),
     ])
-      .then(([quick, pack, advice, models]) => {
+      .then(([quick, pack, standardNine, advice, models]) => {
         const next: Draft = {
-          quick: parseFile(quick.text, 'クイックテスト'),
-          pack: parseFile(pack.text, '群れテスト'),
+          quick: withSpecialRoleDefaults(parseFile(quick.text, 'クイックテスト')),
+          pack: withSpecialRoleDefaults(parseFile(pack.text, '群れテスト')),
+          standardNine: withSpecialRoleDefaults(parseFile(standardNine.text, '9人本格テスト')),
           advice: parseFile(advice.text, '助言設定'),
           models: parseFile(models.text, 'AIモデル設定'),
         };
@@ -229,6 +252,7 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
     try {
       validateRules(draft.quick, PRESET_META.quick.label);
       validateRules(draft.pack, PRESET_META.pack.label);
+      validateRules(draft.standardNine, PRESET_META.standardNine.label);
       for (const [name, provider] of Object.entries(draft.models.providers)) {
         if (!isLiveProvider(provider)) continue;
         if (provider.maxTokensEval < 256 || provider.maxTokensSpeech < 128) {
@@ -240,6 +264,11 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
       }
       await api.writeFile('config', PRESET_META.quick.file, JSON.stringify(draft.quick, null, 2));
       await api.writeFile('config', PRESET_META.pack.file, JSON.stringify(draft.pack, null, 2));
+      await api.writeFile(
+        'config',
+        PRESET_META.standardNine.file,
+        JSON.stringify(draft.standardNine, null, 2),
+      );
       await api.writeFile('config', 'advice.json', JSON.stringify(draft.advice, null, 2));
       await api.writeFile('config', 'models.json', JSON.stringify(draft.models, null, 2));
       await onSaved?.();
@@ -311,7 +340,7 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
 
       <section className="settings-section">
         <h3>試合ルール</h3>
-        <div className="segmented" role="tablist" aria-label="編集する試験">
+        <div className="segmented preset-tabs" role="tablist" aria-label="編集する試験">
           {(Object.keys(PRESET_META) as PresetKey[]).map((key) => (
             <button
               type="button"
@@ -387,13 +416,38 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
             onChange={(value) => updateRules((r) => (r.roleSetup.werewolf = value))}
           />
           <NumberSetting
-            label="占い役の組数"
-            help="残りはすべて市民になります。"
+            label="占い師の組数"
             value={rules.roleSetup.seer}
             min={0}
             max={rules.pairCount}
             onChange={(value) => updateRules((r) => (r.roleSetup.seer = value))}
           />
+          <NumberSetting
+            label="騎士の組数"
+            help="夜に1人を守ります。自分自身と前夜と同じ相手は守れません。"
+            value={rules.roleSetup.guardian ?? 0}
+            min={0}
+            max={rules.pairCount}
+            onChange={(value) => updateRules((r) => (r.roleSetup.guardian = value))}
+          />
+          <NumberSetting
+            label="霊媒師の組数"
+            help="処刑された相手が狼憑きだったかを、翌朝に主人だけが知ります。"
+            value={rules.roleSetup.medium ?? 0}
+            min={0}
+            max={rules.pairCount}
+            onChange={(value) => updateRules((r) => (r.roleSetup.medium = value))}
+          />
+          <div className="muted small setting-field">
+            残りの{Math.max(
+              0,
+              rules.pairCount -
+                rules.roleSetup.werewolf -
+                rules.roleSetup.seer -
+                (rules.roleSetup.guardian ?? 0) -
+                (rules.roleSetup.medium ?? 0),
+            )}組は市民になります。
+          </div>
           <NumberSetting
             label="最大日数"
             value={rules.maxDays}
@@ -546,7 +600,7 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
           ))}
         </div>
         <details className="settings-details">
-          <summary>質問と立ち回りの表示文を変更する</summary>
+          <summary>質問・役職を名乗る相談・立ち回りの表示文を変更する</summary>
           <div className="settings-list">
             {draft.advice.questionThemes.map((theme, index) => (
               <label className="field" key={theme.id}>
@@ -558,6 +612,45 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
                   }
                 />
               </label>
+            ))}
+            {draft.advice.roleClaimOptions.map((option, index) => (
+              <div className="settings-section" key={option.role}>
+                <strong>名乗り先 {index + 1}</strong>
+                <label className="field">
+                  選択肢の名前
+                  <input
+                    value={option.label}
+                    onChange={(event) =>
+                      change((next) =>
+                        (next.advice.roleClaimOptions[index]!.label = event.target.value))
+                    }
+                  />
+                </label>
+                <label className="field">
+                  説明
+                  <input
+                    value={option.description}
+                    onChange={(event) =>
+                      change((next) =>
+                        (next.advice.roleClaimOptions[index]!.description = event.target.value))
+                    }
+                  />
+                </label>
+                <label className="toggle-setting">
+                  <input
+                    type="checkbox"
+                    checked={option.dangerous}
+                    onChange={(event) =>
+                      change((next) =>
+                        (next.advice.roleClaimOptions[index]!.dangerous = event.target.checked))
+                    }
+                  />
+                  <span>
+                    <strong>危険な選択として警告する</strong>
+                    <small>正体を明かすなど、特に注意が必要な選択へ表示します。</small>
+                  </span>
+                </label>
+              </div>
             ))}
             {draft.advice.behaviorDirectives.map((directive, index) => (
               <label className="field" key={directive.id}>

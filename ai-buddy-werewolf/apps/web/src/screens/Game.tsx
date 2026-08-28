@@ -1,6 +1,7 @@
 /** ゲーム画面(Play Test用・モバイル前提) */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { PublicLogEntry } from '@aibw/game-core';
+import type { Role } from '@aibw/shared';
 import { api, type Advice, type ViewResponse } from '../api.js';
 import { ErrorBox, Sheet, Spinner, TopBar } from '../components.js';
 import {
@@ -12,7 +13,7 @@ import {
   viewRefreshIntervalMs,
   type PlayPace,
 } from '../playPace.js';
-import { providerLabel } from '../uiLabels.js';
+import { providerLabel, roleLabel } from '../uiLabels.js';
 import { isCompletedVoteMismatch } from '../voteComparison.js';
 
 const PLAY_PACE_STORAGE_KEY = 'ai-buddy-werewolf:play-pace';
@@ -20,7 +21,21 @@ const PRIVATE_NOTICE_STORAGE_KEY = 'ai-buddy-werewolf:seen-private-notices';
 
 type PrivateNotice =
   | { key: string; kind: 'role'; role: string; roleLabel: string; buddyName: string; wolfNames: string[] }
-  | { key: string; kind: 'fact'; day: number; targetName: string; isWolf: boolean };
+  | {
+      key: string;
+      kind: 'fact';
+      source: 'divination' | 'medium';
+      day: number;
+      targetName: string;
+      isWolf: boolean;
+    }
+  | {
+      key: string;
+      kind: 'guard';
+      day: number;
+      proposalName: string | null;
+      targetName: string | null;
+    };
 
 function seenPrivateNotices(): Set<string> {
   try {
@@ -148,9 +163,23 @@ export function Game({ matchId }: { matchId: string }) {
       setPrivateNotice({
         key: `${matchId}:fact:${fact.id}`,
         kind: 'fact',
+        source: fact.source,
         day: fact.day,
         targetName: fact.targetName,
         isWolf: fact.isWolf,
+      });
+      return;
+    }
+    const guardReport = me.guardReports.find(
+      (item) => !seen.has(`${matchId}:guard:${item.day}`),
+    );
+    if (guardReport) {
+      setPrivateNotice({
+        key: `${matchId}:guard:${guardReport.day}`,
+        kind: 'guard',
+        day: guardReport.day,
+        proposalName: guardReport.proposalName,
+        targetName: guardReport.finalName,
       });
     }
   }, [matchId, me, privateNotice]);
@@ -230,6 +259,7 @@ export function Game({ matchId }: { matchId: string }) {
     me.adviceUsedToday < me.advicePerDay;
   const lastComparison = me?.voteComparisons[me.voteComparisons.length - 1];
   const lastWolfReport = me?.wolfReports[me.wolfReports.length - 1];
+  const lastGuardReport = me?.guardReports[me.guardReports.length - 1];
 
   return (
     <>
@@ -398,8 +428,11 @@ export function Game({ matchId }: { matchId: string }) {
       {sheet === 'status' && me && (
         <StatusSheet
           me={me}
+          pairs={view.pairs}
+          publicRoleClaims={view.publicRoleClaims}
           lastComparison={lastComparison}
           lastWolfReport={lastWolfReport}
+          lastGuardReport={lastGuardReport}
           onClose={() => setSheet(null)}
         />
       )}
@@ -409,6 +442,7 @@ export function Game({ matchId }: { matchId: string }) {
         <AdviceSheet
           day={view.day}
           me={me}
+          adviceConfig={view.adviceConfig}
           aliveOthers={aliveOthers}
           processing={acting || data.busy}
           canSend={me.canAdvise}
@@ -443,7 +477,15 @@ export function Game({ matchId }: { matchId: string }) {
 
       {privateNotice && (
         <Sheet
-          title={privateNotice.kind === 'role' ? '🔒 あなたの役職' : '🔮 新しい占い結果'}
+          title={
+            privateNotice.kind === 'role'
+              ? '🔒 あなたの役職'
+              : privateNotice.kind === 'guard'
+                ? '🛡️ 護衛先が決まりました'
+                : privateNotice.source === 'medium'
+                  ? '🕯️ 新しい霊媒結果'
+                  : '🔮 新しい占い結果'
+          }
           onClose={() => {
             markPrivateNoticeSeen(privateNotice.key);
             setPrivateNotice(null);
@@ -458,20 +500,55 @@ export function Game({ matchId }: { matchId: string }) {
               <p>
                 {privateNotice.role === 'seer'
                   ? '夜ごとに1人を占います。結果はまず主人であるあなただけに届き、バディへ共有するかは相談で選べます。'
+                  : privateNotice.role === 'guardian'
+                    ? '夜ごとに1人を守ります。主人は守りたい相手を相談できますが、最終的な護衛先はバディが決めます。自分自身と前夜と同じ相手は続けて守れません。'
+                    : privateNotice.role === 'medium'
+                      ? '処刑された相手が狼憑きだったかを知ります。結果はまず主人であるあなただけに届き、バディへ共有するかは相談で選べます。'
                   : privateNotice.role === 'werewolf'
                     ? `市民のふりをして生き残ります。${privateNotice.wolfNames.length > 0 ? `仲間は${privateNotice.wolfNames.join('、')}です。` : '今回は単独の狼憑きです。'}`
                     : '公開討論から狼憑きを見つけ、処刑を目指します。確定情報はなく、発言・質問・投票から推理します。'}
               </p>
             </>
+          ) : privateNotice.kind === 'guard' ? (
+            <>
+              <div className="private-result safe">
+                <span>{privateNotice.day}日目の護衛</span>
+                <strong>
+                  {privateNotice.targetName
+                    ? `${privateNotice.targetName}を守りました`
+                    : '守れる相手はいませんでした'}
+                </strong>
+              </div>
+              <p>
+                あなたの提案：{privateNotice.proposalName ?? '提案なし'}
+                <br />
+                {!privateNotice.targetName
+                  ? 'その夜は、バディが守れる相手が残っていませんでした。'
+                  : privateNotice.proposalName === privateNotice.targetName
+                  ? 'バディはあなたの提案と同じ相手を選びました。'
+                  : 'バディは状況を考え、あなたの提案とは別の判断をしました。'}
+              </p>
+              <p className="muted small">
+                この護衛先は、ほかの参加者には公開されません。
+              </p>
+            </>
           ) : (
             <>
               <div className={`private-result ${privateNotice.isWolf ? 'danger' : 'safe'}`}>
-                <span>{privateNotice.day === 0 ? '初日の占い' : `${privateNotice.day}日目の占い`}</span>
+                <span>
+                  {privateNotice.source === 'medium'
+                    ? `${privateNotice.day}日目の霊媒結果`
+                    : privateNotice.day === 0
+                      ? '初日の占い'
+                      : `${privateNotice.day}日目の占い`}
+                </span>
                 <strong>
                   {privateNotice.targetName}は{privateNotice.isWolf ? '狼憑き' : '狼憑きではない'}
                 </strong>
               </div>
-              <p>この結果を知っているのは、まだあなただけです。相談の「確定情報を共有」でバディへ伝えられます。</p>
+              <p>
+                この結果を知っているのは、まだあなただけです。相談の「確定情報を共有」でバディへ伝えられます。
+              </p>
             </>
           )}
           <button
@@ -497,6 +574,9 @@ function LogEntry({ entry, selfPairId }: { entry: PublicLogEntry; selfPairId: st
           ☀️ {entry.day}日目の朝
           {entry.deaths.length > 0 && (
             <div>🩸 昨夜、{entry.deaths.map((d) => d.name).join('と')}が襲撃された</div>
+          )}
+          {entry.day > 1 && entry.deaths.length === 0 && (
+            <div>🛡️ 昨夜の犠牲者はいなかった</div>
           )}
         </div>
       );
@@ -529,6 +609,12 @@ function LogEntry({ entry, selfPairId }: { entry: PublicLogEntry; selfPairId: st
           ⏱ {entry.reason === 'time_up'
             ? '討論時間が終了しました'
             : '発言上限に達したため討論を終了しました'}
+        </div>
+      );
+    case 'role_declared':
+      return (
+        <div className="sysline role-declared-line">
+          🎭 <strong>{entry.name}</strong>が「{roleLabel(entry.claimedRole)}」として名乗り出た
         </div>
       );
     case 'speech': {
@@ -631,6 +717,7 @@ type Me = NonNullable<ViewResponse['view']['me']>;
 function AdviceSheet({
   day,
   me,
+  adviceConfig,
   aliveOthers,
   processing,
   canSend,
@@ -639,37 +726,30 @@ function AdviceSheet({
 }: {
   day: number;
   me: Me;
+  adviceConfig: ViewResponse['view']['adviceConfig'];
   aliveOthers: PairOption[];
   processing: boolean;
   canSend: boolean;
   onClose: () => void;
   onSubmit: (advice: Advice) => void;
 }) {
-  const [menu, setMenu] = useState<
-    { kind: string; label: string; description: string; enabled: boolean }[]
-  >([]);
-  const [themes, setThemes] = useState<{ id: string; label: string }[]>([]);
-  const [directives, setDirectives] = useState<{ id: string; label: string }[]>([]);
+  const menu = adviceConfig.menu ?? [];
+  const themes = adviceConfig.questionThemes ?? [];
+  const directives = adviceConfig.behaviorDirectives ?? [];
+  const roleClaimOptions = adviceConfig.roleClaimOptions ?? [];
   const [kind, setKind] = useState<string | null>(null);
   const [target, setTarget] = useState<string | null>(null);
   const [themeId, setThemeId] = useState<string | null>(null);
   const [directiveId, setDirectiveId] = useState<string | null>(null);
   const [factId, setFactId] = useState<string | null>(null);
-
-  useEffect(() => {
-    void api.config().then((c) => {
-      setMenu(c.advice.menu);
-      setThemes(c.advice.questionThemes);
-      setDirectives(c.advice.behaviorDirectives);
-    });
-  }, []);
+  const [claimedRole, setClaimedRole] = useState<Role | null | undefined>(undefined);
 
   const unsharedFacts = me.facts.filter((f) => !f.shared);
   const availableThemes = themes.filter((theme) => day > 1 || theme.id !== 'vote_reason');
   const availableMenu = menu.filter((m) => {
     if (!m.enabled) return false;
     if (m.kind === 'fact_share') return unsharedFacts.length > 0;
-    if (m.kind === 'skill_target') return me.role === 'seer';
+    if (m.kind === 'skill_target') return me.role === 'seer' || me.role === 'guardian';
     return true;
   });
 
@@ -679,7 +759,8 @@ function AdviceSheet({
     (kind === 'question' && target && themeId) ||
     (kind === 'fact_share' && factId) ||
     (kind === 'skill_target' && target) ||
-    (kind === 'behavior' && directiveId);
+    (kind === 'behavior' && directiveId) ||
+    (kind === 'role_claim' && claimedRole !== undefined);
 
   const buildAdvice = (): Advice | null => {
     if (kind === 'suspicion' && target) return { kind: 'suspicion', targetId: target };
@@ -688,6 +769,9 @@ function AdviceSheet({
     if (kind === 'fact_share' && factId) return { kind: 'fact_share', factId };
     if (kind === 'skill_target' && target) return { kind: 'skill_target', targetId: target };
     if (kind === 'behavior' && directiveId) return { kind: 'behavior', directiveId };
+    if (kind === 'role_claim' && claimedRole !== undefined) {
+      return { kind: 'role_claim', claimedRole };
+    }
     return null;
   };
 
@@ -713,6 +797,11 @@ function AdviceSheet({
           </div>
           {needsTarget && (
             <div className="optlist">
+              {kind === 'skill_target' && (
+                <div className="muted small">
+                  {me.role === 'guardian' ? '今夜、守ってほしい相手' : '次に占ってほしい相手'}を選んでください。最終対象はバディが判断します。
+                </div>
+              )}
               {aliveOthers.map((c) => (
                 <button
                   key={c.pairId}
@@ -745,7 +834,8 @@ function AdviceSheet({
                   className={factId === f.id ? 'selected' : ''}
                   onClick={() => setFactId(f.id)}
                 >
-                  {f.day}日目の占い: {f.targetName}は{f.isWolf ? '狼憑き' : '狼憑きではない'}
+                  {f.source === 'medium' ? '霊媒結果' : f.day === 0 ? '初日の占い' : `${f.day}日目の占い`}:{' '}
+                  {f.targetName}は{f.isWolf ? '狼憑き' : '狼憑きではない'}
                   <span className="sub">共有すると事実としてバディに登録される</span>
                 </button>
               ))}
@@ -763,6 +853,50 @@ function AdviceSheet({
                 </button>
               ))}
             </div>
+          )}
+          {kind === 'role_claim' && (
+            <>
+              <div className="private-role-summary">
+                <strong>🔒 本当の役職：{me.roleLabel}</strong>
+                <span>この表示は、あなたとバディだけの秘密です。</span>
+              </div>
+              <p className="muted small">
+                円卓でどう名乗るかをバディへ相談します。本当の役職を話すことも、あえて別の役職を名乗ることもできます。
+              </p>
+              <div className="optlist role-claim-options">
+                {roleClaimOptions.map((option) => {
+                  const truthful = option.role === me.role;
+                  return (
+                    <button
+                      key={option.role}
+                      className={claimedRole === option.role ? 'selected' : ''}
+                      onClick={() => setClaimedRole(option.role)}
+                    >
+                      <span className="row spread">
+                        <strong>{option.label || `${roleLabel(option.role)}として名乗る`}</strong>
+                        <span className={`badge ${truthful ? 'ok' : 'warn'}`}>
+                          {truthful ? '本当の役職' : '本当とは異なる名乗り'}
+                        </span>
+                      </span>
+                      <span className="sub">{option.description}</span>
+                      {option.dangerous && (
+                        <span className="role-claim-danger">⚠ 正体を明かす危険が高い選択です</span>
+                      )}
+                    </button>
+                  );
+                })}
+                <button
+                  className={claimedRole === null ? 'selected' : ''}
+                  onClick={() => setClaimedRole(null)}
+                >
+                  <strong>今日はまだ名乗らないでほしい</strong>
+                  <span className="sub">今は役職を明かさず、発言や状況を見て判断してもらいます。</span>
+                </button>
+              </div>
+              <div className="role-claim-private-note">
+                🔒 これはバディだけへの相談です。バディが実際に役職を名乗った時だけ、円卓のみんなへ公開されます。最終判断はバディ自身が行います。
+              </div>
+            </>
           )}
           <button
             className="primary"
@@ -799,13 +933,19 @@ function AdviceSheet({
 
 function StatusSheet({
   me,
+  pairs,
+  publicRoleClaims,
   lastComparison,
   lastWolfReport,
+  lastGuardReport,
   onClose,
 }: {
   me: Me;
+  pairs: ViewResponse['view']['pairs'];
+  publicRoleClaims: ViewResponse['view']['publicRoleClaims'];
   lastComparison: Me['voteComparisons'][number] | undefined;
   lastWolfReport: Me['wolfReports'][number] | undefined;
+  lastGuardReport: Me['guardReports'][number] | undefined;
   onClose: () => void;
 }) {
   return (
@@ -819,13 +959,41 @@ function StatusSheet({
       <div className="muted small">
         親密度 {me.abilities.trust} / 推論力 {me.abilities.reasoning} / 虚言力 {me.abilities.deception}
       </div>
+      {me.roleClaimProposal && (
+        <div className="private-role-summary">
+          <strong>🔒 {me.roleClaimProposal.day}日目に送った名乗り方の相談</strong>
+          <span>
+            {me.roleClaimProposal.claimedRole == null
+              ? '今日はまだ名乗らないでほしい'
+              : `${roleLabel(me.roleClaimProposal.claimedRole)}として名乗ってほしい`}
+          </span>
+          <span>これは主人とバディだけが知る内容です。</span>
+        </div>
+      )}
+      {Object.keys(publicRoleClaims).length > 0 && (
+        <div className="factbox">
+          <strong>🎭 円卓で公開された名乗り</strong>
+          {Object.entries(publicRoleClaims).map(([pairId, claim]) => (
+            <div key={pairId} className="muted small">
+              {pairs.find((pair) => pair.pairId === pairId)?.buddyName ?? pairId}：
+              {roleLabel(claim.claimedRole)}（{claim.day}日目）
+            </div>
+          ))}
+        </div>
+      )}
       {me.wolfPartners.length > 0 && (
         <div className="factbox">🐺 仲間の狼: {me.wolfPartners.map((w) => w.name).join('、')}</div>
       )}
       {me.facts.length === 0 && <div className="muted small">まだ確定情報はありません。</div>}
       {me.facts.map((f) => (
         <div key={f.id} className="factbox">
-          🔮 {f.day === 0 ? '初日の占い' : `${f.day}日目の占い`}: <strong>{f.targetName}</strong> は
+          {f.source === 'medium' ? '🕯️' : '🔮'}{' '}
+          {f.source === 'medium'
+            ? `${f.day}日目の霊媒結果`
+            : f.day === 0
+              ? '初日の占い'
+              : `${f.day}日目の占い`}
+          : <strong>{f.targetName}</strong> は
           {f.isWolf ? ' 狼憑き' : ' 狼憑きではない'}
           <span className={`badge ${f.shared ? 'ok' : 'warn'}`} style={{ marginLeft: 6 }}>
             {f.shared ? '共有済み' : 'あなただけが知っている'}
@@ -852,6 +1020,13 @@ function StatusSheet({
         <div className="muted small">
           🌙 提案: {lastWolfReport.proposalName ?? 'なし'} / バディ第一候補:{' '}
           {lastWolfReport.buddyTopName ?? '—'} / 最終: <strong>{lastWolfReport.finalName ?? '—'}</strong>
+        </div>
+      )}
+      {lastGuardReport && (
+        <div className="muted small">
+          🛡️ {lastGuardReport.day}日目の護衛 — 提案:{' '}
+          {lastGuardReport.proposalName ?? 'なし'} / バディの最終判断:{' '}
+          <strong>{lastGuardReport.finalName ?? '守れる相手なし'}</strong>
         </div>
       )}
     </Sheet>

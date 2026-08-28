@@ -341,6 +341,14 @@ h3 {
   color: var(--muted);
   font-weight: 400;
 }
+.sysline.role-declared-line {
+  margin: 3px 0;
+  padding: 8px 10px;
+  border: 1px solid rgba(139, 92, 246, 0.48);
+  border-radius: 10px;
+  color: #d8ccff;
+  background: rgba(139, 92, 246, 0.1);
+}
 .bubble {
   max-width: 88%;
   background: var(--panel);
@@ -508,6 +516,45 @@ h3 {
   color: var(--muted);
   font-size: 12px;
 }
+.private-role-summary,
+.role-claim-private-note {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  border-radius: 10px;
+  background: rgba(139, 92, 246, 0.1);
+}
+.private-role-summary span,
+.role-claim-private-note {
+  color: #d8ccff;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.role-claim-options button {
+  overflow-wrap: anywhere;
+}
+.role-claim-options .row {
+  gap: 6px;
+}
+.role-claim-danger {
+  display: block;
+  margin-top: 5px;
+  color: #ffb3b5;
+  font-size: 11px;
+  font-weight: 700;
+}
+.role-claim-result {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+}
+.role-claim-result:first-of-type {
+  border-top: 0;
+}
 
 table.data {
   width: 100%;
@@ -666,6 +713,14 @@ input[type='range'] {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+.segmented.preset-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.segmented.preset-tabs button {
+  min-width: 0;
+  padding-inline: 8px;
+  font-size: 12px;
 }
 .toggle-setting {
   display: flex;

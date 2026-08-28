@@ -60,7 +60,11 @@ function openRouterSpeech(): Response {
   return Response.json({
     model: 'anthropic/claude-sonnet-5',
     usage: { prompt_tokens: 10, completion_tokens: 5 },
-    choices: [{ message: { content: JSON.stringify({ text: '発言', accusesId: null }) } }],
+    choices: [{
+      message: {
+        content: JSON.stringify({ text: '発言', accusesId: null, declaredRole: null }),
+      },
+    }],
   });
 }
 
@@ -146,6 +150,54 @@ Deno.test('invalid structured output still returns billable usage for cost accou
   assertEquals(response.status, 422);
   assertEquals(body.model, 'anthropic/claude-sonnet-5');
   assertEquals(body.usage, { inputTokens: 123, outputTokens: 45 });
+});
+
+Deno.test('speech accepts only supported declared roles', async () => {
+  const missing = createHandler({
+    envGet: await env(),
+    state: state(),
+    fetch: (async () => Response.json({
+      model: 'anthropic/claude-sonnet-5',
+      usage: { prompt_tokens: 10, completion_tokens: 5 },
+      choices: [{
+        message: { content: JSON.stringify({ text: '発言', accusesId: null }) },
+      }],
+    })) as typeof fetch,
+  });
+  const missingResponse = await missing(request(speechBody()));
+  assertEquals(missingResponse.status, 422);
+
+  const invalid = createHandler({
+    envGet: await env(),
+    state: state(),
+    fetch: (async () => Response.json({
+      model: 'anthropic/claude-sonnet-5',
+      usage: { prompt_tokens: 10, completion_tokens: 5 },
+      choices: [{
+        message: {
+          content: JSON.stringify({ text: '私は狩人です', accusesId: null, declaredRole: 'hunter' }),
+        },
+      }],
+    })) as typeof fetch,
+  });
+  const invalidResponse = await invalid(request(speechBody()));
+  assertEquals(invalidResponse.status, 422);
+
+  const valid = createHandler({
+    envGet: await env(),
+    state: state(),
+    fetch: (async () => Response.json({
+      model: 'anthropic/claude-sonnet-5',
+      usage: { prompt_tokens: 10, completion_tokens: 5 },
+      choices: [{
+        message: {
+          content: JSON.stringify({ text: '私は騎士です', accusesId: null, declaredRole: 'guardian' }),
+        },
+      }],
+    })) as typeof fetch,
+  });
+  const validResponse = await valid(request(speechBody()));
+  assertEquals(validResponse.status, 200);
 });
 
 Deno.test('oversized request bodies are rejected before OpenRouter', async () => {

@@ -50,5 +50,8 @@ export interface PromptSet {
   speechTemplate: string;
   roleVillager: string;
   roleSeer: string;
+  /** 旧static bundleとの互換のため、新役職プロンプトは省略時fallbackを使う。 */
+  roleGuardian?: string;
+  roleMedium?: string;
   roleWerewolf: string;
 }

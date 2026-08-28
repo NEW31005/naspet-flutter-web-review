@@ -13,7 +13,7 @@ Web UIでは、よく使うルール・親密度・助言・AIモデル・単価
 
 | 変えたいもの | ファイル | 主なキー |
 |---|---|---|
-| 組数・狼数・役職構成 | `config/presets/*.json` | `pairCount`, `roleSetup.werewolf`, `roleSetup.seer`(残りは市民) |
+| 組数・狼数・役職構成 | `config/presets/*.json` | `pairCount`, `roleSetup.{werewolf,seer,guardian,medium}`(残りは市民) |
 | 最大日数・討論時間・同時AI数 | 同上 | `maxDays`, `discussionMode`, `discussionDurationSec`, `discussionMaxMessages`, `discussionBatchSize`, `firstDayFocusCount`。既定の`timed`は `opening → awaiting_master_advice → response` の3段階。焦点対象2人の弁明と他AIの意見後に主人相談で止まり、相談中は時計を消費しない。助言/スキップ後は残り時間で再開する。最大`discussionBatchSize`人が個別に処理され、期限後の生成は破棄される。旧`turns`方式では`discussionRounds`, `speechesPerBuddyPerRound`を使う |
 | 初日の占い結果 | 同上 | `firstNightDivination`: `false` / `true` / `"white"` |
 | 主人の助言回数 | 同上 | `advicePerDay` |
@@ -23,6 +23,7 @@ Web UIでは、よく使うルール・親密度・助言・AIモデル・単価
 | 親密度補正関数 | 同上 | `trust.{trialChoice,nightProposal,skillProposal,subjectiveAdvice}` = `{type, maxBonus}` |
 | 他の主人のポリシー | 同上 | `otherMastersPolicy`: `none`/`random`/`simple`/`ai` |
 | 助言メニュー(有効/無効/文言) | `config/advice.json` | `menu[]` |
+| 役職を名乗る選択肢 | 同上 | `roleClaimOptions[]` |
 | 質問テーマの増減 | 同上 | `questionThemes[]`(`mockTemplate`はモック用、`promptHint`はLive用) |
 | 立ち回り指示の増減 | 同上 | `behaviorDirectives[]` |
 | 推論力アンロック | `config/abilities.json` | `reasoningUnlocks[]`(`at`=解放ポイント) |
@@ -41,13 +42,30 @@ Web UIでは、よく使うルール・親密度・助言・AIモデル・単価
 
 ## 役職変更方法
 
-Phase0の役職は `villager` / `seer` / `werewolf` の3種。人数は `roleSetup` で変更できる。**役職の種類を増やす**のはコード変更が必要(`shared/types.ts` の `Role` → `game-core` の夜処理 → `prompts/role.*.md` 追加)。手順は [HANDOFF_CODEX.md](HANDOFF_CODEX.md) の「次に実装する候補」を参照。
+役職は `villager`（市民）/ `seer`（占い師）/ `guardian`（騎士）/
+`medium`（霊媒師）/ `werewolf`（狼憑き）の5種。人数は `roleSetup` で変更でき、
+残りが市民になる。9組の標準構成は `config/presets/standard-nine.json` で、
+狼憑き2・占い師1・騎士1・霊媒師1・市民4を初期値とする。
 
-現行Quick / Quick-info / Packは、初日から「占う→主人が共有を選ぶ→卓が反応する」を試すため、「初日の朝に、占い主人へ白結果を1件届ける」を既定でオンにしている。内部値 `firstNightDivination: "white"` として同じプリセットJSONへ保存されるため、13ファイル固定のモバイル引継ぎ契約を変えずに持ち越せる。`true` は狼判定もあり得る通常抽選、`false` は初日結果なし。結果は自動でバディへ渡らず、主人専用通知→相談で確定情報共有という境界を維持する。
+役職をさらに増やす場合は、`shared/types.ts` の `Role`、配役、能力解決、秘密イベント、
+`buildBuddyContext`、モック、役職別プロンプトを一組として更新する。表示名だけを追加して
+能力処理を伴わない「見かけ上の役職」を作ってはならない。
+
+現行Quick / Quick-info / Packは、初日から「占う→主人が共有を選ぶ→卓が反応する」を試すため、「初日の朝に、占い主人へ白結果を1件届ける」を既定でオンにしている。内部値 `firstNightDivination: "white"` として同じプリセットJSONへ保存される。`true` は狼判定もあり得る通常抽選、`false` は初日結果なし。結果は自動でバディへ渡らず、主人専用通知→相談で確定情報共有という境界を維持する。
 
 ## 助言メニュー変更方法
 
 `config/advice.json` の `menu[]` で種類ごとに `enabled` を切り替え、文言(`label`/`description`)を変更する。質問テーマ・立ち回り指示は配列に要素を足すだけで選択肢が増える。影響度(主観助言の重み)はプリセットの `trust.subjectiveAdvice` で変更する。
+
+`role_claim`（画面表示は「名乗り出る」）では、主人が
+`roleClaimOptions[]` から名乗ってほしい役職を選ぶ。自分の本当の役職と同じ役職も、
+あえて別の役職も選べるが、これは主人からバディへの非公開提案であり、実際に名乗るかは
+親密度とバディ自身の判断で決まる。公開ログへ出るのはバディが実際に名乗った役職だけで、
+本当かどうかは試合中に公開しない。別役職を名乗る提案は、存在しない占い結果・霊媒結果を
+自動で作る許可ではない。
+
+画面と説明文では専門用語を避け、「役職を名乗る」「名乗り出る」と表記する。
+内部互換用のIDが残っていても、そのIDを利用者向け表示へ直接出さない。
 
 ## 推論力・虚言力アンロック変更方法
 
@@ -79,7 +97,7 @@ Phase0の役職は `villager` / `seer` / `werewolf` の3種。人数は `roleSet
 | `prompts/system.base.md` | 全コール共通の世界観・ルール・判断原則 | `{{buddyName}} {{masterName}} {{pairCount}} {{maxDays}} {{trust}}` |
 | `prompts/eval.md` | 評価コール本文(人格を含めない) | `{{day}} {{aliveList}} {{factsBlock}} {{advicesBlock}} {{reasoningUnlocksBlock}} {{publicLogBlock}} {{previousEvalBlock}} {{candidateIds}}` |
 | `prompts/speech.md` | 発言コール本文(人格を含める) | `{{firstPerson}} {{speechStyle}} {{primaryHypothesis}} {{directiveBlock}} {{recentLogBlock}}` |
-| `prompts/role.villager.md` / `role.seer.md` | 役職別の方針 | (プレーンテキスト) |
+| `prompts/role.villager.md` / `role.seer.md` / `role.guardian.md` / `role.medium.md` | 市民・占い師・騎士・霊媒師の役職別方針 | (プレーンテキスト) |
 | `prompts/role.werewolf.md` | 狼の方針 + 虚言力アンロック | `{{wolfPartners}} {{deception}} {{deceptionUnlocksBlock}}` |
 
 プレースホルダーの実体は `packages/ai-engine/src/promptBuilder.ts` にある。**評価プロンプトへ人格を、発言プロンプトへ判断指示を混ぜない**こと(判断と表現の分離)。
@@ -88,18 +106,18 @@ Phase0の役職は `villager` / `seer` / `werewolf` の3種。人数は `roleSet
 
 ## プロンプトバージョン管理方法
 
-`prompts/version.json` の `version` を上げてからプロンプトを編集する。現在の主人相談ターン版は `0.8.0-human-turn.1`。試合作成時に `configSnapshot.promptVersion` / `versions.prompts` として記録され、結果画面・エクスポートJSONで確認できる。どのバージョンのプロンプトで実行された試合かを比較実験の軸にする。
+`prompts/version.json` の `version` を上げてからプロンプトを編集する。現在の役職を名乗る相談・騎士・霊媒師対応版は `0.9.0-role-claim-special-roles.1`。試合作成時に `configSnapshot.promptVersion` / `versions.prompts` として記録され、結果画面・エクスポートJSONで確認できる。どのバージョンのプロンプトで実行された試合かを比較実験の軸にする。
 
 ## 本番モバイルへ持ち越す方法
 
 設定画面上部の「モバイル引継ぎパッケージを書き出す」を押すと、現在このブラウザで有効な次の内容を1つのJSONへ固定する。
 
-- Quick Test / Pack Test、助言、能力、モデル単価、バディ人格
-- system / eval / speech / 役職別プロンプト / prompt version
+- Quick Test / Pack Test / 9組標準テスト、助言、能力、モデル単価、バディ人格
+- system / eval / speech / 5役職の役職別プロンプト / prompt version
 - 各設定バージョン、書き出し時刻、内容全体のSHA-256
 - 本番実装契約（権威あるイベントエンジン、プロンプトはサーバー側、秘密を含めない）
 
-APIキー・平文の合言葉・試合履歴は含まれない。読み込み時はZodスキーマとSHA-256の両方を検証し、全ファイルの検証が完了してから一括反映する。本番Flutter/バックエンド側の受け入れ手順と境界は [MOBILE_HANDOFF.md](MOBILE_HANDOFF.md) を正とする。
+APIキー・平文の合言葉・試合履歴は含まれない。現在の書き出しはv2の16ファイル固定で、旧v1の13ファイルも読み込み可能。読み込み時はZodスキーマとSHA-256の両方を検証し、全ファイルの検証が完了してから一括反映する。本番Flutter/バックエンド側の受け入れ手順と境界は [MOBILE_HANDOFF.md](MOBILE_HANDOFF.md) を正とする。
 
 ## 設定変更時の注意点
 

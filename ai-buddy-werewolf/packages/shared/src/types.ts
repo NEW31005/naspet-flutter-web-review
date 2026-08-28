@@ -4,7 +4,7 @@
  */
 
 export type PairId = string; // "p1", "p2", ...
-export type Role = 'villager' | 'seer' | 'werewolf';
+export type Role = 'villager' | 'seer' | 'guardian' | 'medium' | 'werewolf';
 export type Team = 'citizens' | 'wolves';
 export type Winner = Team | 'draw';
 
@@ -55,12 +55,16 @@ export type MasterPolicy = 'none' | 'random' | 'simple' | 'ai';
 export const ROLE_TEAM: Record<Role, Team> = {
   villager: 'citizens',
   seer: 'citizens',
+  guardian: 'citizens',
+  medium: 'citizens',
   werewolf: 'wolves',
 };
 
 export const ROLE_LABEL: Record<Role, string> = {
   villager: '市民',
-  seer: '占い役',
+  seer: '占い師',
+  guardian: '騎士',
+  medium: '霊媒師',
   werewolf: '狼憑き',
 };
 
@@ -114,6 +118,7 @@ export type AdviceKind =
   | 'question' // 質問の指定
   | 'fact_share' // 確定情報の共有
   | 'skill_target' // 次回スキル対象の提案
+  | 'role_claim' // 公開の役職宣言を提案
   | 'behavior'; // 立ち回りの提案
 
 export type Advice =
@@ -121,15 +126,23 @@ export type Advice =
   | { kind: 'question'; targetId: PairId; themeId: string }
   | { kind: 'fact_share'; factId: string }
   | { kind: 'skill_target'; targetId: PairId }
+  | { kind: 'role_claim'; claimedRole: Role | null }
   | { kind: 'behavior'; directiveId: string };
 
-/** 占いなどで得た確定情報。主人にのみ届き、共有した場合のみバディが知る。 */
+export interface RoleClaimOption {
+  role: Role;
+  label: string;
+  description: string;
+  dangerous: boolean;
+}
+
+/** 占い・霊媒で得た確定情報。主人にのみ届き、共有した場合のみバディが知る。 */
 export interface Fact {
   id: string;
   day: number; // 判明した日(夜)
   targetId: PairId;
   isWolf: boolean;
-  source: 'divination';
+  source: 'divination' | 'medium';
 }
 
 // ---------------------------------------------------------------------------
@@ -158,6 +171,8 @@ export interface EvalOutput {
 export interface SpeechOutput {
   text: string;
   accusesId: PairId | null; // 発言中で主に疑いを向けた相手(いなければnull)
+  /** 発言内で公開宣言した役職。宣言しない場合はnull。旧保存データでは省略される。 */
+  declaredRole?: Role | null;
 }
 
 export type EvalKind = 'discussion' | 'vote' | 'night';
@@ -229,6 +244,7 @@ export type MatchEvent = MatchEventBase &
       }
     | { type: 'advice_given'; payload: { pairId: PairId; advice: Advice } }
     | { type: 'fact_shared'; payload: { pairId: PairId; fact: Fact } }
+    | { type: 'role_declared'; payload: { pairId: PairId; claimedRole: Role } }
     | { type: 'trial_choice'; payload: { pairId: PairId; targetId: PairId | null } }
     | {
         type: 'vote_cast';
@@ -264,6 +280,30 @@ export type MatchEvent = MatchEventBase &
           basePriorities: Record<PairId, number>;
           adjustedPriorities: Record<PairId, number>;
           masterProposalId: PairId | null;
+        };
+      }
+    | {
+        type: 'medium_result';
+        payload: { mediumPairId: PairId; targetId: PairId; fact: Fact };
+      }
+    | {
+        type: 'guard_resolved';
+        payload: {
+          guardianPairId: PairId;
+          targetId: PairId | null;
+          masterProposalId: PairId | null;
+        };
+      }
+    | {
+        type: 'guard_detail';
+        payload: {
+          guardianPairId: PairId;
+          basePriorities: Record<PairId, number>;
+          adjustedPriorities: Record<PairId, number>;
+          masterProposalId: PairId | null;
+          targetId: PairId | null;
+          attackTargetId: PairId | null;
+          blockedAttack: boolean;
         };
       }
     | {
@@ -375,7 +415,14 @@ export interface RulesConfig {
   presetId: string;
   label: string;
   pairCount: number;
-  roleSetup: { werewolf: number; seer: number }; // 残りは市民
+  roleSetup: {
+    werewolf: number;
+    seer: number;
+    /** 旧presetでは省略可(0として扱う)。 */
+    guardian?: number;
+    /** 旧presetでは省略可(0として扱う)。 */
+    medium?: number;
+  }; // 残りは市民
   maxDays: number;
   /** 初日の朝に占い役へ0日目占い結果を1件配る。true=ランダム対象 / 'white'=白確定のみ(古典の初日白通知) */
   firstNightDivination: boolean | 'white';
@@ -431,6 +478,7 @@ export interface AdviceConfig {
   menu: AdviceMenuItem[];
   questionThemes: QuestionTheme[];
   behaviorDirectives: BehaviorDirective[];
+  roleClaimOptions: RoleClaimOption[];
 }
 
 export interface AbilityUnlock {
@@ -498,7 +546,8 @@ export interface ModelsConfig {
   providers: Record<string, ProviderConfig>;
 }
 
-export const MOBILE_HANDOFF_FILE_PATHS = [
+/** v1互換: 旧13ファイル構成。 */
+export const MOBILE_HANDOFF_V1_FILE_PATHS = [
   'config/presets/quick-test.json',
   'config/presets/pack-test.json',
   'config/advice.json',
@@ -514,13 +563,33 @@ export const MOBILE_HANDOFF_FILE_PATHS = [
   'prompts/version.json',
 ] as const;
 
+/** v2/current: 9組プリセットと騎士・霊媒プロンプトを追加した16ファイル構成。 */
+export const MOBILE_HANDOFF_FILE_PATHS = [
+  'config/presets/quick-test.json',
+  'config/presets/pack-test.json',
+  'config/presets/standard-nine.json',
+  'config/advice.json',
+  'config/abilities.json',
+  'config/models.json',
+  'config/buddies.json',
+  'prompts/system.base.md',
+  'prompts/eval.md',
+  'prompts/speech.md',
+  'prompts/role.villager.md',
+  'prompts/role.seer.md',
+  'prompts/role.guardian.md',
+  'prompts/role.medium.md',
+  'prompts/role.werewolf.md',
+  'prompts/version.json',
+] as const;
+
 export interface BuddiesConfig {
   version: string;
   roster: BuddyConfig[];
 }
 
 export interface MobileHandoffBundle {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   kind: 'ai-buddy-werewolf-mobile-handoff';
   exportedAt: string;
   source: {

@@ -4,9 +4,10 @@
  * - 外部設定ファイルの検証
  */
 import { z } from 'zod';
-import { MOBILE_HANDOFF_FILE_PATHS } from './types.js';
+import { MOBILE_HANDOFF_FILE_PATHS, MOBILE_HANDOFF_V1_FILE_PATHS } from './types.js';
 
 const score = z.number().min(0).max(100);
+const roleSchema = z.enum(['villager', 'seer', 'guardian', 'medium', 'werewolf']);
 
 export const evalOutputSchema = z.object({
   suspicions: z.record(z.string(), score),
@@ -26,6 +27,7 @@ export const evalOutputSchema = z.object({
 export const speechOutputSchema = z.object({
   text: z.string().min(1).max(1200),
   accusesId: z.string().nullable(),
+  declaredRole: roleSchema.nullable().default(null),
 });
 
 // ---------------------------------------------------------------------------
@@ -79,6 +81,8 @@ export const rulesConfigSchema = z
     roleSetup: z.object({
       werewolf: z.number().int().min(1),
       seer: z.number().int().min(0),
+      guardian: z.number().int().min(0).default(0),
+      medium: z.number().int().min(0).default(0),
     }),
     maxDays: z.number().int().min(1).max(20),
     firstNightDivination: z.union([z.boolean(), z.literal('white')]).default(false),
@@ -104,7 +108,9 @@ export const rulesConfigSchema = z
     }),
     otherMastersPolicy: z.enum(['none', 'random', 'simple', 'ai']),
   })
-  .refine((c) => c.roleSetup.werewolf + c.roleSetup.seer <= c.pairCount, {
+  .refine((c) =>
+    c.roleSetup.werewolf + c.roleSetup.seer +
+      c.roleSetup.guardian + c.roleSetup.medium <= c.pairCount, {
     message: '役職数が組数を超えています',
   })
   .refine(
@@ -113,7 +119,7 @@ export const rulesConfigSchema = z
       c.roleSetup.seer === 0 ||
       c.pairCount - c.roleSetup.werewolf >= 2,
     {
-      message: '初日白通知には、占い役本人以外の市民陣営が1組以上必要です',
+      message: '初日白通知には、占い師本人以外の市民陣営が1組以上必要です',
       path: ['firstNightDivination'],
     },
   )
@@ -130,7 +136,14 @@ export const adviceConfigSchema = z.object({
   version: z.string(),
   menu: z.array(
     z.object({
-      kind: z.enum(['suspicion', 'question', 'fact_share', 'skill_target', 'behavior']),
+      kind: z.enum([
+        'suspicion',
+        'question',
+        'fact_share',
+        'skill_target',
+        'role_claim',
+        'behavior',
+      ]),
       label: z.string(),
       description: z.string(),
       enabled: z.boolean(),
@@ -147,6 +160,16 @@ export const adviceConfigSchema = z.object({
   behaviorDirectives: z.array(
     z.object({ id: z.string(), label: z.string(), promptHint: z.string() }),
   ),
+  roleClaimOptions: z
+    .array(
+      z.object({
+        role: roleSchema,
+        label: z.string(),
+        description: z.string(),
+        dangerous: z.boolean(),
+      }),
+    )
+    .default([]),
 });
 
 export const abilitiesConfigSchema = z.object({
@@ -219,25 +242,15 @@ export const adviceSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('question'), targetId: z.string(), themeId: z.string() }),
   z.object({ kind: z.literal('fact_share'), factId: z.string() }),
   z.object({ kind: z.literal('skill_target'), targetId: z.string() }),
+  z.object({ kind: z.literal('role_claim'), claimedRole: roleSchema.nullable() }),
   z.object({ kind: z.literal('behavior'), directiveId: z.string() }),
 ]);
 
 /** Web Labで調整した内容を本番モバイル側へ渡す固定フォーマット。 */
-const mobileHandoffFilesSchema = z.record(z.string(), z.string().max(100_000)).superRefine(
-  (files, context) => {
-    const actual = Object.keys(files).sort();
-    const expected = [...MOBILE_HANDOFF_FILE_PATHS].sort();
-    if (actual.length !== expected.length || actual.some((path, index) => path !== expected[index])) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'モバイル引継ぎパッケージのファイル構成が固定契約と一致しません',
-      });
-    }
-  },
-);
+const mobileHandoffFilesSchema = z.record(z.string(), z.string().max(100_000));
 
 export const mobileHandoffBundleSchema = z.object({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.union([z.literal(1), z.literal(2)]),
   kind: z.literal('ai-buddy-werewolf-mobile-handoff'),
   exportedAt: z.string().datetime(),
   source: z.object({
@@ -255,4 +268,18 @@ export const mobileHandoffBundleSchema = z.object({
     secretsIncluded: z.literal(false),
     mobileTransport: z.enum(['server-api', 'supabase-edge-function']),
   }),
+}).superRefine((bundle, context) => {
+  const actual = Object.keys(bundle.files).sort();
+  const expected = [
+    ...(bundle.schemaVersion === 1
+      ? MOBILE_HANDOFF_V1_FILE_PATHS
+      : MOBILE_HANDOFF_FILE_PATHS),
+  ].sort();
+  if (actual.length !== expected.length || actual.some((path, index) => path !== expected[index])) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['files'],
+      message: `モバイル引継ぎv${bundle.schemaVersion}のファイル構成が固定契約と一致しません`,
+    });
+  }
 });

@@ -40,6 +40,7 @@ const evalApiSchema = z.object({
 const speechApiSchema = z.object({
   text: z.string(),
   accusesId: z.string().nullable(),
+  declaredRole: z.enum(['villager', 'seer', 'guardian', 'medium', 'werewolf']).nullable(),
 });
 
 function toRecord(entries: { targetId: string; score: number }[]): Record<PairId, number> {
@@ -129,7 +130,11 @@ export class AnthropicProvider implements LlmProvider {
       `speech-${opts.stepLabel}`,
     );
     return {
-      output: { text: parsed.text.slice(0, 1200), accusesId: parsed.accusesId },
+      output: {
+        text: parsed.text.slice(0, 1200),
+        accusesId: parsed.accusesId,
+        declaredRole: parsed.declaredRole,
+      },
       model: this.config.model,
       usage,
       jsonRetries,

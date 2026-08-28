@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0-role-expansion.1",
   "roster": [
     {
       "id": "mina",
@@ -152,6 +152,25 @@
         }
       },
       "abilities": { "reasoning": 40, "deception": 20, "trust": 70 }
+    },
+    {
+      "id": "yui",
+      "persona": {
+        "name": "ユイ",
+        "firstPerson": "私",
+        "masterCall": "あなた",
+        "look": "淡い青のカーディガンを羽織り、手帳を持った穏やかな少女。",
+        "personality": "聞き上手で争いを煽らないが、曖昧な説明は丁寧に掘り下げる。",
+        "speechStyle": "柔らかな標準語。相手の言葉を受け止めてから短く論点を返す。",
+        "verbosity": "medium",
+        "emotion": "落ち着いているが、大切な相手を守るときは芯の強さを見せる。",
+        "archetype": "聞き上手",
+        "mockFlavor": {
+          "endings": ["だと思う", "かな", "だよ"],
+          "exclamations": ["うん", "少し整理すると", "気になったのは"]
+        }
+      },
+      "abilities": { "reasoning": 58, "deception": 42, "trust": 65 }
     }
   ]
 }

@@ -17,6 +17,7 @@ import {
   createMobileHandoffBundleFromFiles,
   importMobileHandoffBundle,
   resetStaticFiles,
+  supplementLegacyAdviceConfig,
   validateMobileHandoffBundle,
 } from './runtime/staticConfig.js';
 
@@ -48,7 +49,7 @@ export interface ConfigResponse {
     label: string;
     version: string;
     pairCount: number;
-    roleSetup: { werewolf: number; seer: number };
+    roleSetup: { werewolf: number; seer: number; guardian?: number; medium?: number };
     maxDays: number;
     discussionMode: 'timed' | 'turns';
     discussionDurationSec: number;
@@ -148,10 +149,13 @@ async function serverImportBundle(value: unknown): Promise<void> {
   for (const [path, text] of Object.entries(bundle.files)) {
     const kind = path.startsWith('config/') ? 'config' : 'prompt';
     const name = path.replace(/^config\//, '').replace(/^prompts\//, '');
+    const importedText = bundle.schemaVersion === 1 && path === 'config/advice.json'
+      ? supplementLegacyAdviceConfig(text)
+      : text;
     await req(
       'PUT',
       `/api/config/file?kind=${kind}&name=${encodeURIComponent(name)}`,
-      { text },
+      { text: importedText },
     );
   }
 }

@@ -39,10 +39,18 @@ const advice: AdviceConfig = {
     { kind: 'question', label: '質問', description: '', enabled: true },
     { kind: 'fact_share', label: '確定情報', description: '', enabled: true },
     { kind: 'skill_target', label: 'スキル対象', description: '', enabled: true },
+    { kind: 'role_claim', label: '役職を名乗る相談', description: '', enabled: true },
     { kind: 'behavior', label: '立ち回り', description: '', enabled: true },
   ],
   questionThemes: [
     { id: 'vote_reason', label: '投票理由', mockTemplate: '{target}、理由は?', promptHint: '' },
+  ],
+  roleClaimOptions: [
+    { role: 'villager', label: '市民', description: '', dangerous: false },
+    { role: 'seer', label: '占い師', description: '', dangerous: false },
+    { role: 'guardian', label: '騎士', description: '', dangerous: false },
+    { role: 'medium', label: '霊媒師', description: '', dangerous: false },
+    { role: 'werewolf', label: '狼憑き', description: '', dangerous: true },
   ],
   behaviorDirectives: [{ id: 'low_profile', label: '目立たない', promptHint: '' }],
 };
@@ -72,6 +80,8 @@ export const testPrompts: PromptSet = {
   speechTemplate: 'speech {{buddyName}}',
   roleVillager: 'villager',
   roleSeer: 'seer',
+  roleGuardian: 'guardian',
+  roleMedium: 'medium',
   roleWerewolf: 'werewolf {{wolfPartners}}',
 };
 

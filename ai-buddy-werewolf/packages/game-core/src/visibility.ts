@@ -11,6 +11,7 @@ import type {
   AbilityUnlock,
   Abilities,
   Advice,
+  AdviceConfig,
   BehaviorDirective,
   DiscussionStage,
   DiscussionTurn,
@@ -83,6 +84,8 @@ export interface BuddyContext {
     revealedRole: Role | null;
   }[];
   publicLog: PublicLogEntry[];
+  /** 円卓で実際に公開された最新の名乗り。表示上も真偽は伏せる。 */
+  publicRoleClaims: Record<PairId, { day: number; claimedRole: Role }>;
   /** 初日に抽選された公開の討論対象。抽選結果であり、役職の根拠ではない。 */
   discussionFocus: { pairId: PairId; name: string }[];
   /** 今回の発言が冒頭・質問・単独回答・追質問・周囲反応のどれか。公開会話の進行だけを含む。 */
@@ -97,10 +100,14 @@ export interface BuddyContext {
     replyToName?: string | null;
     theme: QuestionTheme | null;
   };
-  /** 主人から共有された確定情報のみ(未共有の占い結果は含まれない) */
+  /** 主人から共有された確定情報のみ(未共有の占い・霊媒結果は含まれない) */
   sharedFacts: Fact[];
+  /** 騎士のみ: 前夜の護衛先。連続護衛を避けるための自分自身の行動情報。 */
+  lastGuardTarget: { pairId: PairId; name: string } | null;
   /** 自分の主人からの助言のみ */
   advices: { day: number; advice: Advice }[];
+  /** その日に主人から届いた役職の名乗り方の相談。自分の組だけが見られる。 */
+  roleClaimProposal: { day: number; claimedRole: Role | null } | null;
   pendingQuestion: { targetId: PairId; targetName: string; theme: QuestionTheme } | null;
   behaviorDirective: BehaviorDirective | null;
   /** 自分の過去評価(直近) */
@@ -140,6 +147,12 @@ export function buildBuddyContext(
 
   const sharedIds = new Set(state.sharedFactIds[pairId] ?? []);
   const sharedFacts = (state.facts[pairId] ?? []).filter((f) => sharedIds.has(f.id));
+  const lastGuardTargetId =
+    pair.role === 'guardian'
+      ? ([...state.guardHistory]
+          .reverse()
+          .find((entry) => entry.guardianPairId === pairId)?.targetId ?? null)
+      : null;
 
   const advices: { day: number; advice: Advice }[] = [];
   // イベントからではなく状態から復元すると助言の時系列が失われるため、
@@ -162,6 +175,13 @@ export function buildBuddyContext(
   const skill = state.skillProposal[pairId];
   if (skill) {
     advices.push({ day: state.day, advice: { kind: 'skill_target', targetId: skill } });
+  }
+  const roleClaimProposal = state.roleClaimProposal[pairId] ?? null;
+  if (roleClaimProposal) {
+    advices.push({
+      day: roleClaimProposal.day,
+      advice: { kind: 'role_claim', claimedRole: roleClaimProposal.claimedRole },
+    });
   }
   for (const f of sharedFacts) {
     advices.push({ day: f.day, advice: { kind: 'fact_share', factId: f.id } });
@@ -227,7 +247,12 @@ export function buildBuddyContext(
         }
       : null,
     sharedFacts,
+    lastGuardTarget: lastGuardTargetId
+      ? { pairId: lastGuardTargetId, name: getPair(state, lastGuardTargetId).buddyName }
+      : null,
     advices,
+    roleClaimProposal,
+    publicRoleClaims: structuredClone(state.publicRoleClaims),
     pendingQuestion:
       pq && theme
         ? { targetId: pq.targetId, targetName: getPair(state, pq.targetId).buddyName, theme }
@@ -278,6 +303,10 @@ export interface MasterView {
     isSelf: boolean;
   }[];
   publicLog: PublicLogEntry[];
+  /** 円卓で実際に公開された最新の名乗り。表示上も真偽は伏せる。 */
+  publicRoleClaims: Record<PairId, { day: number; claimedRole: Role }>;
+  /** この試合を作成した時点で凍結した助言設定。過去試合も同じ契約で表示する。 */
+  adviceConfig: AdviceConfig;
   pending:
     | { type: 'wait_inputs'; missing: { pairId: PairId; input: string }[] }
     | { type: 'ai_step'; description: string }
@@ -291,6 +320,7 @@ export interface MasterView {
     abilities: Abilities;
     wolfPartners: { pairId: PairId; name: string }[];
     facts: (Fact & { targetName: string; shared: boolean })[];
+    roleClaimProposal: { day: number; claimedRole: Role | null } | null;
     adviceUsedToday: number;
     advicePerDay: number;
     canAdvise: boolean;
@@ -310,6 +340,11 @@ export interface MasterView {
       day: number;
       proposalName: string | null;
       buddyTopName: string | null;
+      finalName: string | null;
+    }[];
+    guardReports: {
+      day: number;
+      proposalName: string | null;
       finalName: string | null;
     }[];
   };
@@ -373,6 +408,7 @@ export function buildMasterView(state: MatchState, pairId: PairId | null): Maste
         targetName: getPair(state, f.targetId).buddyName,
         shared: sharedIds.has(f.id),
       })),
+      roleClaimProposal: state.roleClaimProposal[pairId] ?? null,
       adviceUsedToday: state.adviceUsedToday[pairId] ?? 0,
       advicePerDay: state.config.rules.advicePerDay,
       canAdvise:
@@ -408,6 +444,13 @@ export function buildMasterView(state: MatchState, pairId: PairId | null): Maste
         buddyTopName: nameOf(r.buddyTopId),
         finalName: nameOf(r.finalTargetId),
       })),
+      guardReports: state.guardHistory
+        .filter((report) => report.guardianPairId === pairId)
+        .map((report) => ({
+          day: report.day,
+          proposalName: nameOf(report.masterProposalId),
+          finalName: nameOf(report.targetId),
+        })),
     };
   }
 
@@ -446,6 +489,8 @@ export function buildMasterView(state: MatchState, pairId: PairId | null): Maste
       isSelf: p.pairId === pairId,
     })),
     publicLog: state.publicLog,
+    publicRoleClaims: structuredClone(state.publicRoleClaims),
+    adviceConfig: structuredClone(state.config.advice),
     pending,
     me,
   };
@@ -471,6 +516,21 @@ export interface ReplayData {
     output: EvalOutput;
   }[];
   advices: { seq: number; day: number; pairId: PairId; pairName: string; advice: Advice }[];
+  roleClaimDetails: {
+    day: number;
+    pairId: PairId;
+    pairName: string;
+    trueRole: Role;
+    trueRoleLabel: string;
+    masterProposalSet: boolean;
+    masterProposal: Role | null;
+    publicClaims: {
+      seq: number;
+      claimedRole: Role;
+      claimedRoleLabel: string;
+      isTruth: boolean;
+    }[];
+  }[];
   trialDetails: {
     day: number;
     perPair: {
@@ -525,9 +585,32 @@ export function buildReplayData(state: MatchState, events: MatchEvent[]): Replay
   const evalTimeline: ReplayData['evalTimeline'] = [];
   const advices: ReplayData['advices'] = [];
   const speeches: ReplayData['speeches'] = [];
+  const roleClaimByPairDay = new Map<string, ReplayData['roleClaimDetails'][number]>();
   const trialByDay = new Map<number, ReplayData['trialDetails'][number]>();
   const nightByDay = new Map<number, ReplayData['nightDetails'][number]>();
   let lastEvalByPair = new Map<PairId, EvalOutput>();
+
+  const roleClaimDetail = (
+    day: number,
+    pairId: PairId,
+  ): ReplayData['roleClaimDetails'][number] => {
+    const key = `${day}:${pairId}`;
+    const existing = roleClaimByPairDay.get(key);
+    if (existing) return existing;
+    const pair = getPair(state, pairId);
+    const detail: ReplayData['roleClaimDetails'][number] = {
+      day,
+      pairId,
+      pairName: pair.buddyName,
+      trueRole: pair.role,
+      trueRoleLabel: ROLE_LABEL[pair.role],
+      masterProposalSet: false,
+      masterProposal: null,
+      publicClaims: [],
+    };
+    roleClaimByPairDay.set(key, detail);
+    return detail;
+  };
 
   for (const ev of events) {
     switch (ev.type) {
@@ -551,7 +634,22 @@ export function buildReplayData(state: MatchState, events: MatchEvent[]): Replay
           pairName: nameOf(ev.payload.pairId),
           advice: ev.payload.advice,
         });
+        if (ev.payload.advice.kind === 'role_claim') {
+          const detail = roleClaimDetail(ev.day, ev.payload.pairId);
+          detail.masterProposalSet = true;
+          detail.masterProposal = ev.payload.advice.claimedRole;
+        }
         break;
+      case 'role_declared': {
+        const detail = roleClaimDetail(ev.day, ev.payload.pairId);
+        detail.publicClaims.push({
+          seq: ev.seq,
+          claimedRole: ev.payload.claimedRole,
+          claimedRoleLabel: ROLE_LABEL[ev.payload.claimedRole],
+          isTruth: detail.trueRole === ev.payload.claimedRole,
+        });
+        break;
+      }
       case 'speech': {
         const evalOut = lastEvalByPair.get(ev.payload.pairId);
         speeches.push({
@@ -620,6 +718,13 @@ export function buildReplayData(state: MatchState, events: MatchEvent[]): Replay
         nightByDay.set(ev.day, n);
         break;
       }
+      case 'medium_result':
+      case 'guard_detail': {
+        // 霊媒・護衛だけが記録された夜も、試合後の分析で日付ごと欠落させない。
+        const n = nightByDay.get(ev.day) ?? { day: ev.day, divination: null, attack: null };
+        nightByDay.set(ev.day, n);
+        break;
+      }
       case 'attack_detail': {
         const n = nightByDay.get(ev.day) ?? { day: ev.day, divination: null, attack: null };
         n.attack = {
@@ -653,6 +758,9 @@ export function buildReplayData(state: MatchState, events: MatchEvent[]): Replay
     ),
     evalTimeline,
     advices,
+    roleClaimDetails: [...roleClaimByPairDay.values()].sort(
+      (a, b) => a.day - b.day || a.pairId.localeCompare(b.pairId),
+    ),
     trialDetails: [...trialByDay.values()].sort((a, b) => a.day - b.day),
     nightDetails: [...nightByDay.values()].sort((a, b) => a.day - b.day),
     speeches,

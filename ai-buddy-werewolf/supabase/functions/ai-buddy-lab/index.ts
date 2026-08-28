@@ -98,10 +98,16 @@ const speechSchema = {
   properties: {
     text: { type: 'string' },
     accusesId: { type: ['string', 'null'] },
+    declaredRole: {
+      type: ['string', 'null'],
+      enum: ['villager', 'seer', 'guardian', 'medium', 'werewolf', null],
+    },
   },
-  required: ['text', 'accusesId'],
+  required: ['text', 'accusesId', 'declaredRole'],
   additionalProperties: false,
 };
+
+const DECLARABLE_ROLES = new Set(['villager', 'seer', 'guardian', 'medium', 'werewolf']);
 
 function cors(origin: string | null): Record<string, string> {
   return {
@@ -288,7 +294,9 @@ function validOutput(callType: 'eval' | 'speech', value: unknown): boolean {
   const record = value as Record<string, unknown>;
   if (callType === 'speech') {
     return typeof record.text === 'string' &&
-      (record.accusesId === null || typeof record.accusesId === 'string');
+      (record.accusesId === null || typeof record.accusesId === 'string') &&
+      (record.declaredRole === null ||
+        (typeof record.declaredRole === 'string' && DECLARABLE_ROLES.has(record.declaredRole)));
   }
   return scoreEntries(record.suspicions) &&
     scoreEntries(record.attackPriorities) &&

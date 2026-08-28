@@ -80,8 +80,10 @@ export function Home() {
           </label>
           {preset && (
             <div className="muted small">
-              {preset.pairCount}組 / 狼憑き{preset.roleSetup.werewolf}組 / 占い役
-              {preset.roleSetup.seer}組 / 最大{preset.maxDays}日 / 助言{preset.advicePerDay}回/日
+              {preset.pairCount}組 / 狼憑き{preset.roleSetup.werewolf}組 / 占い師
+              {preset.roleSetup.seer}組 / 騎士{preset.roleSetup.guardian ?? 0}組 / 霊媒師
+              {preset.roleSetup.medium ?? 0}組 / 最大{preset.maxDays}日 / 助言
+              {preset.advicePerDay}回/日
               <br />討論:{' '}
               {preset.discussionMode === 'timed'
                 ? `${preset.discussionDurationSec}秒の自由討論 / AI最大${preset.discussionBatchSize}人が同時に考える`

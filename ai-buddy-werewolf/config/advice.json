@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0-role-claim.1",
   "menu": [
     {
       "kind": "suspicion",
@@ -22,7 +22,13 @@
     {
       "kind": "skill_target",
       "label": "次回スキル対象の提案",
-      "description": "「次は◯◯を調べて」。最終的な対象はバディが決める。",
+      "description": "「次は◯◯を調べて／守って」。最終的な対象はバディが決める。",
+      "enabled": true
+    },
+    {
+      "kind": "role_claim",
+      "label": "役職を名乗る相談",
+      "description": "本当の役職を明かすか、別の役職として名乗るか、今日は伏せるかをバディへ提案する。",
       "enabled": true
     },
     {
@@ -49,7 +55,7 @@
       "id": "co_plan",
       "label": "役職を名乗る予定があるか",
       "mockTemplate": "{target}は自分の役職を明かすつもりはある?",
-      "promptHint": "役職をカミングアウトする予定があるか尋ねる"
+      "promptHint": "自分の役職を円卓で名乗る予定があるか尋ねる"
     },
     {
       "id": "why_cover",
@@ -62,6 +68,38 @@
       "label": "発言が変化した理由",
       "mockTemplate": "{target}、前と言ってることが違わない?",
       "promptHint": "以前の発言と変わった理由を尋ねる"
+    }
+  ],
+  "roleClaimOptions": [
+    {
+      "role": "villager",
+      "label": "市民として名乗る",
+      "description": "自分は特別な力を持たない市民だと名乗る。",
+      "dangerous": false
+    },
+    {
+      "role": "seer",
+      "label": "占い師として名乗る",
+      "description": "自分は占いで正体を確かめられる役職だと名乗る。",
+      "dangerous": false
+    },
+    {
+      "role": "guardian",
+      "label": "騎士として名乗る",
+      "description": "自分は夜に一人を守れる役職だと名乗る。",
+      "dangerous": false
+    },
+    {
+      "role": "medium",
+      "label": "霊媒師として名乗る",
+      "description": "自分は処刑された人の正体を確かめられる役職だと名乗る。",
+      "dangerous": false
+    },
+    {
+      "role": "werewolf",
+      "label": "狼憑きとして名乗る",
+      "description": "自分が狼陣営だと名乗る。通常は非常に危険な提案。",
+      "dangerous": true
     }
   ],
   "behaviorDirectives": [

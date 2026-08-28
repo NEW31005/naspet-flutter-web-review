@@ -60,6 +60,8 @@ export function loadConfig(rootDir: string): LoadedConfig {
     speechTemplate: readPrompt('speech.md'),
     roleVillager: readPrompt('role.villager.md'),
     roleSeer: readPrompt('role.seer.md'),
+    roleGuardian: readPrompt('role.guardian.md'),
+    roleMedium: readPrompt('role.medium.md'),
     roleWerewolf: readPrompt('role.werewolf.md'),
   };
 
@@ -106,6 +108,10 @@ const EDITABLE_CONFIG: Record<string, { file: string; validate: (data: unknown) 
     file: 'config/presets/pack-test.json',
     validate: (d) => rulesConfigSchema.parse(d),
   },
+  'presets/standard-nine.json': {
+    file: 'config/presets/standard-nine.json',
+    validate: (d) => rulesConfigSchema.parse(d),
+  },
   'presets/quick-info.json': {
     file: 'config/presets/quick-info.json',
     validate: (d) => rulesConfigSchema.parse(d),
@@ -125,6 +131,8 @@ const EDITABLE_PROMPTS = [
   'speech.md',
   'role.villager.md',
   'role.seer.md',
+  'role.guardian.md',
+  'role.medium.md',
   'role.werewolf.md',
   'version.json',
 ];

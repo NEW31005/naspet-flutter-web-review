@@ -70,7 +70,7 @@ describe('MatchManager(実設定・モックAI)', () => {
     expect(replay.evalTimeline.length).toBeGreaterThan(0);
   });
 
-  it('進行中の内部データはlabフラグなしでは見られない', async () => {
+  it('進行中Play Testはlabフラグを直指定しても内部データを見られない', async () => {
     const manager = new MatchManager(rootDir, () => Date.now(), tmpData);
     const summary = manager.createMatch({
       presetId: 'quick-test',
@@ -81,7 +81,23 @@ describe('MatchManager(実設定・モックAI)', () => {
     });
     await manager.advance(summary.matchId);
     expect(() => manager.getReplay(summary.matchId, false)).toThrow(/公開されません/);
+    expect(() => manager.getReplay(summary.matchId, true)).toThrow(/公開されません/);
+    const view = manager.getMasterView(summary.matchId, summary.humanPairId).view;
+    expect(view.adviceConfig).toEqual(manager.getRecord(summary.matchId).configSnapshot.advice);
+    await manager.flush(summary.matchId);
+  });
+
+  it('進行中Labだけは明示したlabフラグで内部データを確認できる', async () => {
+    const manager = new MatchManager(rootDir, () => Date.now(), tmpData);
+    const summary = manager.createMatch({
+      presetId: 'quick-test',
+      mode: 'lab',
+      provider: 'mock',
+      seed: 'server-lab-replay',
+    });
+    await manager.advance(summary.matchId);
     expect(manager.getReplay(summary.matchId, true)).toBeTruthy();
+    expect(() => manager.getReplay(summary.matchId, false)).toThrow(/公開されません/);
     await manager.flush(summary.matchId);
   });
 

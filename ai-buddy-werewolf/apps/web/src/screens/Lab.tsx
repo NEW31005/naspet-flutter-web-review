@@ -1,8 +1,9 @@
 /** Lab/デバッグ画面: 全内部状態・ステップ実行・巻き戻し・生リクエスト確認・注入 */
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { Role } from '@aibw/shared';
 import { api, type Advice, type AiCallRecord, type ViewResponse } from '../api.js';
 import { ErrorBox, Sheet, Spinner, TopBar } from '../components.js';
-import { pendingLabel, phaseLabel, providerLabel } from '../uiLabels.js';
+import { pendingLabel, phaseLabel, providerLabel, roleLabel } from '../uiLabels.js';
 
 export function Lab({ matchId }: { matchId: string }) {
   const [data, setData] = useState<ViewResponse | null>(null);
@@ -309,10 +310,14 @@ function LabAdviceSheet({
 }) {
   const [themes, setThemes] = useState<{ id: string; label: string }[]>([]);
   const [directives, setDirectives] = useState<{ id: string; label: string }[]>([]);
+  const [roleClaimOptions, setRoleClaimOptions] = useState<
+    { role: Role; label: string; description: string; dangerous: boolean }[]
+  >([]);
   useEffect(() => {
     void api.config().then((c) => {
       setThemes(c.advice.questionThemes);
       setDirectives(c.advice.behaviorDirectives);
+      setRoleClaimOptions(c.advice.roleClaimOptions);
     });
   }, []);
   const [target, setTarget] = useState(candidates[0]?.pairId ?? '');
@@ -341,7 +346,19 @@ function LabAdviceSheet({
           </button>
         ))}
         <button onClick={() => onSubmit({ kind: 'skill_target', targetId: target })}>
-          スキル対象の提案 → 対象(占い役のみ)
+          占い・護衛対象の提案 → 対象(占い師・騎士のみ)
+        </button>
+        {roleClaimOptions.map((option) => (
+          <button
+            key={option.role}
+            onClick={() => onSubmit({ kind: 'role_claim', claimedRole: option.role })}
+          >
+            役職を名乗る相談 → {option.label || roleLabel(option.role)}
+            {option.dangerous ? '（危険）' : ''}
+          </button>
+        ))}
+        <button onClick={() => onSubmit({ kind: 'role_claim', claimedRole: null })}>
+          役職を名乗る相談 → 今日はまだ名乗らない
         </button>
         {directives.map((d) => (
           <button key={d.id} onClick={() => onSubmit({ kind: 'behavior', directiveId: d.id })}>

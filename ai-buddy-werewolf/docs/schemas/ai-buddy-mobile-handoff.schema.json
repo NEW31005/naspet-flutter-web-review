@@ -13,8 +13,72 @@
     "integrity",
     "implementationContract"
   ],
+  "allOf": [
+    {
+      "if": {
+        "properties": { "schemaVersion": { "const": 1 } },
+        "required": ["schemaVersion"]
+      },
+      "then": {
+        "properties": {
+          "files": {
+            "type": "object",
+            "maxProperties": 13,
+            "required": [
+              "config/presets/quick-test.json",
+              "config/presets/pack-test.json",
+              "config/advice.json",
+              "config/abilities.json",
+              "config/models.json",
+              "config/buddies.json",
+              "prompts/system.base.md",
+              "prompts/eval.md",
+              "prompts/speech.md",
+              "prompts/role.villager.md",
+              "prompts/role.seer.md",
+              "prompts/role.werewolf.md",
+              "prompts/version.json"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": { "schemaVersion": { "const": 2 } },
+        "required": ["schemaVersion"]
+      },
+      "then": {
+        "properties": {
+          "files": {
+            "type": "object",
+            "minProperties": 16,
+            "maxProperties": 16,
+            "required": [
+              "config/presets/quick-test.json",
+              "config/presets/pack-test.json",
+              "config/presets/standard-nine.json",
+              "config/advice.json",
+              "config/abilities.json",
+              "config/models.json",
+              "config/buddies.json",
+              "prompts/system.base.md",
+              "prompts/eval.md",
+              "prompts/speech.md",
+              "prompts/role.villager.md",
+              "prompts/role.seer.md",
+              "prompts/role.guardian.md",
+              "prompts/role.medium.md",
+              "prompts/role.werewolf.md",
+              "prompts/version.json"
+            ]
+          }
+        }
+      }
+    }
+  ],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": { "enum": [1, 2] },
     "kind": { "const": "ai-buddy-werewolf-mobile-handoff" },
     "exportedAt": { "type": "string", "format": "date-time" },
     "source": {
@@ -32,24 +96,10 @@
     "files": {
       "type": "object",
       "additionalProperties": false,
-      "required": [
-        "config/presets/quick-test.json",
-        "config/presets/pack-test.json",
-        "config/advice.json",
-        "config/abilities.json",
-        "config/models.json",
-        "config/buddies.json",
-        "prompts/system.base.md",
-        "prompts/eval.md",
-        "prompts/speech.md",
-        "prompts/role.villager.md",
-        "prompts/role.seer.md",
-        "prompts/role.werewolf.md",
-        "prompts/version.json"
-      ],
       "properties": {
         "config/presets/quick-test.json": { "type": "string", "maxLength": 100000 },
         "config/presets/pack-test.json": { "type": "string", "maxLength": 100000 },
+        "config/presets/standard-nine.json": { "type": "string", "maxLength": 100000 },
         "config/advice.json": { "type": "string", "maxLength": 100000 },
         "config/abilities.json": { "type": "string", "maxLength": 100000 },
         "config/models.json": { "type": "string", "maxLength": 100000 },
@@ -59,6 +109,8 @@
         "prompts/speech.md": { "type": "string", "maxLength": 100000 },
         "prompts/role.villager.md": { "type": "string", "maxLength": 100000 },
         "prompts/role.seer.md": { "type": "string", "maxLength": 100000 },
+        "prompts/role.guardian.md": { "type": "string", "maxLength": 100000 },
+        "prompts/role.medium.md": { "type": "string", "maxLength": 100000 },
         "prompts/role.werewolf.md": { "type": "string", "maxLength": 100000 },
         "prompts/version.json": { "type": "string", "maxLength": 100000 }
       }

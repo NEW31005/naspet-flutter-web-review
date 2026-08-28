@@ -315,7 +315,8 @@ export class BrowserBackend {
 
   replay(id: string, lab: boolean) {
     const store = this.getSession(id).runner.store;
-    if (!store.state.winner && !lab) {
+    const allowedLabReplay = lab && store.record.mode === 'lab';
+    if (!store.state.winner && !allowedLabReplay) {
       throw new Error('内部スコアは試合終了まで公開されません(Labモードを除く)');
     }
     return buildReplayData(store.state, store.record.events);

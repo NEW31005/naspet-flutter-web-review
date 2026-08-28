@@ -57,6 +57,14 @@ export type PublicLogEntry =
       /** 発言中で主に疑いを向けた相手(公開発言から読み取れる情報) */
       accusesId: PairId | null;
     }
+  | {
+      seq: number;
+      day: number;
+      t: 'role_declared';
+      pairId: PairId;
+      name: string;
+      claimedRole: Role;
+    }
   | { seq: number; day: number; t: 'discussion_stage'; stage: DiscussionStage }
   | { seq: number; day: number; t: 'discussion_closed'; reason: DiscussionCloseReason }
   | {
@@ -127,7 +135,11 @@ export interface MatchState {
   behaviorToday: Record<PairId, string | null>;
   /** 次回スキル対象の提案(夜に消化) */
   skillProposal: Record<PairId, PairId | null>;
-  /** 主人が保持する確定情報(占い結果) */
+  /** その日に主人から届いた、役職をどう名乗るかの非公開相談。 */
+  roleClaimProposal: Record<PairId, { day: number; claimedRole: Role | null } | null>;
+  /** 円卓へ実際に公開された最新の名乗り。真の役職は含めない。 */
+  publicRoleClaims: Record<PairId, { day: number; claimedRole: Role }>;
+  /** 主人が保持する確定情報(占い・霊媒結果) */
   facts: Record<PairId, Fact[]>;
   /** バディへ共有済みの確定情報ID */
   sharedFactIds: Record<PairId, string[]>;
@@ -141,6 +153,13 @@ export interface MatchState {
   trialChoiceHistory: { day: number; pairId: PairId; targetId: PairId | null }[];
   executionHistory: { day: number; targetId: PairId | null }[];
   attackHistory: { day: number; targetId: PairId | null }[];
+  /** 騎士の護衛履歴。連続で同じ対象を護衛できない判定にも使う。 */
+  guardHistory: {
+    day: number;
+    guardianPairId: PairId;
+    targetId: PairId | null;
+    masterProposalId: PairId | null;
+  }[];
   wolfReports: Record<
     PairId,
     { day: number; masterProposalId: PairId | null; buddyTopId: PairId | null; finalTargetId: PairId | null }[]
@@ -216,6 +235,8 @@ function initialState(ev: Extract<MatchEvent, { type: 'match_created' }>, config
     pendingQuestion: byPair(() => null),
     behaviorToday: byPair(() => null),
     skillProposal: byPair(() => null),
+    roleClaimProposal: byPair(() => null),
+    publicRoleClaims: {},
     facts: byPair(() => []),
     sharedFactIds: byPair(() => []),
     trialChoices: {},
@@ -224,6 +245,7 @@ function initialState(ev: Extract<MatchEvent, { type: 'match_created' }>, config
     trialChoiceHistory: [],
     executionHistory: [],
     attackHistory: [],
+    guardHistory: [],
     wolfReports: byPair(() => []),
     divined: byPair(() => []),
     latestEvals: byPair(() => null),
@@ -335,6 +357,9 @@ function applyAdviceToState(state: MatchState, pairId: PairId, advice: Advice): 
     case 'skill_target':
       state.skillProposal[pairId] = advice.targetId;
       break;
+    case 'role_claim':
+      state.roleClaimProposal[pairId] = { day: state.day, claimedRole: advice.claimedRole };
+      break;
     case 'fact_share':
       // fact_shared イベント側で処理
       break;
@@ -440,6 +465,7 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
         state.adviceUsedToday[p.pairId] = 0;
         state.pendingQuestion[p.pairId] = null;
         state.behaviorToday[p.pairId] = null;
+        state.roleClaimProposal[p.pairId] = null;
       }
       state.publicLog.push({
         seq: event.seq,
@@ -562,7 +588,41 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
       state.skillProposal[seerPairId] = null; // 提案は消化
       break;
     }
+    case 'role_declared': {
+      const pair = getPair(state, event.payload.pairId);
+      state.publicRoleClaims[pair.pairId] = {
+        day: event.day,
+        claimedRole: event.payload.claimedRole,
+      };
+      state.publicLog.push({
+        seq: event.seq,
+        day: event.day,
+        t: 'role_declared',
+        pairId: pair.pairId,
+        name: pair.buddyName,
+        claimedRole: event.payload.claimedRole,
+      });
+      break;
+    }
+    case 'medium_result': {
+      const { mediumPairId, fact } = event.payload;
+      const facts = state.facts[mediumPairId] ?? [];
+      facts.push(fact);
+      state.facts[mediumPairId] = facts;
+      break;
+    }
+    case 'guard_resolved': {
+      state.guardHistory.push({
+        day: event.day,
+        guardianPairId: event.payload.guardianPairId,
+        targetId: event.payload.targetId,
+        masterProposalId: event.payload.masterProposalId,
+      });
+      state.skillProposal[event.payload.guardianPairId] = null;
+      break;
+    }
     case 'attack_detail':
+    case 'guard_detail':
       break; // gm用
     case 'wolf_night_report': {
       const list = state.wolfReports[event.payload.pairId] ?? [];

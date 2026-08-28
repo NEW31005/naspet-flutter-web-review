@@ -182,7 +182,7 @@ export class MatchRunner {
           return { status: 'progressed', task: 'votes' };
         }
         case 'ai_night': {
-          await this.doNight(task.wolfPairIds, task.seerPairId);
+          await this.doNight(task.wolfPairIds, task.seerPairIds, task.guardianPairIds);
           return { status: 'progressed', task: 'night' };
         }
       }
@@ -328,9 +328,19 @@ export class MatchRunner {
     }
   }
 
-  private async doNight(wolfPairIds: PairId[], seerPairId: PairId | null): Promise<void> {
+  private async doNight(
+    wolfPairIds: PairId[],
+    seerPairIds: PairId[],
+    guardianPairIds: PairId[],
+  ): Promise<void> {
     const state = this.state;
-    const targets = [...wolfPairIds, ...(seerPairId ? [seerPairId] : [])];
+    const targets = [
+      ...new Set([
+        ...wolfPairIds,
+        ...seerPairIds,
+        ...guardianPairIds,
+      ]),
+    ];
     const results = await Promise.all(
       targets.map(async (pairId) => {
         const ctx = buildBuddyContext(state, pairId);

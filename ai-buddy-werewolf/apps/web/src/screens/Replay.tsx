@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { api, type ReplayData } from '../api.js';
 import { ErrorBox, LineChart, Spinner, TopBar, colorFor } from '../components.js';
+import { roleLabel } from '../uiLabels.js';
 import { describeAdvice } from './Result.js';
 
 export function Replay({ matchId }: { matchId: string }) {
@@ -9,11 +10,9 @@ export function Replay({ matchId }: { matchId: string }) {
   const [error, setError] = useState<string | null>(null);
 
   const load = () => {
-    // 進行中の試合は lab=1 でのみ閲覧可(通常は試合後)
-    api
-      .replay(matchId, false)
-      .then(setData)
-      .catch(() => api.replay(matchId, true).then(setData).catch((e) => setError(String(e))));
+    setError(null);
+    // 通常のリプレイは試合終了後だけ。検証室権限への自動切替は秘密情報漏えいになる。
+    api.replay(matchId, false).then(setData).catch((e) => setError(String(e)));
   };
   useEffect(load, [matchId]);
 
@@ -51,6 +50,44 @@ export function Replay({ matchId }: { matchId: string }) {
         <div className="notice small">
           ここに表示される内部スコア・仮説は試合中には公開されないデータです(生のChain of
           Thoughtは保存していません)。
+        </div>
+
+        <div className="card">
+          <h2>役職を名乗る相談と判断</h2>
+          <p className="muted small">
+            🔒は主人からバディだけへ届いた相談、🎭は円卓へ実際に公開された名乗りです。真偽は試合中には伏せられていました。
+          </p>
+          {data.roleClaimDetails.length === 0 && (
+            <div className="muted small">この試合では役職を名乗る相談・公開の名乗りはありません。</div>
+          )}
+          {data.roleClaimDetails.map((detail) => (
+            <div key={`${detail.day}-${detail.pairId}`} className="role-claim-result">
+              <div className="row spread">
+                <strong>{detail.day}日目・{detail.pairName}</strong>
+                <span className="badge">本当の役職：{detail.trueRoleLabel}</span>
+              </div>
+              <div className="muted small">
+                🔒 主人の相談：
+                {!detail.masterProposalSet
+                  ? '相談なし'
+                  : detail.masterProposal == null
+                    ? '今日はまだ名乗らないでほしい'
+                    : `${roleLabel(detail.masterProposal)}として名乗ってほしい`}
+              </div>
+              {detail.publicClaims.length === 0 ? (
+                <div className="muted small">🎭 実際の名乗り：なし（バディが見送った）</div>
+              ) : (
+                detail.publicClaims.map((claim) => (
+                  <div key={claim.seq} className="muted small">
+                    🎭 実際の名乗り：<strong>{claim.claimedRoleLabel}</strong>{' '}
+                    <span className={`badge ${claim.isTruth ? 'ok' : 'warn'}`}>
+                      {claim.isTruth ? '真実' : '別の役職として名乗った'}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          ))}
         </div>
 
         <div className="card">
@@ -120,7 +157,7 @@ export function Replay({ matchId }: { matchId: string }) {
         </div>
 
         <div className="card">
-          <h2>夜の詳細(占い・襲撃統合)</h2>
+          <h2>夜の詳細（占い・護衛・霊媒・襲撃）</h2>
           {data.nightDetails.map((n) => (
             <div key={n.day}>
               <h3>{n.day}日目の夜</h3>
@@ -132,6 +169,37 @@ export function Replay({ matchId }: { matchId: string }) {
                     ` / 主人の提案: ${nameOf(n.divination.masterProposalId)}`}
                 </div>
               )}
+              {data.events
+                .filter((event) => event.type === 'guard_detail' && event.day === n.day)
+                .map((event) =>
+                  event.type === 'guard_detail' ? (
+                    <div key={event.seq} className="muted small">
+                      🛡️ 騎士: {nameOf(event.payload.guardianPairId)} →{' '}
+                      {nameOf(event.payload.targetId)}
+                      {event.payload.masterProposalId &&
+                        ` / 主人の提案: ${nameOf(event.payload.masterProposalId)}`}
+                      {event.payload.blockedAttack ? ' / 襲撃を防いだ' : ''}
+                      <div className="mono">
+                        補正後:{' '}
+                        {Object.entries(event.payload.adjustedPriorities)
+                          .sort((a, b) => b[1] - a[1])
+                          .map(([pairId, score]) => `${nameOf(pairId)}:${score.toFixed(0)}`)
+                          .join(' ')}
+                      </div>
+                    </div>
+                  ) : null,
+                )}
+              {data.events
+                .filter((event) => event.type === 'medium_result' && event.day === n.day)
+                .map((event) =>
+                  event.type === 'medium_result' ? (
+                    <div key={event.seq} className="muted small">
+                      🕯️ 霊媒: {nameOf(event.payload.mediumPairId)} →{' '}
+                      {nameOf(event.payload.targetId)}は
+                      {event.payload.fact.isWolf ? '狼憑き' : '狼憑きではない'}
+                    </div>
+                  ) : null,
+                )}
               {n.attack && (
                 <div className="scrollx">
                   <table className="data">

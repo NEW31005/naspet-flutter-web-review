@@ -13,8 +13,16 @@ describe('renderEvalPublicLog', () => {
       targetId: 'p2',
       targetName: 'レン',
     };
+    const oldRoleClaim: PublicLogEntry = {
+      seq: 2,
+      day: 1,
+      t: 'role_declared',
+      pairId: 'p3',
+      name: 'ヒメ',
+      claimedRole: 'medium',
+    };
     const speeches: PublicLogEntry[] = Array.from({ length: 30 }, (_, index) => ({
-      seq: index + 2,
+      seq: index + 3,
       day: 2,
       t: 'speech' as const,
       round: 2,
@@ -25,9 +33,10 @@ describe('renderEvalPublicLog', () => {
       accusesId: null,
     }));
 
-    const rendered = renderEvalPublicLog([oldVote, ...speeches]);
+    const rendered = renderEvalPublicLog([oldVote, oldRoleClaim, ...speeches]);
 
     expect(rendered).toContain('[投票] ミナ → レン');
+    expect(rendered).toContain('[役職の名乗り] ヒメは「霊媒師」として名乗り出た');
     expect(rendered).not.toContain('話者6: 発言6');
     expect(rendered).toContain('話者7: 発言7');
     expect(rendered).toContain('話者30: 発言30');

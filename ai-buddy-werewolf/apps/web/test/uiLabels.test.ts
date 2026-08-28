@@ -9,6 +9,7 @@ import {
   presetIdLabel,
   promptFileLabel,
   providerLabel,
+  roleLabel,
 } from '../src/uiLabels.js';
 
 describe('日本語UI表示名', () => {
@@ -17,6 +18,7 @@ describe('日本語UI表示名', () => {
       'presets/quick-test.json',
       'presets/pack-test.json',
       'presets/quick-info.json',
+      'presets/standard-nine.json',
       'advice.json',
       'abilities.json',
       'models.json',
@@ -33,6 +35,8 @@ describe('日本語UI表示名', () => {
       'speech.md',
       'role.villager.md',
       'role.seer.md',
+      'role.guardian.md',
+      'role.medium.md',
       'role.werewolf.md',
       'version.json',
     ];
@@ -45,6 +49,11 @@ describe('日本語UI表示名', () => {
     expect(providerLabel('lab-live')).toContain('OpenRouter');
     expect(masterPolicyLabel('simple')).toContain('初日は棄権');
     expect(presetIdLabel('quick-info')).toBe('クイック情報戦');
+    expect(presetIdLabel('standard-nine')).toBe('9人本格テスト');
+    expect(roleLabel('seer')).toBe('占い師');
+    expect(roleLabel('guardian')).toBe('騎士');
+    expect(roleLabel('medium')).toBe('霊媒師');
+    expect(roleLabel(null)).toBe('まだ名乗らない');
     expect(modeLabel('lab')).toBe('検証室');
     expect(phaseLabel('discussion')).toBe('討論');
   });

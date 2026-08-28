@@ -19,6 +19,7 @@ import type { PromptSet } from '@aibw/ai-engine/browser';
 
 import quickTest from '../../../../config/presets/quick-test.json?raw';
 import packTest from '../../../../config/presets/pack-test.json?raw';
+import standardNine from '../../../../config/presets/standard-nine.json?raw';
 import advice from '../../../../config/advice.json?raw';
 import abilities from '../../../../config/abilities.json?raw';
 import models from '../../../../config/models.json?raw';
@@ -28,6 +29,8 @@ import evalPrompt from '../../../../prompts/eval.md?raw';
 import speechPrompt from '../../../../prompts/speech.md?raw';
 import roleVillager from '../../../../prompts/role.villager.md?raw';
 import roleSeer from '../../../../prompts/role.seer.md?raw';
+import roleGuardian from '../../../../prompts/role.guardian.md?raw';
+import roleMedium from '../../../../prompts/role.medium.md?raw';
 import roleWerewolf from '../../../../prompts/role.werewolf.md?raw';
 import promptVersion from '../../../../prompts/version.json?raw';
 
@@ -37,6 +40,7 @@ type HandoffPath = (typeof MOBILE_HANDOFF_FILE_PATHS)[number];
 const DEFAULT_FILES: Record<(typeof MOBILE_HANDOFF_FILE_PATHS)[number], string> = {
   'config/presets/quick-test.json': quickTest,
   'config/presets/pack-test.json': packTest,
+  'config/presets/standard-nine.json': standardNine,
   'config/advice.json': advice,
   'config/abilities.json': abilities,
   'config/models.json': models,
@@ -46,6 +50,8 @@ const DEFAULT_FILES: Record<(typeof MOBILE_HANDOFF_FILE_PATHS)[number], string> 
   'prompts/speech.md': speechPrompt,
   'prompts/role.villager.md': roleVillager,
   'prompts/role.seer.md': roleSeer,
+  'prompts/role.guardian.md': roleGuardian,
+  'prompts/role.medium.md': roleMedium,
   'prompts/role.werewolf.md': roleWerewolf,
   'prompts/version.json': promptVersion,
 };
@@ -53,6 +59,7 @@ const DEFAULT_FILES: Record<(typeof MOBILE_HANDOFF_FILE_PATHS)[number], string> 
 const CONFIG_NAMES = [
   'presets/quick-test.json',
   'presets/pack-test.json',
+  'presets/standard-nine.json',
   'advice.json',
   'abilities.json',
   'models.json',
@@ -65,6 +72,8 @@ const PROMPT_NAMES = [
   'speech.md',
   'role.villager.md',
   'role.seer.md',
+  'role.guardian.md',
+  'role.medium.md',
   'role.werewolf.md',
   'version.json',
 ] as const;
@@ -87,12 +96,66 @@ function stored(path: string): string | null {
   }
 }
 
+/**
+ * 役職を名乗る相談の導入前に保存されたadvice.jsonへ、新しい既定項目だけを補う。
+ * 既存メニューの文言・有効/無効や利用者が追加した項目は変更しない。
+ */
+export function supplementLegacyAdviceConfig(saved: string): string {
+  try {
+    const legacy = JSON.parse(saved) as Record<string, unknown>;
+    const current = JSON.parse(advice) as Record<string, unknown>;
+    if (!legacy || typeof legacy !== 'object' || Array.isArray(legacy)) return saved;
+
+    let changed = false;
+    const currentMenu = Array.isArray(current.menu) ? current.menu : [];
+    const legacyMenu = Array.isArray(legacy.menu) ? [...legacy.menu] : null;
+    if (legacyMenu) {
+      const hasRoleClaim = legacyMenu.some((item) =>
+        item && typeof item === 'object' && !Array.isArray(item) &&
+        (item as Record<string, unknown>).kind === 'role_claim'
+      );
+      if (!hasRoleClaim) {
+        const defaultRoleClaim = currentMenu.find((item) =>
+          item && typeof item === 'object' && !Array.isArray(item) &&
+          (item as Record<string, unknown>).kind === 'role_claim'
+        );
+        if (defaultRoleClaim) {
+          legacy.menu = [...legacyMenu, defaultRoleClaim];
+          changed = true;
+        }
+      }
+    }
+
+    if (!Object.hasOwn(legacy, 'roleClaimOptions') && Array.isArray(current.roleClaimOptions)) {
+      legacy.roleClaimOptions = current.roleClaimOptions;
+      changed = true;
+    }
+    if (!changed) return saved;
+
+    const legacyVersion = typeof legacy.version === 'string' && legacy.version.trim()
+      ? legacy.version
+      : 'legacy';
+    legacy.version = legacyVersion.endsWith('+role-claim-compat.1')
+      ? legacyVersion
+      : `${legacyVersion}+role-claim-compat.1`;
+    return JSON.stringify(legacy, null, 2);
+  } catch {
+    // 不正JSONはここで握りつぶさず、通常の検証経路で利用者へ知らせる。
+    return saved;
+  }
+}
+
+function effectiveTextForPath(path: HandoffPath): string {
+  const saved = stored(path);
+  if (saved === null) return DEFAULT_FILES[path] ?? '';
+  return path === 'config/advice.json' ? supplementLegacyAdviceConfig(saved) : saved;
+}
+
 export function readStaticFile(kind: EditableKind, name: string): string {
   const path = pathOf(kind, name);
-  const saved = stored(path);
   // 保存済みの内容は利用者の実験成果であり、版番号だけを根拠に上書きしない。
-  // 新しい推奨値は新規ブラウザの既定値、または設定画面からの明示操作で適用する。
-  return saved ?? DEFAULT_FILES[path] ?? '';
+  // ただし旧advice.jsonに存在しない新機能は、既存値を保ったまま既定項目だけ補完する。
+  return effectiveTextForPath(path);
 }
 
 function parseJson(text: string, label: string): unknown {
@@ -142,11 +205,18 @@ export function loadStaticConfig(): LoadedStaticConfig {
   const pack = rulesConfigSchema.parse(
     parseJson(readStaticFile('config', 'presets/pack-test.json'), 'pack-test'),
   );
+  const standard = rulesConfigSchema.parse(
+    parseJson(readStaticFile('config', 'presets/standard-nine.json'), 'standard-nine'),
+  );
   const version = parseJson(readStaticFile('prompt', 'version.json'), 'version.json') as {
     version: string;
   };
   return {
-    rules: { [quick.presetId]: quick, [pack.presetId]: pack },
+    rules: {
+      [quick.presetId]: quick,
+      [pack.presetId]: pack,
+      [standard.presetId]: standard,
+    },
     advice: adviceConfigSchema.parse(parseJson(readStaticFile('config', 'advice.json'), 'advice')),
     abilities: abilitiesConfigSchema.parse(
       parseJson(readStaticFile('config', 'abilities.json'), 'abilities'),
@@ -162,6 +232,8 @@ export function loadStaticConfig(): LoadedStaticConfig {
       speechTemplate: readStaticFile('prompt', 'speech.md'),
       roleVillager: readStaticFile('prompt', 'role.villager.md'),
       roleSeer: readStaticFile('prompt', 'role.seer.md'),
+      roleGuardian: readStaticFile('prompt', 'role.guardian.md'),
+      roleMedium: readStaticFile('prompt', 'role.medium.md'),
       roleWerewolf: readStaticFile('prompt', 'role.werewolf.md'),
     },
   };
@@ -199,7 +271,7 @@ export function allEffectiveFiles(): Record<string, string> {
   return Object.fromEntries(
     [...MOBILE_HANDOFF_FILE_PATHS]
       .sort()
-      .map((path) => [path, stored(path) ?? DEFAULT_FILES[path] ?? '']),
+      .map((path) => [path, effectiveTextForPath(path)]),
   );
 }
 
@@ -217,8 +289,14 @@ function versionOf(files: Record<string, string>, path: string): string {
 export async function createMobileHandoffBundleFromFiles(
   files: Record<string, string>,
 ): Promise<MobileHandoffBundle> {
+  // Node版では編集可能なquick-info等も渡されるため、固定v2契約の16ファイルだけを選ぶ。
+  const currentFiles = Object.fromEntries(MOBILE_HANDOFF_FILE_PATHS.map((path) => {
+    const text = files[path];
+    if (typeof text !== 'string') throw new Error(`引継ぎに必要なファイルがありません: ${path}`);
+    return [path, text];
+  }));
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     kind: 'ai-buddy-werewolf-mobile-handoff',
     exportedAt: new Date().toISOString(),
     source: {
@@ -226,6 +304,7 @@ export async function createMobileHandoffBundleFromFiles(
       configVersions: {
         quickTest: versionOf(files, 'config/presets/quick-test.json'),
         packTest: versionOf(files, 'config/presets/pack-test.json'),
+        standardNine: versionOf(files, 'config/presets/standard-nine.json'),
         advice: versionOf(files, 'config/advice.json'),
         abilities: versionOf(files, 'config/abilities.json'),
         models: versionOf(files, 'config/models.json'),
@@ -233,10 +312,10 @@ export async function createMobileHandoffBundleFromFiles(
         prompts: versionOf(files, 'prompts/version.json'),
       },
     },
-    files,
+    files: currentFiles,
     integrity: {
       algorithm: 'SHA-256',
-      digest: await sha256(canonicalizeMobileHandoffFiles(files)),
+      digest: await sha256(canonicalizeMobileHandoffFiles(currentFiles)),
     },
     implementationContract: {
       gameCore: 'authoritative-event-engine',
@@ -276,7 +355,10 @@ export async function importMobileHandoffBundle(value: unknown): Promise<void> {
   for (const [path, text] of Object.entries(bundle.files)) {
     const kind: EditableKind = path.startsWith('config/') ? 'config' : 'prompt';
     const name = path.replace(/^config\//, '').replace(/^prompts\//, '');
-    validated.push({ kind, name, text });
+    const migratedText = bundle.schemaVersion === 1 && path === 'config/advice.json'
+      ? supplementLegacyAdviceConfig(text)
+      : text;
+    validated.push({ kind, name, text: migratedText });
   }
   for (const file of validated) writeStaticFile(file.kind, file.name, file.text);
 }

@@ -10,10 +10,10 @@ Web Labで調整したルール、能力、人柄、モデル設定、プロン�
 
 パッケージには次を含む。
 
-- Quick Test / Pack Testのルール
+- Quick Test / Pack Test / 9組標準テストのルール
 - 助言メニュー、能力アンロック、バディ人格
 - モデルID、推論強度、トークン上限、推定単価
-- system / eval / speech / 役職別の全プロンプト
+- system / eval / speech / 役職別（市民・占い師・騎士・霊媒師・狼憑き）の全プロンプト
 - 全設定バージョン、プロンプトバージョン、書き出し時刻
 - `files` 内容のSHA-256と本番実装契約
 
@@ -25,6 +25,12 @@ APIキー、平文の合言葉、ブラウザの試合履歴、ユーザー情�
 - JSON Schema: `docs/schemas/ai-buddy-mobile-handoff.schema.json`
 - 対象ファイル一覧: `MOBILE_HANDOFF_FILE_PATHS`
 - SHA-256入力の正規化: `canonicalizeMobileHandoffFiles(files)`
+
+現在の書き出し形式は `schemaVersion: 2`、16ファイル固定である。追加された3ファイルは
+`config/presets/standard-nine.json`、`prompts/role.guardian.md`、
+`prompts/role.medium.md`。既存の本番候補や過去の書き出しを段階的に移行できるよう、
+読み込み側は旧 `schemaVersion: 1`（13ファイル固定）も受け付ける。v1を読み込んでも
+元データをv1のまま再配布せず、検証・補完後に新しい不変リリースとしてv2で書き出す。
 
 SHA-256は、パスを昇順に並べ、各要素を `path + NUL + content`、要素間をNULで連結したUTF-8文字列に対して計算する。これは転送中の内容差分を検知するもので、電子署名ではない。第三者配布を取り込む運用へ広げる場合は、署名または信頼済み管理画面からの昇格を追加する。
 
@@ -55,7 +61,7 @@ flowchart LR
 ## 受け入れ手順
 
 1. JSON Schemaまたは `mobileHandoffBundleSchema` で外形を検証する
-2. `schemaVersion === 1`、`kind`、13個の固定ファイルパス、`secretsIncluded === false` を確認する
+2. `schemaVersion` とファイル集合を組で検証する（v1は13個、v2は16個）。新規昇格はv2のみとし、`kind`、`secretsIncluded === false` も確認する
 3. `canonicalizeMobileHandoffFiles` と同じ規則でSHA-256を再計算し、`integrity.digest` と一致させる
 4. 各 `config/*.json` を既存Zodスキーマで検証し、`prompts/version.json` のversionを読む
 5. `releaseId` とdigestを付けた不変リリースとしてサーバー側へ保存する。既存リリースを上書きしない
@@ -76,8 +82,11 @@ flowchart LR
 - [ ] プロンプトversionと各config versionを意図的に更新した
 - [ ] パッケージのZod/JSON Schema検証とSHA-256再計算が成功した
 - [ ] `npm test`、`npm run lint`、`npm run build` が成功した
-- [ ] モックでQuick TestとPack Testが完走した
+- [ ] モックでQuick Test、Pack Test、9組標準テストが完走した
 - [ ] Live評価/発言のJSON検証・再試行・フォールバックを確認した
 - [ ] 占い結果と他主人の助言が別バディのcontextへ漏れない
+- [ ] 霊媒結果・騎士の護衛先・役職を名乗る提案が別バディのcontextへ漏れない
+- [ ] 公開される名乗りには真偽を含めず、真偽比較は試合終了後だけである
+- [ ] 別役職を名乗っても、存在しない占い結果・霊媒結果を自動生成しない
 - [ ] APIキー・合言葉・試合データがbundleへ含まれない
 - [ ] 本番Flutterから直接LLMを呼んでいない

@@ -11,15 +11,34 @@ import {
   providerLabel,
 } from '../uiLabels.js';
 
+export const DEFAULT_PRESET_ID = 'standard-nine';
+
+/**
+ * 新規プレイは実際のAI会話を既定にする。
+ * 公開Labは秘密鍵をブラウザへ出さない中継、ローカル開発はAnthropic SDKを優先する。
+ */
+export function preferredInitialProvider(
+  config: ConfigResponse,
+  staticLab: boolean,
+): string {
+  const preferred = staticLab ? 'lab-live' : 'anthropic';
+  const preferredProvider = config.models.providers[preferred];
+  if (preferredProvider && preferredProvider.type !== 'mock') return preferred;
+  const firstLive = Object.entries(config.models.providers).find(
+    ([, provider]) => provider.type !== 'mock',
+  );
+  return firstLive?.[0] ?? config.models.defaultProvider;
+}
+
 export function Home() {
   const [config, setConfig] = useState<ConfigResponse | null>(null);
   const [matches, setMatches] = useState<MatchSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
-  const [presetId, setPresetId] = useState('quick-test');
+  const [presetId, setPresetId] = useState(DEFAULT_PRESET_ID);
   const [mode, setMode] = useState<'play' | 'lab'>('play');
-  const [provider, setProvider] = useState('mock');
+  const [provider, setProvider] = useState(isStaticLab ? 'lab-live' : 'anthropic');
   const [seed, setSeed] = useState('');
   const [humanPairIndex, setHumanPairIndex] = useState(0);
 
@@ -28,7 +47,12 @@ export function Home() {
       .config()
       .then((c) => {
         setConfig(c);
-        setProvider(c.models.defaultProvider);
+        setPresetId(
+          c.presets.some((preset) => preset.presetId === DEFAULT_PRESET_ID)
+            ? DEFAULT_PRESET_ID
+            : (c.presets[0]?.presetId ?? DEFAULT_PRESET_ID),
+        );
+        setProvider(preferredInitialProvider(c, isStaticLab));
       })
       .catch((e) => setError(String(e)));
     api

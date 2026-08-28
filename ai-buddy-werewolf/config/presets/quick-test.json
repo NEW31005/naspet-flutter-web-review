@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0-human-turn.1",
+  "version": "0.8.1-short-rally.1",
   "presetId": "quick-test",
   "label": "クイックテスト（5組・初日白情報あり・勝率調整用）",
   "pairCount": 5,
@@ -11,6 +11,7 @@
   "discussionDurationSec": 150,
   "discussionMaxMessages": 30,
   "discussionBatchSize": 2,
+  "discussionAdviceIntervalMessages": 3,
   "discussionRounds": 2,
   "speechesPerBuddyPerRound": 1,
   "advicePerDay": 1,

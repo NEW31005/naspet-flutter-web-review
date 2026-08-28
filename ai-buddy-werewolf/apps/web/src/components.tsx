@@ -24,11 +24,22 @@ export function Sheet({
   onClose: () => void;
   children: ReactNode;
 }) {
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [onClose]);
+
   return (
     <>
       <div className="sheet-backdrop" onClick={onClose} />
-      <div className="sheet" role="dialog" aria-label={title}>
-        <h2>{title}</h2>
+      <div className="sheet" role="dialog" aria-modal="true" aria-label={title}>
+        <div className="sheet-heading">
+          <h2>{title}</h2>
+          <button className="sheet-close" onClick={onClose} aria-label="閉じる">×</button>
+        </div>
         {children}
       </div>
     </>

@@ -12,7 +12,7 @@ import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 // SDKのzodヘルパーは zod/v4 API を要求する(zod 3.25+ が同梱するサブパス)
 import { z } from 'zod/v4';
 import type { AnthropicProviderConfig, EvalOutput, PairId, SpeechOutput } from '@aibw/shared';
-import { evalOutputSchema } from '@aibw/shared';
+import { evalOutputSchema, MAX_PUBLIC_SPEECH_CHARS } from '@aibw/shared';
 import type { BuddyContext } from '@aibw/game-core';
 import { buildEvalPrompt, buildSpeechPrompt } from './promptBuilder.js';
 import type { CallOpts, LlmProvider, PromptSet, ProviderResult } from './provider.js';
@@ -38,7 +38,7 @@ const evalApiSchema = z.object({
   reasonSummary: z.string(),
 });
 const speechApiSchema = z.object({
-  text: z.string(),
+  text: z.string().min(1).max(MAX_PUBLIC_SPEECH_CHARS),
   accusesId: z.string().nullable(),
   declaredRole: z.enum(['villager', 'seer', 'guardian', 'medium', 'werewolf']).nullable(),
 });

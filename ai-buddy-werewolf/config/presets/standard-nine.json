@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-role-expansion.1",
+  "version": "0.2.0-short-rally.1",
   "presetId": "standard-nine",
   "label": "本格9組テスト（狼2・占い師1・騎士1・霊媒師1）",
   "pairCount": 9,
@@ -11,9 +11,10 @@
   "discussionDurationSec": 150,
   "discussionMaxMessages": 54,
   "discussionBatchSize": 3,
+  "discussionAdviceIntervalMessages": 3,
   "discussionRounds": 2,
   "speechesPerBuddyPerRound": 1,
-  "advicePerDay": 1,
+  "advicePerDay": 2,
   "tieBreak": "random",
   "revealRoleOnDeath": false,
   "wolfAttackIntegration": { "method": "sumNormalized", "tieBreak": "random" },

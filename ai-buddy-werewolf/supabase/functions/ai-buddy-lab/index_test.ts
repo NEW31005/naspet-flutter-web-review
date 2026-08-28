@@ -114,6 +114,30 @@ Deno.test('output tokens and reasoning effort are capped at the Edge boundary', 
   assertEquals(response.headers.get('X-AIBW-Budget-Remaining'), '319');
 });
 
+Deno.test('speech longer than 120 characters is rejected at the Edge boundary', async () => {
+  const handler = createHandler({
+    envGet: await env(),
+    now: () => 1_000,
+    state: state(),
+    fetch: (async () => Response.json({
+      model: 'anthropic/claude-sonnet-5',
+      usage: { prompt_tokens: 10, completion_tokens: 80 },
+      choices: [{
+        message: {
+          content: JSON.stringify({
+            text: '長'.repeat(121),
+            accusesId: null,
+            declaredRole: null,
+          }),
+        },
+      }],
+    })) as typeof fetch,
+  });
+
+  const response = await handler(request(speechBody()));
+  assertEquals(response.status, 422);
+});
+
 Deno.test('evaluation output uses its separate token cap', async () => {
   const forwardedBodies: Record<string, unknown>[] = [];
   const handler = createHandler({

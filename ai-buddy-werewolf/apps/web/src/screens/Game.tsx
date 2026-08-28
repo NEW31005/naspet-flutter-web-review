@@ -253,10 +253,15 @@ export function Game({ matchId }: { matchId: string }) {
   const selfAlive = view.pairs.find((pair) => pair.isSelf)?.alive ?? false;
   const canPrepareTimedAdvice =
     timedDiscussion &&
-    view.discussionStage === 'opening' &&
+    (view.discussionStage === 'opening' || view.discussionStage === 'response') &&
     selfAlive &&
     !!me &&
     me.adviceUsedToday < me.advicePerDay;
+  const adviceRemaining = me ? Math.max(0, me.advicePerDay - me.adviceUsedToday) : 0;
+  const pairNameById = Object.fromEntries(
+    view.pairs.map((pair) => [pair.pairId, pair.buddyName]),
+  );
+  const participantNames = view.pairs.map((pair) => pair.buddyName);
   const lastComparison = me?.voteComparisons[me.voteComparisons.length - 1];
   const lastWolfReport = me?.wolfReports[me.wolfReports.length - 1];
   const lastGuardReport = me?.guardReports[me.guardReports.length - 1];
@@ -293,15 +298,21 @@ export function Game({ matchId }: { matchId: string }) {
             </div>
             <small>
               {view.discussionPaused
-                ? 'ここで1回だけ相談するか、相談せず再開するかを選んでください。選んでいる間、残り時間は減りません。'
-                : 'AIたちは個別に考えています。名指しされた相手は優先して返答します。冒頭討論中に相談内容を準備できます。'}
+                ? `相談を選んでいる間、残り時間は減りません。相談はあと${adviceRemaining}回。`
+                : `AIたちは短い発言で応酬中。名指しされた相手は優先して返答します。`}
             </small>
           </div>
         )}
         {/* 公開ログ */}
         <div className="chatlog">
           {view.publicLog.map((e, i) => (
-            <LogEntry key={`${e.seq}-${i}`} entry={e} selfPairId={me?.pairId ?? null} />
+            <LogEntry
+              key={`${e.seq}-${i}`}
+              entry={e}
+              selfPairId={me?.pairId ?? null}
+              pairNameById={pairNameById}
+              participantNames={participantNames}
+            />
           ))}
           {(data.busy || acting) && !finished && (
             <div className="sysline">
@@ -314,7 +325,7 @@ export function Game({ matchId }: { matchId: string }) {
         {mustAct && (
           <div className="notice">
             {me?.needDiscussionAdvice
-              ? '冒頭討論が終わり、討論時計を止めています。1回だけ相談するか、「今回は相談せず再開」を選ぶと、バディたちがもう一度話し合います。'
+              ? '相談を送るか、「今回は相談せず再開」を選べます。'
               : me?.needTrialChoice
               ? '討論はここで一時停止中。内容を読み返してから、下の「処刑先を選ぶ」を押してください。'
               : '夜の行動前で一時停止中。内容を確認してから、下の「襲撃を提案する」を押してください。'}
@@ -378,13 +389,15 @@ export function Game({ matchId }: { matchId: string }) {
               onClick={() => setSheet('advice')}
             >
               🗣 {me.needDiscussionAdvice
-                ? 'バディに相談する'
+                ? `バディに相談（残り${adviceRemaining}）`
                 : canPrepareTimedAdvice
-                  ? '相談内容を考える'
+                  ? `次の相談を考える（残り${adviceRemaining}）`
                   : me.canAdvise
                     ? 'バディに相談する'
                 : view.discussionMode === 'timed'
-                  ? '相談済み'
+                  ? view.discussionPaused
+                    ? '今回は相談を見送り'
+                    : '相談済み'
                   : view.discussionStage === 'opening'
                     ? '冒頭討論中'
                     : '相談済み'}
@@ -446,6 +459,7 @@ export function Game({ matchId }: { matchId: string }) {
           aliveOthers={aliveOthers}
           processing={acting || data.busy}
           canSend={me.canAdvise}
+          remaining={adviceRemaining}
           onClose={() => setSheet(null)}
           onSubmit={(advice) => submit(() => api.advice(matchId, me.pairId, advice))}
         />
@@ -566,7 +580,17 @@ export function Game({ matchId }: { matchId: string }) {
   );
 }
 
-function LogEntry({ entry, selfPairId }: { entry: PublicLogEntry; selfPairId: string | null }) {
+function LogEntry({
+  entry,
+  selfPairId,
+  pairNameById,
+  participantNames,
+}: {
+  entry: PublicLogEntry;
+  selfPairId: string | null;
+  pairNameById: Record<string, string>;
+  participantNames: string[];
+}) {
   switch (entry.t) {
     case 'day_start':
       return (
@@ -634,13 +658,18 @@ function LogEntry({ entry, selfPairId }: { entry: PublicLogEntry; selfPairId: st
                 ? '応答'
                 : null;
       return (
-        <div className={`bubble ${self ? 'self' : ''}`}>
+        <div className={`bubble ${self ? 'self' : ''} ${entry.replyToId ? 'reply' : ''}`}>
           <div className="who">
             {entry.name}
             {self ? '(あなたのバディ)' : ''}
             {turnLabel && <span className="turn-label">{turnLabel}</span>}
           </div>
-          <div>{entry.text}</div>
+          {entry.replyToId && (
+            <div className="reply-target">↩ {pairNameById[entry.replyToId] ?? '相手'}への返答</div>
+          )}
+          <div className="speech-text">
+            <HighlightedSpeech text={entry.text} participantNames={participantNames} />
+          </div>
         </div>
       );
     }
@@ -666,6 +695,23 @@ function LogEntry({ entry, selfPairId }: { entry: PublicLogEntry; selfPairId: st
     default:
       return null;
   }
+}
+
+function HighlightedSpeech({ text, participantNames }: { text: string; participantNames: string[] }) {
+  const names = [...participantNames].sort((left, right) => right.length - left.length);
+  if (names.length === 0) return text;
+  const escaped = names.map((name) => name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  const matcher = new RegExp(`(${escaped.join('|')})`, 'g');
+  const parts = text.split(matcher);
+  return parts.map((part, index) => {
+    if (!names.includes(part)) return <span key={`text-${index}`}>{part}</span>;
+    const alreadyMentioned = parts[index - 1]?.endsWith('@') ?? false;
+    return (
+      <span className="mention" key={`${part}-${index}`}>
+        {alreadyMentioned ? part : `@${part}`}
+      </span>
+    );
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -721,6 +767,7 @@ function AdviceSheet({
   aliveOthers,
   processing,
   canSend,
+  remaining,
   onClose,
   onSubmit,
 }: {
@@ -730,6 +777,7 @@ function AdviceSheet({
   aliveOthers: PairOption[];
   processing: boolean;
   canSend: boolean;
+  remaining: number;
   onClose: () => void;
   onSubmit: (advice: Advice) => void;
 }) {
@@ -776,7 +824,7 @@ function AdviceSheet({
   };
 
   return (
-    <Sheet title="🗣 バディへの助言(本日残り1回)" onClose={onClose}>
+    <Sheet title={`🗣 バディへの助言（本日残り${remaining}回）`} onClose={onClose}>
       {!kind && (
         <div className="optlist">
           {availableMenu.map((m) => (
@@ -909,7 +957,7 @@ function AdviceSheet({
             {processing
               ? 'AIの発言が区切れるまで待っています…'
               : !canSend
-                ? '冒頭討論の区切りで送れます'
+                ? '次の相談区切りで送れます'
                 : 'この助言を送る'}
           </button>
           {processing && (

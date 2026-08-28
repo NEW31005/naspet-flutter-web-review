@@ -325,14 +325,14 @@ describe('公開Web Labブラウザ内バックエンド', () => {
     resetStaticFiles();
 
     expect(JSON.parse(readStaticFile('config', 'presets/quick-test.json'))).toMatchObject({
-      version: '0.8.0-human-turn.1',
+      version: '0.8.1-short-rally.1',
       discussionDurationSec: 150,
       discussionMaxMessages: 30,
       discussionBatchSize: 2,
       firstNightDivination: 'white',
     });
     expect(JSON.parse(readStaticFile('prompt', 'version.json'))).toEqual({
-      version: '0.9.0-role-claim-special-roles.1',
+      version: '1.0.0-short-rally-diverse-angles.1',
     });
     expect(localStorage.getItem('aibw.lab.matches.v1')).toBe(JSON.stringify(['keep-this-match']));
   });

@@ -28,7 +28,7 @@ import type {
   TrustFnConfig,
   Winner,
 } from '@aibw/shared';
-import { ROLE_LABEL, ROLE_TEAM } from '@aibw/shared';
+import { randInt, ROLE_LABEL, ROLE_TEAM } from '@aibw/shared';
 import { alivePairs, getPair, type MatchState, type PublicLogEntry } from './state.js';
 import { getPendingTask } from './engine.js';
 
@@ -60,6 +60,8 @@ export interface BuddyContext {
     phase: Phase;
     maxDays: number;
     discussionRounds: number;
+    /** 試合シードから作る非秘密の回転値。シード自体や未来乱数はLLMへ渡さない。 */
+    analysisLensRotation: number;
   };
   self: {
     pairId: PairId;
@@ -203,6 +205,13 @@ export function buildBuddyContext(
       phase: state.phase,
       maxDays: config.rules.maxDays,
       discussionRounds: config.rules.discussionRounds,
+      analysisLensRotation: randInt(
+        1_009,
+        state.seed,
+        'analysis-lens-rotation',
+        state.day,
+        state.rewindNonce,
+      ),
     },
     self: {
       pairId,

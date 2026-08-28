@@ -21,7 +21,13 @@ import type {
   SpeechOutput,
   Visibility,
 } from '@aibw/shared';
-import { ROLE_LABEL, ROLE_TEAM, pickOne, shuffle } from '@aibw/shared';
+import {
+  MAX_PUBLIC_SPEECH_CHARS,
+  ROLE_LABEL,
+  ROLE_TEAM,
+  pickOne,
+  shuffle,
+} from '@aibw/shared';
 import {
   alivePairs,
   aliveWolves,
@@ -52,6 +58,7 @@ export type PendingTask =
     }
   | { type: 'ai_speech'; pairId: PairId; round: number }
   | { type: 'ai_speech_batch'; turns: DiscussionTurn[] }
+  | { type: 'pause_discussion_for_advice'; pairId: PairId }
   | { type: 'start_discussion_response' }
   | { type: 'close_discussion'; reason: DiscussionCloseReason }
   | { type: 'ai_votes'; pairIds: PairId[] }
@@ -242,6 +249,66 @@ function sameQuestion(
     left.targetId === right.targetId && left.themeId === right.themeId;
 }
 
+/** 主人質問または開始済みの質問→回答→受け止めで、次に回収すべき単独ターン。 */
+function pendingQuestionExchangeTurn(
+  state: MatchState,
+  speeches: ReturnType<typeof currentDaySpeeches>,
+  aliveIds: PairId[],
+): DiscussionTurn | null {
+  const pendingQuestioner = aliveIds.find((pairId) => {
+    const question = state.pendingQuestion[pairId];
+    return !!question && aliveIds.includes(question.targetId) && question.targetId !== pairId;
+  });
+  if (pendingQuestioner) {
+    const question = state.pendingQuestion[pendingQuestioner];
+    if (question) {
+      return {
+        pairId: pendingQuestioner,
+        round: 2,
+        kind: 'question',
+        question: {
+          askerId: pendingQuestioner,
+          targetId: question.targetId,
+          themeId: question.themeId,
+        },
+      };
+    }
+  }
+
+  const unresolvedQuestion = [...speeches].reverse().find((speech) => {
+    if (speech.turnKind !== 'question' || !speech.question) return false;
+    return !speeches.some(
+      (later) => later.seq > speech.seq && later.turnKind === 'answer' &&
+        later.pairId === speech.question?.targetId && sameQuestion(later.question, speech.question),
+    );
+  });
+  if (unresolvedQuestion?.question) {
+    return {
+      pairId: unresolvedQuestion.question.targetId,
+      round: 2,
+      kind: 'answer',
+      question: unresolvedQuestion.question,
+    };
+  }
+
+  const unresolvedAnswer = [...speeches].reverse().find((speech) => {
+    if (speech.turnKind !== 'answer' || !speech.question) return false;
+    return !speeches.some(
+      (later) => later.seq > speech.seq && later.turnKind === 'follow_up' &&
+        later.pairId === speech.question?.askerId && sameQuestion(later.question, speech.question),
+    );
+  });
+  if (unresolvedAnswer?.question) {
+    return {
+      pairId: unresolvedAnswer.question.askerId,
+      round: 2,
+      kind: 'follow_up',
+      question: unresolvedAnswer.question,
+    };
+  }
+  return null;
+}
+
 /** 時間制討論で次に独立実行するAI群を決める。順番ではなく会話上の必要性と発言数を使う。 */
 function timedDiscussionTurns(state: MatchState): DiscussionTurn[] {
   const discussion = state.discussion;
@@ -270,55 +337,8 @@ function timedDiscussionTurns(state: MatchState): DiscussionTurn[] {
   }
 
   const aliveIds = alivePairs(state).map((pair) => pair.pairId);
-  const pendingQuestioner = aliveIds.find((pairId) => {
-    const question = state.pendingQuestion[pairId];
-    return !!question && aliveIds.includes(question.targetId) && question.targetId !== pairId;
-  });
-  if (pendingQuestioner) {
-    const question = state.pendingQuestion[pendingQuestioner];
-    if (question) {
-      return [{
-        pairId: pendingQuestioner,
-        round: 2,
-        kind: 'question',
-        question: { askerId: pendingQuestioner, targetId: question.targetId, themeId: question.themeId },
-      }];
-    }
-  }
-
-  // まだ回答されていない直近の指名質問を最優先する。
-  const unresolvedQuestion = [...speeches].reverse().find((speech) => {
-    if (speech.turnKind !== 'question' || !speech.question) return false;
-    return !speeches.some(
-      (later) => later.seq > speech.seq && later.turnKind === 'answer' &&
-        later.pairId === speech.question?.targetId && sameQuestion(later.question, speech.question),
-    );
-  });
-  if (unresolvedQuestion?.question) {
-    return [{
-      pairId: unresolvedQuestion.question.targetId,
-      round: 2,
-      kind: 'answer',
-      question: unresolvedQuestion.question,
-    }];
-  }
-
-  // 回答済みだが質問者が受け止めていない質疑も回収する。
-  const unresolvedAnswer = [...speeches].reverse().find((speech) => {
-    if (speech.turnKind !== 'answer' || !speech.question) return false;
-    return !speeches.some(
-      (later) => later.seq > speech.seq && later.turnKind === 'follow_up' &&
-        later.pairId === speech.question?.askerId && sameQuestion(later.question, speech.question),
-    );
-  });
-  if (unresolvedAnswer?.question) {
-    return [{
-      pairId: unresolvedAnswer.question.askerId,
-      round: 2,
-      kind: 'follow_up',
-      question: unresolvedAnswer.question,
-    }];
-  }
+  const questionExchange = pendingQuestionExchangeTurn(state, speeches, aliveIds);
+  if (questionExchange) return [questionExchange];
 
   const counts = Object.fromEntries(
     aliveIds.map((pairId) => [pairId, speeches.filter((speech) => speech.pairId === pairId).length]),
@@ -351,7 +371,9 @@ function timedDiscussionTurns(state: MatchState): DiscussionTurn[] {
     aliveIds.filter((pairId) => {
       if (askedToday.has(pairId) || cooldownIds.has(pairId)) return false;
       const evaluation = state.latestEvals[pairId];
-      return !!evaluation?.questionTargetId &&
+      const meta = state.latestEvalMeta[pairId];
+      return meta?.day === state.day && meta.kind === 'discussion' &&
+        !!evaluation?.questionTargetId &&
         evaluation.questionTargetId !== pairId &&
         aliveIds.includes(evaluation.questionTargetId);
     }),
@@ -480,6 +502,40 @@ export function getPendingTask(state: MatchState, now?: number): PendingTask {
         if (speechCount >= maxMessages) {
           return { type: 'close_discussion', reason: 'message_limit' };
         }
+        const human = state.humanPairId
+          ? state.pairs.find((pair) => pair.pairId === state.humanPairId)
+          : null;
+        const adviceCheckpointEntries = state.publicLog.filter(
+          (entry) =>
+            entry.day === state.day &&
+            entry.t === 'discussion_stage' &&
+            entry.stage === 'awaiting_master_advice',
+        );
+        const lastCheckpointSeq = adviceCheckpointEntries.at(-1)?.seq ?? -1;
+        const responseSpeechesSinceCheckpoint = currentDaySpeeches(state).filter(
+          (speech) => speech.seq > lastCheckpointSeq,
+        ).length;
+        const adviceInterval = state.config.rules.discussionAdviceIntervalMessages ?? 3;
+        // 相談後のLive発言がほぼ確実に期限切れになる区切りは出さない。
+        // 時計は相談中に止まるが、再開後の短い1往復分は残しておく。
+        const hasTimeForAnotherExchange = now == null || d.stageEndsAt - now >= 15_000;
+        const aliveIds = alivePairs(state).map((pair) => pair.pairId);
+        const unfinishedQuestionExchange = pendingQuestionExchangeTurn(
+          state,
+          currentDaySpeeches(state),
+          aliveIds,
+        ) != null;
+        if (
+          d.stage === 'response' &&
+          human?.alive === true &&
+          adviceCheckpointEntries.length < state.config.rules.advicePerDay &&
+          (state.adviceUsedToday[human.pairId] ?? 0) < state.config.rules.advicePerDay &&
+          responseSpeechesSinceCheckpoint >= adviceInterval &&
+          !unfinishedQuestionExchange &&
+          hasTimeForAnotherExchange
+        ) {
+          return { type: 'pause_discussion_for_advice', pairId: human.pairId };
+        }
         const turns = timedDiscussionTurns(state);
         if (turns.length > 0) {
           const remaining = maxMessages - speechCount;
@@ -596,6 +652,39 @@ export function applyStartDiscussionResponse(state: MatchState, now: number): Ma
     type: 'discussion_stage_changed',
     visibility: PUBLIC,
     payload: { stage: 'response' },
+  });
+  return batch.events;
+}
+
+/** 応答討論の途中で、残っている追加相談のため討論時計を止める。 */
+export function applyPauseDiscussionForAdvice(
+  state: MatchState,
+  pairId: PairId,
+  now: number,
+): MatchEvent[] {
+  if (
+    state.phase !== 'discussion' ||
+    state.discussion?.mode !== 'timed' ||
+    state.discussion.stage !== 'response'
+  ) {
+    throw new GameRuleError('追加相談を開始できる状態ではありません', 'wrong_discussion_stage');
+  }
+  if (state.humanPairId !== pairId) {
+    throw new GameRuleError('担当主人だけが追加相談できます', 'not_human_master');
+  }
+  const pair = getPair(state, pairId);
+  if (!pair.alive) throw new GameRuleError('死亡した組は助言できません', 'pair_dead');
+  if ((state.adviceUsedToday[pairId] ?? 0) >= state.config.rules.advicePerDay) {
+    throw new GameRuleError('本日の助言回数を使い切っています', 'advice_limit');
+  }
+  if (now >= state.discussion.stageEndsAt) {
+    throw new GameRuleError('討論時間が終了しています', 'discussion_deadline');
+  }
+  const batch = new EventBatch(state, now);
+  batch.push({
+    type: 'discussion_stage_changed',
+    visibility: PUBLIC,
+    payload: { stage: 'awaiting_master_advice' },
   });
   return batch.events;
 }
@@ -790,6 +879,19 @@ export function applyAdvice(
   return batch.events;
 }
 
+/** Liveモデルが長く返しても、文の切れ目を優先して公開会話だけを短く保つ。 */
+function compactPublicSpeech(raw: string): string {
+  const chars = [...raw.trim()];
+  if (chars.length <= MAX_PUBLIC_SPEECH_CHARS) return chars.join('');
+  let sentenceEnd = -1;
+  for (let index = 0; index < MAX_PUBLIC_SPEECH_CHARS; index++) {
+    const char = chars[index];
+    if (index >= 39 && char && '。！？!?'.includes(char)) sentenceEnd = index + 1;
+  }
+  if (sentenceEnd > 0) return chars.slice(0, sentenceEnd).join('');
+  return `${chars.slice(0, MAX_PUBLIC_SPEECH_CHARS - 1).join('')}…`;
+}
+
 /** バディの公開発言(評価出力とセットで正式化) */
 export function applySpeech(
   state: MatchState,
@@ -799,6 +901,7 @@ export function applySpeech(
   speech: SpeechOutput,
   now: number,
   turnOverride?: DiscussionTurn,
+  recordEvaluation = true,
 ): MatchEvent[] {
   if (state.phase !== 'discussion' || !state.discussion) {
     throw new GameRuleError('討論フェーズではありません', 'wrong_phase');
@@ -817,24 +920,33 @@ export function applySpeech(
   const pair = getPair(state, pairId);
   if (!pair.alive) throw new GameRuleError('死亡した組は発言できません', 'pair_dead');
 
-  const text = speech.text.trim().slice(0, 1200);
+  const text = compactPublicSpeech(speech.text);
   if (!text) throw new GameRuleError('発言が空です', 'empty_speech');
+  const accusedPair = speech.accusesId
+    ? state.pairs.find((candidate) => candidate.pairId === speech.accusesId && candidate.alive)
+    : null;
   const accusesId =
-    speech.accusesId && state.pairs.some((p) => p.pairId === speech.accusesId && p.alive)
-      ? speech.accusesId
+    accusedPair && text.includes(accusedPair.buddyName)
+      ? accusedPair.pairId
       : null;
   // 旧保存データや旧テスト入力にフィールドがない場合は「名乗らない」として扱う。
-  const declaredRole = speech.declaredRole ?? null;
-  if (declaredRole !== null && !Object.hasOwn(ROLE_LABEL, declaredRole)) {
+  const requestedDeclaredRole = speech.declaredRole ?? null;
+  if (requestedDeclaredRole !== null && !Object.hasOwn(ROLE_LABEL, requestedDeclaredRole)) {
     throw new GameRuleError('存在しない役職は名乗れません', 'invalid_declared_role');
   }
+  const declaredRole =
+    requestedDeclaredRole !== null && text.includes(ROLE_LABEL[requestedDeclaredRole])
+      ? requestedDeclaredRole
+      : null;
 
   const batch = new EventBatch(state, now);
-  batch.push({
-    type: 'eval_recorded',
-    visibility: GM,
-    payload: { pairId, kind: 'discussion', callId, output: sanitizeEval(state, pairId, evalOutput) },
-  });
+  if (recordEvaluation) {
+    batch.push({
+      type: 'eval_recorded',
+      visibility: GM,
+      payload: { pairId, kind: 'discussion', callId, output: sanitizeEval(state, pairId, evalOutput) },
+    });
+  }
   batch.push({
     type: 'speech',
     visibility: PUBLIC,

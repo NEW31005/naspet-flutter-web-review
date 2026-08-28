@@ -256,7 +256,7 @@ h3 {
 .chatlog {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 .discussion-timer {
   position: sticky;
@@ -350,17 +350,20 @@ h3 {
   background: rgba(139, 92, 246, 0.1);
 }
 .bubble {
-  max-width: 88%;
+  max-width: 94%;
   background: var(--panel);
   border: 1px solid var(--border);
+  border-left: 3px solid rgba(139, 92, 246, 0.72);
   border-radius: 4px 14px 14px 14px;
-  padding: 8px 12px;
+  padding: 7px 11px 8px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.12);
 }
 .bubble.self {
   align-self: flex-end;
   border-radius: 14px 4px 14px 14px;
   background: #2a2340;
   border-color: var(--accent2);
+  border-left-color: #c4b5fd;
 }
 .bubble .who {
   font-size: 11px;
@@ -379,6 +382,24 @@ h3 {
   border-radius: 999px;
   color: #d8ccff;
   font-size: 10px;
+}
+.bubble.reply {
+  border-left-color: #38bdf8;
+}
+.reply-target {
+  margin: -1px 0 3px;
+  color: #7dd3fc;
+  font-size: 10px;
+  font-weight: 700;
+}
+.speech-text {
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.mention {
+  margin: 0 1px;
+  color: #f0abfc;
+  font-weight: 750;
 }
 
 /* 手元情報は会話を邪魔しないよう、操作バーのすぐ上へ固定 */
@@ -493,8 +514,30 @@ h3 {
   flex-direction: column;
   gap: 12px;
 }
-.sheet h2 {
+.sheet-heading {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+}
+.sheet-heading h2 {
+  margin: 0;
   text-align: center;
+}
+.sheet-close {
+  position: absolute;
+  top: -4px;
+  right: -2px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--panel2);
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1;
 }
 .optlist {
   display: flex;

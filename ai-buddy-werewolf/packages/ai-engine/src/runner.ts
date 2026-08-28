@@ -25,6 +25,7 @@ import {
   applyCloseDiscussion,
   applyNight,
   applyNightProposal,
+  applyPauseDiscussionForAdvice,
   applySkipDiscussionAdvice,
   applySpeech,
   applyStartDiscussionResponse,
@@ -168,6 +169,13 @@ export class MatchRunner {
           await this.doSpeechBatch(task.turns);
           return { status: 'progressed', task: `speech_batch:${task.turns.length}` };
         }
+        case 'pause_discussion_for_advice': {
+          appendEvents(
+            this.store,
+            applyPauseDiscussionForAdvice(this.state, task.pairId, this.now()),
+          );
+          return { status: 'progressed', task: 'discussion_advice_checkpoint' };
+        }
         case 'start_discussion_response': {
           this.injectPolicyAdvices();
           appendEvents(this.store, applyStartDiscussionResponse(this.state, this.now()));
@@ -248,13 +256,27 @@ export class MatchRunner {
         const ctx = buildBuddyContext(scheduledState, turn.pairId, turn);
         const label = `d${scheduledState.day}-timed-${turn.pairId}-m${scheduledState.discussion?.cursor ?? 0}-b${index}-n${scheduledState.rewindNonce}`;
         const opts = this.callOpts('discussion', label, deadlineAt);
-        const evalRes = await this.ai.evaluate(
-          scheduledState.provider,
-          turn.pairId,
-          ctx,
-          opts,
-        );
-        this.pushCall(evalRes.record);
+        // 指名質問への単独回答と、その直後の受け止めは、直前までに確定した
+        // 内部評価を再利用する。公開ログと会話役割は発言コールへ直接渡るため、
+        // 重い評価コールを挟まず人間らしいテンポで応答できる。
+        const reusableMeta = scheduledState.latestEvalMeta[turn.pairId];
+        const reusableEval =
+          (turn.kind === 'answer' || turn.kind === 'follow_up') &&
+          reusableMeta?.day === scheduledState.day &&
+          reusableMeta.kind === 'discussion'
+            ? scheduledState.latestEvals[turn.pairId]
+            : null;
+        const evalRes = reusableEval
+          ? null
+          : await this.ai.evaluate(
+              scheduledState.provider,
+              turn.pairId,
+              ctx,
+              opts,
+            );
+        if (evalRes) this.pushCall(evalRes.record);
+        const evalOutput = evalRes?.output ?? reusableEval;
+        if (!evalOutput) throw new Error(`再利用できる評価がありません: ${turn.pairId}`);
         const evaluatedAt = this.now();
         if (!canApplyToScheduledDiscussion(evaluatedAt)) {
           return { status: 'discarded' as const };
@@ -263,7 +285,7 @@ export class MatchRunner {
           scheduledState.provider,
           turn.pairId,
           ctx,
-          evalRes.output,
+          evalOutput,
           opts,
         );
         this.pushCall(speechRes.record);
@@ -279,11 +301,12 @@ export class MatchRunner {
           applySpeech(
             this.state,
             turn.pairId,
-            evalRes.output,
-            evalRes.record.id,
+            evalOutput,
+            evalRes?.record.id ?? `reused-eval-${label}`,
             speechRes.output,
             completedAt,
             turn,
+            evalRes != null,
           ),
         );
         return { status: 'applied' as const };

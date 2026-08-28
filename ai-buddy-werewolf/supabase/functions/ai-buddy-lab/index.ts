@@ -96,7 +96,7 @@ const evalSchema = {
 const speechSchema = {
   type: 'object',
   properties: {
-    text: { type: 'string' },
+    text: { type: 'string', minLength: 1, maxLength: 120 },
     accusesId: { type: ['string', 'null'] },
     declaredRole: {
       type: ['string', 'null'],
@@ -294,6 +294,7 @@ function validOutput(callType: 'eval' | 'speech', value: unknown): boolean {
   const record = value as Record<string, unknown>;
   if (callType === 'speech') {
     return typeof record.text === 'string' &&
+      [...record.text.trim()].length > 0 && [...record.text.trim()].length <= 120 &&
       (record.accusesId === null || typeof record.accusesId === 'string') &&
       (record.declaredRole === null ||
         (typeof record.declaredRole === 'string' && DECLARABLE_ROLES.has(record.declaredRole)));

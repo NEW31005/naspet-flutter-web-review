@@ -284,17 +284,37 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
   let accusesId: PairId | null = null;
   let declaredRole: SpeechOutput['declaredRole'] = null;
   const turn = ctx.discussionTurn;
+  const participantIndex = Math.max(
+    0,
+    ctx.participants.findIndex((participant) => participant.pairId === self.pairId),
+  );
+  const speechCount = ctx.publicLog.filter((entry) => entry.t === 'speech').length;
+  const angleIndex =
+    (ctx.matchInfo.analysisLensRotation + participantIndex + speechCount) % 8;
   // 語尾は「名詞止め+語尾」の形で接続する(どの口調でも自然になる)
   const reasons =
     ctx.matchInfo.day === 1
-      ? ['発言がふわっとしている', '疑い先の理由が薄い', '流れに乗っているだけに見える']
+      ? [
+          '質問への答えが論点から外れている',
+          '同意に新しい根拠が足されていない',
+          '疑い始めたタイミングが流れに乗る形だった',
+          '前の発言から今の結論へ急に飛んでいる',
+          '相手を庇う理由と評価が噛み合っていない',
+          '疑い先を変えた説明がまだない',
+          '多数意見への乗り方が早すぎる',
+          '弁明への返しが中身より印象に寄っている',
+        ]
       : [
-          '発言がふわっとしている',
-          '投票の理由が薄い',
-          '流れに乗っているだけに見える',
-          '昨日と言っていることが違う',
+          '昨日の投票と今日の疑い先が噛み合っていない',
+          '質問への答えが論点から外れている',
+          '同意に新しい根拠が足されていない',
+          '疑い先を変えた説明がまだない',
+          '庇い方と投票先の組み合わせが不自然に見える',
+          '疑い始めたタイミングが流れに乗る形だった',
+          '昨日の主張から今の結論へ急に飛んでいる',
+          '多数意見への乗り方が早すぎる',
         ];
-  const reason = () => pickOne(reasons, seed, 'reason', opts.stepLabel);
+  const reason = () => reasons[angleIndex % reasons.length] ?? reasons[0];
   const hideRole = directive === 'hide_role';
 
   // 主人から届いた「役職をどう名乗るか」の相談を、親密度と虚言力を含めて
@@ -356,12 +376,17 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
             `${other ? `${other.name}より` : ''}${selected.name}の説明には明確な食い違いがある。抽選ではなく、その矛盾を理由に見ている`,
           ]
         : [
-            `${selected.name}の弁明は聞いた。まだ矛盾とまでは言えないので、2人の説明をもう少し比べたい`,
-            `${other ? `${other.name}と` : ''}${selected.name}の説明はどちらも決め手に欠ける。抽選だけで決めず、次の受け答えを見たい`,
-            `${selected.name}を狼と決めたわけじゃない。今は質問を重ねて判断材料を増やしたい${ending()}`,
+            `${selected.name}は質問へどう答えるか見たい。今は疑いより返答の一貫性を重く見る`,
+            `${selected.name}へ早く同意する人が出るか見たい。同意に新しい根拠があるかが大事`,
+            `この時点で${selected.name}へ疑いが集まるなら、理由なく流れへ乗る人の方を警戒したい`,
+            `${selected.name}の弁明は一応筋が通る。${other ? `${other.name}との違いを` : '次の受け答えを'}見てから決めたい`,
+            `2人の白黒より、この後に疑い先を急に変える人が出るかを見たい`,
+            `同じ意見が続いても、新しい根拠が足されるかを見たい。数だけでは決めない`,
+            `${selected.name}への反応が早すぎる人は少し気になる。今は弁明そのものを比べたい`,
+            `${other ? `${selected.name}と${other.name}` : selected.name}の言い方より、質問へ正面から答えるかで見たい`,
           ];
       return {
-        text: pickOne(opinions, seed, 'opening-opinion', opts.stepLabel),
+        text: opinions[angleIndex % opinions.length] ?? opinions[0] ?? '次の受け答えを見たい',
         accusesId: clearContradiction ? selected.pairId : null,
         declaredRole: null,
       };
@@ -394,7 +419,7 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
       why_changed: `直前の発言を聞いて評価を更新した。変えた理由はそこ${ending()}`,
     };
     return {
-      text: `${turn.askerName}への答え。${answerByTheme[turn.theme.id] ?? `今ある公開情報だけで答える${ending()}`}`,
+      text: answerByTheme[turn.theme.id] ?? `今ある公開情報だけで答える${ending()}`,
       accusesId: turn.theme.id === 'most_suspicious' ? topId : null,
       declaredRole: null,
     };
@@ -466,19 +491,19 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
       if (latest) {
         const reactions = turn.replyToName
           ? [
-              `${turn.replyToName}の指摘は聞いた。${persona.firstPerson}がそう考えた理由を説明するから、内容で判断してほしい`,
-              `${turn.replyToName}、疑われたこと自体には反発しない。ただ、印象だけでなく${persona.firstPerson}の説明も比べてほしい`,
+              `${turn.replyToName}の指摘は聞いた。どの言葉からそう見えたのか、こちらの理由も返す`,
+              `${turn.replyToName}、疑われたこと自体には反発しない。印象ではなく今の主張を比べてほしい`,
               `${turn.replyToName}の見方は分かった。今は言い返すより、どこが矛盾して見えたのかを整理したい`,
             ]
           : isWolf
           ? [
               `${latest.name}の今の説明は聞いた。すぐ否定せず、次の受け答えまで保留したい`,
-              `${latest.name}の言いたいことは分かった。ただ、その説明と投票が合うかは見ておきたい`,
+              `${latest.name}の言いたいことは分かった。ただ、今の主張と投票が合うかは見ておきたい`,
               `${latest.name}の発言には納得できる部分もある。今は結論を急がない`,
             ]
           : [
-              `${latest.name}の今の発言は筋が通っている部分もある。いったん受け止めて、他の説明とも比べたい`,
-              `${latest.name}の説明だけではまだ決めきれない。ただ、論点は前より分かりやすくなった`,
+              `${latest.name}の今の発言は筋が通る部分もある。いったん受け止めて、他の返答とも比べたい`,
+              `${latest.name}の根拠だけではまだ決めきれない。ただ、論点は前より分かりやすくなった`,
               `${latest.name}の今の発言で考えを少し更新した。ここでは結論を保留する`,
             ];
         lines.push(pickOne(reactions, seed, 'reaction', opts.stepLabel));
@@ -526,7 +551,7 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
     }
   }
 
-  const maxLines = persona.verbosity === 'short' ? 1 : persona.verbosity === 'medium' ? 2 : 3;
+  const maxLines = persona.verbosity === 'short' ? 1 : 2;
   const text = lines.slice(0, maxLines).join(' ');
   return { text, accusesId, declaredRole };
 }

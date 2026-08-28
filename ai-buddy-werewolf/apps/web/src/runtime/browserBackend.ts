@@ -125,6 +125,7 @@ export class BrowserBackend {
         discussionMode: rules.discussionMode,
         discussionDurationSec: rules.discussionDurationSec,
         discussionBatchSize: rules.discussionBatchSize,
+        discussionAdviceIntervalMessages: rules.discussionAdviceIntervalMessages ?? 3,
         discussionRounds: rules.discussionRounds,
         advicePerDay: rules.advicePerDay,
         otherMastersPolicy: rules.otherMastersPolicy,

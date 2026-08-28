@@ -6,7 +6,7 @@ import type {
   PairId,
   SpeechOutput,
 } from '@aibw/shared';
-import { evalOutputSchema, speechOutputSchema } from '@aibw/shared';
+import { evalOutputSchema, MAX_PUBLIC_SPEECH_CHARS, speechOutputSchema } from '@aibw/shared';
 import type { BuddyContext } from '@aibw/game-core';
 import {
   MockProvider,
@@ -121,6 +121,11 @@ class LabProxyProvider {
     const result = await this.callWithValidation<SpeechOutput>('speech', prompts, opts, (value) => {
       const checked = speechOutputSchema.safeParse(value);
       if (!checked.success) throw new JsonValidationError(checked.error.message);
+      if ([...checked.data.text.trim()].length > MAX_PUBLIC_SPEECH_CHARS) {
+        throw new JsonValidationError(
+          `発言が${MAX_PUBLIC_SPEECH_CHARS}文字を超えています`,
+        );
+      }
       return checked.data;
     });
     return {

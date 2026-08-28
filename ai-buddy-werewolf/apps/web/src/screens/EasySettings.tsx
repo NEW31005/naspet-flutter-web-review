@@ -121,6 +121,10 @@ function validateRules(rules: RulesConfig, label: string): void {
   if (rules.discussionBatchSize < 1 || rules.discussionBatchSize > 8) {
     throw new Error(`${label}の同時思考AI数は1〜8人にしてください。`);
   }
+  const adviceInterval = rules.discussionAdviceIntervalMessages ?? 3;
+  if (adviceInterval < 1 || adviceInterval > 20) {
+    throw new Error(`${label}の追加相談までの発言数は1〜20件にしてください。`);
+  }
   if (rules.discussionRounds < 1 || rules.discussionRounds > 10) {
     throw new Error(`${label}の討論回数は1〜10周にしてください。`);
   }
@@ -130,8 +134,8 @@ function validateRules(rules: RulesConfig, label: string): void {
   if (rules.advicePerDay < 0 || rules.advicePerDay > 10) {
     throw new Error(`${label}の助言回数は0〜10回にしてください。`);
   }
-  if (rules.discussionMode === 'timed' && rules.advicePerDay > 1) {
-    throw new Error(`${label}の時間制討論では、主人の助言は1日1回までです。`);
+  if (rules.discussionMode === 'timed' && rules.advicePerDay > 3) {
+    throw new Error(`${label}の時間制討論では、主人の助言は1日3回までです。`);
   }
 }
 
@@ -400,6 +404,16 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
             max={8}
             onChange={(value) => updateRules((r) => (r.discussionBatchSize = value))}
           />
+          {rules.discussionMode === 'timed' && (
+            <NumberSetting
+              label="追加相談までのAI発言数"
+              help="最初の相談後、この件数だけ会話が進むと次の相談区切りを入れます。相談中は時計を止めます。"
+              value={rules.discussionAdviceIntervalMessages ?? 3}
+              min={1}
+              max={20}
+              onChange={(value) => updateRules((r) => (r.discussionAdviceIntervalMessages = value))}
+            />
+          )}
           <NumberSetting
             label="参加ペア数"
             help="人間の主人とAIバディで1組です。"
@@ -473,10 +487,10 @@ export function EasySettings({ onSaved }: { onSaved?: () => void | Promise<void>
           />
           <NumberSetting
             label="主人が1日に助言できる回数"
-            help={rules.discussionMode === 'timed' ? '時間制ではゲームの核として0回または1回に固定します。' : undefined}
+            help={rules.discussionMode === 'timed' ? '定型選択そのものはAI料金ゼロです。追加相談後のAI発言ぶんだけコールが増えるため、時間制は最大3回に制限します。' : undefined}
             value={rules.advicePerDay}
             min={0}
-            max={rules.discussionMode === 'timed' ? 1 : 10}
+            max={rules.discussionMode === 'timed' ? 3 : 10}
             onChange={(value) => updateRules((r) => (r.advicePerDay = value))}
           />
           <label className="field setting-field">

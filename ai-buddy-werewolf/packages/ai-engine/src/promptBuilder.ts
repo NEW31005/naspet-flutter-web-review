@@ -177,6 +177,9 @@ export function buildEvalPrompt(
 ): { system: string; user: string } {
   const alive = ctx.participants.filter((p) => p.alive);
   const dead = ctx.participants.filter((p) => !p.alive);
+  const analysisLens = ctx.matchInfo.phase === 'night'
+    ? '夜フェーズでは討論の観察担当を置かず、役職ごとの夜行動優先度だけを評価する。'
+    : selectAnalysisLens(ctx);
   const system =
     fill(prompts.systemBase, {
       buddyName: ctx.self.buddyName,
@@ -219,18 +222,19 @@ export function buildEvalPrompt(
           0,
         )
       : '(初回のためなし)',
+    analysisLensBlock: analysisLens,
     questionThemesBlock: renderQuestionThemes(ctx.questionThemes),
     candidateIds: ctx.candidates.map((c) => `${c.pairId}=${c.name}`).join(', '),
     attackPrioritiesHint:
       ctx.self.role === 'werewolf'
-        ? 'attackPriorities: 夜に襲撃したい優先度0-100(仲間の狼は含めない)。'
-        : 'attackPriorities: あなたは狼ではないため空配列でよい。',
+        ? 'attackPriorities: 次の夜に襲撃したい優先度0-100(仲間の狼は含めない)。夜の主人提案にも使うため討論・裁判でも更新する。'
+        : 'attackPriorities: あなたは狼憑きではないため空配列。',
     skillPrioritiesHint:
-      ctx.self.role === 'seer'
+      ctx.matchInfo.phase === 'night' && ctx.self.role === 'seer'
         ? 'skillTargetPriorities: 次の夜に占いたい優先度0-100。'
-        : ctx.self.role === 'guardian'
+        : ctx.matchInfo.phase === 'night' && ctx.self.role === 'guardian'
           ? `skillTargetPriorities: 今夜護衛したい優先度0-100。自分自身${ctx.lastGuardTarget ? `と前夜の護衛先${ctx.lastGuardTarget.name}(${ctx.lastGuardTarget.pairId})` : ''}は候補に含めない。`
-          : 'skillTargetPriorities: 夜に対象を選ぶ役職ではないため空配列でよい。',
+          : 'skillTargetPriorities: 討論・裁判では評価し直さず空配列。夜フェーズの占い師・騎士だけが記入する。',
   }) + (ctx.discussionFocus.length > 0
     ? `\n\n# 初日の討論対象\n${ctx.discussionFocus.map((pair) => `${pair.name}(${pair.pairId})`).join('、')}。抽選で選ばれただけなので、その事実自体を狼の根拠にしてはならない。弁明内容と他者の反応を評価すること。`
     : '');
@@ -245,6 +249,9 @@ export function buildSpeechPrompt(
   const nameOf = (id: string | null) =>
     id ? (ctx.participants.find((p) => p.pairId === id)?.name ?? id) : 'なし';
   const persona = ctx.self.persona;
+  const analysisLens = selectAnalysisLens(ctx);
+  const themeLabel = (id: string | null) =>
+    id ? (ctx.questionThemes.find((theme) => theme.id === id)?.label ?? '質問内容') : '';
   const system =
     fill(prompts.systemBase, {
       buddyName: ctx.self.buddyName,
@@ -257,9 +264,9 @@ export function buildSpeechPrompt(
     roleBlock(ctx, prompts);
 
   const verbosityHints = {
-    short: '1〜2文の短い発言',
-    medium: '2〜4文程度',
-    long: '4〜6文程度のよく喋る発言',
+    short: '1文、30〜65文字を目安にする',
+    medium: '1〜2文、45〜85文字を目安にする',
+    long: '1〜2文、55〜95文字を目安にする',
   } as const;
 
   const user = fill(prompts.speechTemplate, {
@@ -277,7 +284,7 @@ export function buildSpeechPrompt(
     toShare: ev.toShare.join(' / ') || 'なし',
     toWithhold: ev.toWithhold.join(' / ') || 'なし',
     questionPlan: ev.questionTargetId
-      ? `${nameOf(ev.questionTargetId)} / ${ev.questionTheme ?? ''}`
+      ? `${nameOf(ev.questionTargetId)} / ${themeLabel(ev.questionTheme)}`
       : 'なし',
     deceptionBlock:
       ctx.self.role === 'werewolf'
@@ -285,11 +292,94 @@ export function buildSpeechPrompt(
         : '',
     directiveBlock: buildDirectiveBlock(ctx),
     roleClaimBlock: buildRoleClaimBlock(ctx),
+    analysisLensBlock: analysisLens,
+    echoGuardBlock: buildEchoGuard(ctx),
     recentLogBlock: renderPublicLog(ctx.publicLog, 20),
     lengthLimit: verbosityHints[persona.verbosity],
     candidateIds: ctx.candidates.map((c) => `${c.pairId}=${c.name}`).join(', '),
   });
   return { system, user };
+}
+
+interface AnalysisLens {
+  minReasoning: number;
+  prompt: string;
+  dayTwoOnly?: boolean;
+}
+
+const ANALYSIS_LENSES: readonly AnalysisLens[] = [
+  {
+    minReasoning: 0,
+    prompt: '質問へ正面から答えたか、聞かれていない話へ逃げたかを見る。答えているならその点は認める。',
+  },
+  {
+    minReasoning: 0,
+    prompt: '二人以上の主張を比べ、同じ点ではなく違いを1つ拾う。弱い側を機械的に疑わない。',
+  },
+  {
+    minReasoning: 10,
+    prompt: '同じ日の前の発言、または前日までの発言・投票と今の主張が整合するかを見る。',
+  },
+  {
+    minReasoning: 20,
+    prompt: '誰かへの同意が出たタイミングと、その同意に新しい根拠が加わったかを見る。単なる便乗と妥当な同意を区別する。',
+  },
+  {
+    minReasoning: 30,
+    prompt: 'なぜその相手を「このタイミングで」疑い始めたのかを見る。直前の流れで得をする疑い先変更か、自然な更新かを比べる。',
+  },
+  {
+    minReasoning: 30,
+    prompt: '多数派の疑いに対する市民側の反対仮説を1つ置き、白く見える点または見落としを探す。',
+  },
+  {
+    minReasoning: 10,
+    dayTwoOnly: true,
+    prompt: '前日の投票先と現在の疑い先が一致するか、変わったなら説明があるかを見る。',
+  },
+  {
+    minReasoning: 50,
+    prompt: '誰が誰を庇い、誰と距離を取ったかを見る。ただし自然な反論まで仲間扱いしない。',
+  },
+  {
+    minReasoning: 60,
+    prompt: '強すぎない仲間疑いによる身内切りの可能性と、本気の対立を比較する。',
+  },
+  {
+    minReasoning: 70,
+    prompt: '議論の焦点を動かした人と、その移動で得をする人を見る。印象だけで誘導と断定しない。',
+  },
+];
+
+function selectAnalysisLens(ctx: BuddyContext): string {
+  const reasoning = ctx.self.abilities.reasoning;
+  const eligible = ANALYSIS_LENSES.filter(
+    (lens) => lens.minReasoning <= reasoning && (!lens.dayTwoOnly || ctx.matchInfo.day > 1),
+  );
+  const speechCount = ctx.publicLog.filter((entry) => entry.t === 'speech').length;
+  const pairIndex = Math.max(
+    0,
+    ctx.participants.findIndex((participant) => participant.pairId === ctx.self.pairId),
+  );
+  const selected = eligible[
+    (pairIndex + speechCount + ctx.matchInfo.day * 3 + ctx.matchInfo.analysisLensRotation) %
+      eligible.length
+  ];
+  return selected
+    ? selected.prompt
+    : '直近の発言へ短く反応し、公開情報のない疑いは作らない。';
+}
+
+function buildEchoGuard(ctx: BuddyContext): string {
+  const recent = ctx.publicLog
+    .filter((entry) => entry.t === 'speech')
+    .slice(-3)
+    .map((entry) => `${entry.name}: ${entry.text}`);
+  if (recent.length === 0) return '先に反応できる論点を1つだけ置く。';
+  return [
+    '結論が同じでもよいが、次の直近3発言と同じ理由・会話上の役割・言い回しをなぞらない。',
+    ...recent.map((line) => `- ${line}`),
+  ].join('\n');
 }
 
 function buildRoleClaimBlock(ctx: BuddyContext): string {

@@ -9,7 +9,13 @@ import {
   type Role,
   type SpeechOutput,
 } from '@aibw/shared';
-import { buildBuddyContext, canSeeEvent, createMatch, type BuddyContext } from '@aibw/game-core';
+import {
+  buildBuddyContext,
+  canSeeEvent,
+  createMatch,
+  getPendingTask,
+  type BuddyContext,
+} from '@aibw/game-core';
 import { AiEngine } from '../src/calls.js';
 import { mockEvaluate, mockSpeak } from '../src/mock.js';
 import { MatchRunner, computeMetrics, rebuildStore } from '../src/runner.js';
@@ -511,6 +517,61 @@ describe('ポリシー主人の確定情報共有', () => {
       ),
     ).toBe(true);
   });
+
+  it('aiポリシーの狼主人は夜評価より前に、直前の襲撃優先度から提案する', async () => {
+    const { runner, store } = makeRunner('policy-ai-night-proposal-order', {
+      pairCount: 8,
+      roleSetup: { werewolf: 2, seer: 1 },
+      maxDays: 4,
+      otherMastersPolicy: 'ai',
+    });
+
+    let checked = false;
+    for (let guard = 0; guard < 500 && !store.state.winner; guard++) {
+      const eventCount = store.record.events.length;
+      await runner.advanceOnce();
+      const added = store.record.events.slice(eventCount);
+      const proposal = added.find((event) => event.type === 'night_proposal');
+      if (!proposal || proposal.type !== 'night_proposal') continue;
+
+      const previousEval = [...store.record.events]
+        .reverse()
+        .find(
+          (event) =>
+            event.seq < proposal.seq &&
+            event.type === 'eval_recorded' &&
+            event.payload.pairId === proposal.payload.pairId,
+        );
+      if (!previousEval || previousEval.type !== 'eval_recorded') {
+        throw new Error('狼の直前評価がありません');
+      }
+      expect(previousEval.payload.kind).toBe('vote');
+      const beforeProposal = rebuildStore({
+        ...store.record,
+        events: store.record.events.filter((event) => event.seq < proposal.seq),
+      }).state;
+      const validTargets = new Set(
+        beforeProposal.pairs
+          .filter((pair) => pair.alive && pair.role !== 'werewolf')
+          .map((pair) => pair.pairId),
+      );
+      const expectedTarget = Object.entries(previousEval.payload.output.attackPriorities ?? {})
+        .filter(([pairId]) => validTargets.has(pairId))
+        .sort((left, right) => right[1] - left[1])[0]?.[0] ?? null;
+      expect(expectedTarget).not.toBeNull();
+      expect(proposal.payload.targetId).toBe(expectedTarget);
+
+      const nightEval = added.find(
+        (event) =>
+          event.type === 'eval_recorded' &&
+          event.payload.kind === 'night' &&
+          event.payload.pairId === proposal.payload.pairId,
+      );
+      expect(nightEval?.seq).toBeGreaterThan(proposal.seq);
+      checked = true;
+    }
+    expect(checked).toBe(true);
+  });
 });
 
 describe('2幕討論のモック発言', () => {
@@ -624,8 +685,8 @@ describe('2幕討論のモック発言', () => {
     };
     const answerEval = mockEvaluate(answerCtx, opts);
     const answer = mockSpeak(answerCtx, answerEval, opts);
-    expect(answer.text).toContain('B1への答え');
     expect(answer.text).toContain('今いちばん疑っているのは');
+    expect(answer.text).not.toMatch(/^B1への答え/);
     expect(answer.text).not.toContain('?');
   });
 });
@@ -717,5 +778,150 @@ describe('時間制討論の並列バッチ', () => {
     const speeches = store.record.events.filter((event) => event.type === 'speech');
     expect(speeches).toHaveLength(1);
     expect(speeches[0]?.type === 'speech' ? speeches[0].payload.pairId : null).toBe('p2');
+  });
+
+  it('指名質問への単独回答は直前評価を再利用し、発言コール1回で返す', async () => {
+    let nowValue = 1_700_000_000_000;
+    const now = () => (nowValue += 10);
+    const config = makeSnapshot({
+      discussionMode: 'timed',
+      discussionDurationSec: 150,
+      discussionBatchSize: 2,
+      discussionMaxMessages: 30,
+      firstDayFocusCount: 0,
+      advicePerDay: 0,
+      otherMastersPolicy: 'none',
+    });
+    config.advice.questionThemes.push({
+      id: 'most_suspicious',
+      label: '現在最も疑っている相手',
+      mockTemplate: '{target}は今、誰が一番怪しいと思ってる?',
+      promptHint: '現在の疑い先と理由を尋ねる',
+    });
+    const created = createMatch({
+      matchId: 'm-timed-reuse-direct-answer',
+      seed: 'timed-reuse-direct-answer',
+      mode: 'lab',
+      provider: 'mock',
+      humanPairIndex: null,
+      config,
+      now: nowValue,
+    });
+    const record: MatchRecord = {
+      schemaVersion: 1,
+      matchId: 'm-timed-reuse-direct-answer',
+      seed: 'timed-reuse-direct-answer',
+      createdAt: nowValue,
+      startedAt: null,
+      finishedAt: null,
+      mode: 'lab',
+      provider: 'mock',
+      humanPairId: null,
+      configSnapshot: config,
+      events: created.events,
+      aiCalls: [],
+    };
+    const store = rebuildStore(record);
+    const ai = new AiEngine({ models: testModels, prompts: testPrompts, now });
+    const runner = new MatchRunner(store, ai, now);
+
+    let answerObserved = false;
+    for (
+      let step = 0;
+      step < 80 && (store.state.phase === 'day_start' || store.state.phase === 'discussion');
+      step++
+    ) {
+      const eventCount = store.record.events.length;
+      const callCount = store.record.aiCalls.length;
+      await runner.advanceOnce();
+      const answer = store.record.events.slice(eventCount).find(
+        (event) => event.type === 'speech' && event.payload.turnKind === 'answer',
+      );
+      if (!answer) continue;
+      const addedCalls = store.record.aiCalls.slice(callCount);
+      expect(addedCalls.map((call) => call.callType)).toEqual(['speech']);
+      expect(
+        store.record.events.slice(eventCount).some((event) => event.type === 'eval_recorded'),
+      ).toBe(false);
+      answerObserved = true;
+      break;
+    }
+    expect(answerObserved).toBe(true);
+  });
+
+  it('前日評価または主人入力で無効化された評価は、単独回答でも再評価する', async () => {
+    for (const freshness of ['previous-day', 'invalidated'] as const) {
+      let nowValue = 1_700_000_000_000;
+      const now = () => (nowValue += 10);
+      const config = makeSnapshot({
+        discussionMode: 'timed',
+        discussionDurationSec: 150,
+        discussionBatchSize: 2,
+        discussionMaxMessages: 30,
+        firstDayFocusCount: 0,
+        advicePerDay: 0,
+        otherMastersPolicy: 'none',
+      });
+      config.advice.questionThemes.push({
+        id: 'most_suspicious',
+        label: '現在最も疑っている相手',
+        mockTemplate: '{target}は今、誰が一番怪しいと思ってる?',
+        promptHint: '現在の疑い先と理由を尋ねる',
+      });
+      const matchId = `m-timed-${freshness}-answer`;
+      const created = createMatch({
+        matchId,
+        seed: `timed-${freshness}-answer`,
+        mode: 'lab',
+        provider: 'mock',
+        humanPairIndex: null,
+        config,
+        now: nowValue,
+      });
+      const record: MatchRecord = {
+        schemaVersion: 1,
+        matchId,
+        seed: `timed-${freshness}-answer`,
+        createdAt: nowValue,
+        startedAt: null,
+        finishedAt: null,
+        mode: 'lab',
+        provider: 'mock',
+        humanPairId: null,
+        configSnapshot: config,
+        events: created.events,
+        aiCalls: [],
+      };
+      const store = rebuildStore(record);
+      const ai = new AiEngine({ models: testModels, prompts: testPrompts, now });
+      const runner = new MatchRunner(store, ai, now);
+
+      let answerPairId: PairId | null = null;
+      for (let step = 0; step < 80; step++) {
+        const task = getPendingTask(store.state, nowValue);
+        if (task.type === 'ai_speech_batch' && task.turns[0]?.kind === 'answer') {
+          answerPairId = task.turns[0].pairId;
+          break;
+        }
+        await runner.advanceOnce();
+      }
+      if (!answerPairId) throw new Error(`answer task missing: ${freshness}`);
+      const meta = store.state.latestEvalMeta[answerPairId];
+      expect(meta?.kind).toBe('discussion');
+      store.state.latestEvalMeta[answerPairId] = freshness === 'previous-day' && meta
+        ? { ...meta, day: store.state.day - 1 }
+        : null;
+
+      const eventCount = store.record.events.length;
+      const callCount = store.record.aiCalls.length;
+      await runner.advanceOnce();
+      expect(store.record.aiCalls.slice(callCount).map((call) => call.callType)).toEqual([
+        'eval',
+        'speech',
+      ]);
+      expect(
+        store.record.events.slice(eventCount).some((event) => event.type === 'eval_recorded'),
+      ).toBe(true);
+    }
   });
 });

@@ -54,6 +54,7 @@ export interface ConfigResponse {
     discussionMode: 'timed' | 'turns';
     discussionDurationSec: number;
     discussionBatchSize: number;
+    discussionAdviceIntervalMessages: number;
     discussionRounds: number;
     advicePerDay: number;
     otherMastersPolicy: string;

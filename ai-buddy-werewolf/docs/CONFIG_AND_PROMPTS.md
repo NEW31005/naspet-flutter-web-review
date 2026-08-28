@@ -17,6 +17,7 @@ Web UIでは、よく使うルール・親密度・助言・AIモデル・単価
 | 最大日数・討論時間・同時AI数 | 同上 | `maxDays`, `discussionMode`, `discussionDurationSec`, `discussionMaxMessages`, `discussionBatchSize`, `firstDayFocusCount`。既定の`timed`は `opening → awaiting_master_advice → response` の3段階。焦点対象2人の弁明と他AIの意見後に主人相談で止まり、相談中は時計を消費しない。助言/スキップ後は残り時間で再開する。最大`discussionBatchSize`人が個別に処理され、期限後の生成は破棄される。旧`turns`方式では`discussionRounds`, `speechesPerBuddyPerRound`を使う |
 | 初日の占い結果 | 同上 | `firstNightDivination`: `false` / `true` / `"white"` |
 | 主人の助言回数 | 同上 | `advicePerDay` |
+| 追加相談を挟む間隔 | 同上 | `discussionAdviceIntervalMessages`（相談後のAI発言数） |
 | 同票処理 | 同上 | `tieBreak`(現状 `random` のみ) |
 | 死亡時の役職公開 | 同上 | `revealRoleOnDeath` |
 | 狼襲撃の統合方式 | 同上 | `wolfAttackIntegration.method`(現状 `sumNormalized`) |
@@ -95,8 +96,8 @@ Web UIでは、よく使うルール・親密度・助言・AIモデル・単価
 | ファイル | 用途 | 主なプレースホルダー |
 |---|---|---|
 | `prompts/system.base.md` | 全コール共通の世界観・ルール・判断原則 | `{{buddyName}} {{masterName}} {{pairCount}} {{maxDays}} {{trust}}` |
-| `prompts/eval.md` | 評価コール本文(人格を含めない) | `{{day}} {{aliveList}} {{factsBlock}} {{advicesBlock}} {{reasoningUnlocksBlock}} {{publicLogBlock}} {{previousEvalBlock}} {{candidateIds}}` |
-| `prompts/speech.md` | 発言コール本文(人格を含める) | `{{firstPerson}} {{speechStyle}} {{primaryHypothesis}} {{directiveBlock}} {{recentLogBlock}}` |
+| `prompts/eval.md` | 評価コール本文(人格を含めない) | `{{day}} {{aliveList}} {{factsBlock}} {{advicesBlock}} {{reasoningUnlocksBlock}} {{analysisLensBlock}} {{publicLogBlock}} {{previousEvalBlock}} {{candidateIds}}` |
+| `prompts/speech.md` | 発言コール本文(人格を含める) | `{{firstPerson}} {{speechStyle}} {{primaryHypothesis}} {{directiveBlock}} {{analysisLensBlock}} {{echoGuardBlock}} {{recentLogBlock}}` |
 | `prompts/role.villager.md` / `role.seer.md` / `role.guardian.md` / `role.medium.md` | 市民・占い師・騎士・霊媒師の役職別方針 | (プレーンテキスト) |
 | `prompts/role.werewolf.md` | 狼の方針 + 虚言力アンロック | `{{wolfPartners}} {{deception}} {{deceptionUnlocksBlock}}` |
 
@@ -104,9 +105,11 @@ Web UIでは、よく使うルール・親密度・助言・AIモデル・単価
 
 評価コールへ渡す公開ログは、投票などの永続的な公開イベントを残しつつ、発言本文を直近24件に制限する。これは同じ長い履歴を毎コール再送して入力tokenが二次的に膨らむのを防ぐためである。上限を変える場合は、原価だけでなく長期矛盾の検出率も同条件で比較する。
 
+公開発言は `MAX_PUBLIC_SPEECH_CHARS=120` を全プロバイダー共通の安全上限とする。Live境界では長文を構造化出力エラーとして再試行し、ゲームコアでも旧出力やフォールバックに備えて文末優先で短縮する。短縮後の本文から相手名・役職名が消えた場合は、不可視の `accusesId` / `declaredRole` だけを採用しない。
+
 ## プロンプトバージョン管理方法
 
-`prompts/version.json` の `version` を上げてからプロンプトを編集する。現在の役職を名乗る相談・騎士・霊媒師対応版は `0.9.0-role-claim-special-roles.1`。試合作成時に `configSnapshot.promptVersion` / `versions.prompts` として記録され、結果画面・エクスポートJSONで確認できる。どのバージョンのプロンプトで実行された試合かを比較実験の軸にする。
+`prompts/version.json` の `version` を上げてからプロンプトを編集する。現在の短文ラリー・観点分散・役職を名乗る相談・騎士・霊媒師対応版は `1.0.0-short-rally-diverse-angles.1`。試合作成時に `configSnapshot.promptVersion` / `versions.prompts` として記録され、結果画面・エクスポートJSONで確認できる。どのバージョンのプロンプトで実行された試合かを比較実験の軸にする。
 
 ## 本番モバイルへ持ち越す方法
 

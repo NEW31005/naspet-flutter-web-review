@@ -175,6 +175,9 @@ export interface SpeechOutput {
   declaredRole?: Role | null;
 }
 
+/** 公開討論で許可するAI発言の最大文字数。短いラリーを全プロバイダーで揃える。 */
+export const MAX_PUBLIC_SPEECH_CHARS = 120;
+
 export type EvalKind = 'discussion' | 'vote' | 'night';
 
 // ---------------------------------------------------------------------------
@@ -436,6 +439,8 @@ export interface RulesConfig {
   discussionMaxMessages: number;
   /** 同じ公開ログを読んで並列に考えるAIの最大数。 */
   discussionBatchSize: number;
+  /** 時間制討論で、追加相談の区切りを入れるまでに必要な応答発言数。旧設定は3。 */
+  discussionAdviceIntervalMessages?: number;
   discussionRounds: number; // 1日の討論周回数
   speechesPerBuddyPerRound: number; // 周回ごとの各バディ発言回数
   advicePerDay: number; // 主人の討論中助言回数

@@ -1,5 +1,5 @@
 {
-  "version": "0.8.0-human-turn.1",
+  "version": "0.8.1-short-rally.1",
   "presetId": "quick-info",
   "label": "クイック情報戦（5組・初日白通知・共有ループ検証用）",
   "pairCount": 5,
@@ -13,6 +13,7 @@
   "discussionDurationSec": 150,
   "discussionMaxMessages": 30,
   "discussionBatchSize": 2,
+  "discussionAdviceIntervalMessages": 3,
   "discussionRounds": 2,
   "speechesPerBuddyPerRound": 1,
   "advicePerDay": 1,

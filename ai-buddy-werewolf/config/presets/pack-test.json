@@ -1,5 +1,5 @@
 {
-  "version": "0.5.0-human-turn.1",
+  "version": "0.5.1-short-rally.1",
   "presetId": "pack-test",
   "label": "群れ統合テスト（8組・狼2組・勝率調整対象外）",
   "pairCount": 8,
@@ -11,6 +11,7 @@
   "discussionDurationSec": 150,
   "discussionMaxMessages": 48,
   "discussionBatchSize": 3,
+  "discussionAdviceIntervalMessages": 3,
   "discussionRounds": 2,
   "speechesPerBuddyPerRound": 1,
   "advicePerDay": 1,

@@ -91,6 +91,7 @@ export const rulesConfigSchema = z
     discussionDurationSec: z.number().int().min(15).max(600).default(150),
     discussionMaxMessages: z.number().int().min(5).max(100).default(30),
     discussionBatchSize: z.number().int().min(1).max(8).default(3),
+    discussionAdviceIntervalMessages: z.number().int().min(1).max(20).default(3),
     discussionRounds: z.number().int().min(1).max(10),
     speechesPerBuddyPerRound: z.number().int().min(1).max(3),
     advicePerDay: z.number().int().min(0).max(10),
@@ -123,8 +124,8 @@ export const rulesConfigSchema = z
       path: ['firstNightDivination'],
     },
   )
-  .refine((c) => c.discussionMode !== 'timed' || c.advicePerDay <= 1, {
-    message: '時間制討論の主人相談は1日1回までです',
+  .refine((c) => c.discussionMode !== 'timed' || c.advicePerDay <= 3, {
+    message: '時間制討論の主人相談は1日3回までです',
     path: ['advicePerDay'],
   })
   .refine((c) => c.discussionMode !== 'timed' || c.discussionMaxMessages >= 2, {

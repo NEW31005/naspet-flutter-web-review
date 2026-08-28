@@ -11,6 +11,7 @@ import type {
   DiscussionStage,
   DiscussionTurn,
   DiscussionTurnKind,
+  EvalKind,
   EvalOutput,
   Fact,
   MasterPolicy,
@@ -168,6 +169,8 @@ export interface MatchState {
   divined: Record<PairId, PairId[]>;
   /** 各バディの最新評価(エンジン/ポリシー用) */
   latestEvals: Record<PairId, EvalOutput | null>;
+  /** 最新評価の鮮度。短い質疑で再利用してよい当日討論評価かを判定する。 */
+  latestEvalMeta: Record<PairId, { day: number; kind: EvalKind; seq: number } | null>;
 }
 
 export function alivePairs(state: MatchState): PairState[] {
@@ -249,6 +252,7 @@ function initialState(ev: Extract<MatchEvent, { type: 'match_created' }>, config
     wolfReports: byPair(() => []),
     divined: byPair(() => []),
     latestEvals: byPair(() => null),
+    latestEvalMeta: byPair(() => null),
   };
 }
 
@@ -418,10 +422,10 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
     case 'discussion_stage_changed': {
       if (!state.discussion) throw new Error('discussion state is missing');
       if (event.payload.stage === 'awaiting_master_advice') {
-        state.discussion.remainingMs = Math.max(
-          state.discussion.responseReserveMs,
-          state.discussion.endsAt - event.ts,
-        );
+        const firstIntermission = state.discussion.stage === 'opening';
+        state.discussion.remainingMs = firstIntermission
+          ? Math.max(state.discussion.responseReserveMs, state.discussion.endsAt - event.ts)
+          : Math.max(0, state.discussion.endsAt - event.ts);
         state.discussion.stageEndsAt = event.ts;
         state.discussion.pausedAt = event.ts;
         state.discussion.masterAdviceDecision = 'pending';
@@ -447,6 +451,10 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
     case 'discussion_advice_skipped': {
       if (!state.discussion) throw new Error('discussion state is missing');
       state.discussion.masterAdviceDecision = 'skipped';
+      if (event.payload.pairId) {
+        state.adviceUsedToday[event.payload.pairId] =
+          (state.adviceUsedToday[event.payload.pairId] ?? 0) + 1;
+      }
       break;
     }
     case 'discussion_closed': {
@@ -501,10 +509,17 @@ export function reduce(prev: MatchState | null, event: MatchEvent): MatchState {
     }
     case 'eval_recorded': {
       state.latestEvals[event.payload.pairId] = event.payload.output;
+      state.latestEvalMeta[event.payload.pairId] = {
+        day: event.day,
+        kind: event.payload.kind,
+        seq: event.seq,
+      };
       break;
     }
     case 'advice_given': {
       applyAdviceToState(state, event.payload.pairId, event.payload.advice);
+      // 主人の新しい助言をまだ読んでいない評価は、短い質疑でも再利用しない。
+      state.latestEvalMeta[event.payload.pairId] = null;
       if (
         state.discussion?.stage === 'awaiting_master_advice' &&
         state.humanPairId === event.payload.pairId

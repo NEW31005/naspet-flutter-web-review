@@ -7,6 +7,7 @@ import {
   applyCloseDiscussion,
   applyNight,
   applyNightProposal,
+  applyPauseDiscussionForAdvice,
   applySkipDiscussionAdvice,
   applySpeech,
   applyStartDiscussionResponse,
@@ -157,6 +158,52 @@ describe('助言のルール', () => {
         NOW + 1,
       ),
     ).toThrowError(/前日の投票がない/);
+  });
+});
+
+describe('公開発言のテンポ', () => {
+  it('Live AIが長文を返しても文末優先で120文字以内に収める', () => {
+    let { state } = newMatch('compact-live-speech');
+    state = apply(state, applyAdvanceDay(state, NOW));
+    const task = getPendingTask(state);
+    if (task.type !== 'ai_speech') throw new Error('speech task missing');
+    const longSpeech = `${'短い論点を一つ述べます。'.repeat(8)}${'前置きをさらに続けます'.repeat(8)}`;
+    state = apply(state, applySpeech(
+      state,
+      task.pairId,
+      makeEval({}),
+      'long-live-speech',
+      { text: longSpeech, accusesId: null },
+      NOW,
+    ));
+    const published = state.publicLog.find((entry) => entry.t === 'speech');
+    if (!published || published.t !== 'speech') throw new Error('published speech missing');
+    expect([...published.text].length).toBeLessThanOrEqual(120);
+    expect(published.text.endsWith('。')).toBe(true);
+  });
+
+  it('短縮で見えなくなった疑い先・役職宣言を構造化イベントだけで残さない', () => {
+    let { state } = newMatch('compact-structured-speech');
+    state = apply(state, applyAdvanceDay(state, NOW));
+    const task = getPendingTask(state);
+    if (task.type !== 'ai_speech') throw new Error('speech task missing');
+    const target = state.pairs.find((pair) => pair.pairId !== task.pairId);
+    if (!target) throw new Error('target missing');
+    const events = applySpeech(
+      state,
+      task.pairId,
+      makeEval({}),
+      'long-structured-speech',
+      {
+        text: `${'ここでは短い一般論だけを述べます。'.repeat(10)}${target.buddyName}を疑い、占い師と名乗ります。`,
+        accusesId: target.pairId,
+        declaredRole: 'seer',
+      },
+      NOW,
+    );
+    const speech = events.find((event) => event.type === 'speech');
+    expect(speech?.type === 'speech' ? speech.payload.accusesId : 'missing').toBeNull();
+    expect(events.some((event) => event.type === 'role_declared')).toBe(false);
   });
 });
 
@@ -852,6 +899,13 @@ describe('時間制の独立AI討論', () => {
       missing: [{ pairId: 'p1', input: 'discussion_advice' }],
     });
     state = apply(state, applySkipDiscussionAdvice(state, 'p1', NOW + 6));
+    expect(state.adviceUsedToday.p1).toBe(1);
+    expect(() => applyAdvice(
+      state,
+      'p1',
+      { kind: 'suspicion', targetId: 'p2' },
+      NOW + 6,
+    )).toThrowError(/すでに確定/);
     expect(buildMasterView(state, 'p1').me).toMatchObject({
       canAdvise: false,
       needDiscussionAdvice: false,
@@ -873,6 +927,7 @@ describe('時間制の独立AI討論', () => {
     expect(targets).toHaveLength(2);
     for (const [index, turn] of response.turns.entries()) {
       const accused = targets[index] ?? targets[0] ?? 'p1';
+      const accusedName = state.pairs.find((pair) => pair.pairId === accused)?.buddyName ?? accused;
       state = apply(state, applySpeech(
         state,
         turn.pairId,
@@ -880,7 +935,7 @@ describe('時間制の独立AI討論', () => {
           state.pairs.filter((pair) => pair.pairId !== turn.pairId).map((pair) => [pair.pairId, 50]),
         )),
         `accusation-${turn.pairId}`,
-        { text: '名指しして疑う', accusesId: accused },
+        { text: `${accusedName}を名指しして疑う`, accusesId: accused },
         NOW + 8,
         turn,
       ));
@@ -942,12 +997,13 @@ describe('時間制の独立AI討論', () => {
     }
     const accuser = batch.turns[0]!;
     const target = batch.turns[1]!;
+    const targetName = state.pairs.find((pair) => pair.pairId === target.pairId)?.buddyName ?? target.pairId;
     state = apply(state, applySpeech(
       state,
       accuser.pairId,
       makeEval({}),
       'same-batch-accuser',
-      { text: `${target.pairId}の説明が曖昧で怪しい`, accusesId: target.pairId },
+      { text: `${targetName}の説明が曖昧で怪しい`, accusesId: target.pairId },
       NOW + 4,
       accuser,
     ));
@@ -1216,6 +1272,209 @@ describe('時間制の独立AI討論', () => {
       reason: 'time_up',
     });
     expect(rebuildState(events, config)).toEqual(state);
+  });
+
+  it('時間制討論は設定件数ごとに追加相談を入れ、2回目は実残時間だけを停止する', () => {
+    const config = makeSnapshot({
+      discussionMode: 'timed',
+      discussionDurationSec: 150,
+      discussionMaxMessages: 30,
+      discussionBatchSize: 2,
+      discussionAdviceIntervalMessages: 2,
+      firstDayFocusCount: 0,
+      discussionRounds: 2,
+      advicePerDay: 2,
+    });
+    config.advice.questionThemes.push({
+      id: 'most_suspicious',
+      label: '現在最も疑っている相手',
+      mockTemplate: '{target}は今、誰が一番怪しいと思ってる?',
+      promptHint: '現在の疑い先と理由を尋ねる',
+    });
+    let { state } = createMatch({
+      matchId: 'm-two-advice-checkpoints',
+      seed: 'two-advice-checkpoints-seed',
+      mode: 'play',
+      provider: 'mock',
+      humanPairIndex: 0,
+      config,
+      now: NOW,
+    });
+    state = apply(state, applyAdvanceDay(state, NOW));
+
+    while (state.discussion?.stage === 'opening') {
+      const task = getPendingTask(state, NOW + 1_000);
+      if (task.type === 'start_discussion_response') {
+        state = apply(state, applyStartDiscussionResponse(state, NOW + 2_000));
+        break;
+      }
+      if (task.type !== 'ai_speech_batch') throw new Error('opening batch missing');
+      for (const turn of task.turns) {
+        state = apply(state, applySpeech(
+          state,
+          turn.pairId,
+          makeEval({}),
+          `two-advice-opening-${turn.pairId}`,
+          { text: '冒頭の短い意見', accusesId: null },
+          NOW + 1_000,
+          turn,
+        ));
+      }
+    }
+
+    state = apply(state, applyAdvice(
+      state,
+      'p1',
+      { kind: 'question', targetId: 'p2', themeId: 'most_suspicious' },
+      NOW + 2_100,
+    ));
+    expect(() => applyAdvice(
+      state,
+      'p1',
+      { kind: 'suspicion', targetId: 'p3' },
+      NOW + 2_100,
+    )).toThrowError(/すでに確定/);
+    state = apply(state, applyStartDiscussionResponse(state, NOW + 2_200));
+    expect(state.discussion?.endsAt).toBe(NOW + 150_200);
+
+    const firstResponse = getPendingTask(state, NOW + 3_000);
+    if (firstResponse.type !== 'ai_speech_batch') throw new Error('first response missing');
+    expect(firstResponse.turns).toMatchObject([{ kind: 'question', pairId: 'p1' }]);
+    for (const turn of firstResponse.turns) {
+      state = apply(state, applySpeech(
+        state,
+        turn.pairId,
+        makeEval({}),
+        `two-advice-response-${turn.pairId}`,
+        { text: '相談後の短い応答', accusesId: null },
+        NOW + 3_000,
+        turn,
+      ));
+    }
+
+    const answer = getPendingTask(state, NOW + 3_020);
+    if (answer.type !== 'ai_speech_batch') throw new Error('answer missing');
+    expect(answer.turns).toMatchObject([{ kind: 'answer', pairId: 'p2' }]);
+    for (const turn of answer.turns) {
+      state = apply(state, applySpeech(
+        state,
+        turn.pairId,
+        makeEval({}),
+        `two-advice-answer-${turn.pairId}`,
+        { text: '質問への短い回答', accusesId: null },
+        NOW + 3_020,
+        turn,
+      ));
+    }
+
+    const followUp = getPendingTask(state, NOW + 3_040);
+    if (followUp.type !== 'ai_speech_batch') throw new Error('follow-up missing');
+    expect(followUp.turns).toMatchObject([{ kind: 'follow_up', pairId: 'p1' }]);
+    for (const turn of followUp.turns) {
+      state = apply(state, applySpeech(
+        state,
+        turn.pairId,
+        makeEval({}),
+        `two-advice-follow-up-${turn.pairId}`,
+        { text: '回答を受け止める', accusesId: null },
+        NOW + 3_040,
+        turn,
+      ));
+    }
+
+    // 残り14.9秒では、相談後のLive応答が間に合わないため追加区切りを出さない。
+    expect(getPendingTask(state, NOW + 135_300).type).not.toBe('pause_discussion_for_advice');
+    expect(getPendingTask(state, NOW + 3_100)).toEqual({
+      type: 'pause_discussion_for_advice',
+      pairId: 'p1',
+    });
+    state = apply(state, applyPauseDiscussionForAdvice(state, 'p1', NOW + 3_100));
+    expect(state.discussion).toMatchObject({
+      stage: 'awaiting_master_advice',
+      remainingMs: 147_100,
+    });
+    state = apply(state, applyAdvice(
+      state,
+      'p1',
+      { kind: 'behavior', directiveId: 'low_profile' },
+      NOW + 20_000,
+    ));
+    state = apply(state, applyStartDiscussionResponse(state, NOW + 20_100));
+    expect(state.discussion).toMatchObject({
+      stage: 'response',
+      endsAt: NOW + 167_200,
+    });
+    expect(state.adviceUsedToday.p1).toBe(2);
+
+    const next = getPendingTask(state, NOW + 20_200);
+    expect(next.type).toBe('ai_speech_batch');
+  });
+
+  it('発言上限に達した場合は未使用の追加相談を表示せず討論を閉じる', () => {
+    const config = makeSnapshot({
+      discussionMode: 'timed',
+      discussionDurationSec: 150,
+      discussionMaxMessages: 3,
+      discussionBatchSize: 2,
+      discussionAdviceIntervalMessages: 1,
+      firstDayFocusCount: 0,
+      discussionRounds: 2,
+      advicePerDay: 2,
+    });
+    let { state } = createMatch({
+      matchId: 'm-message-limit-before-advice',
+      seed: 'message-limit-before-advice-seed',
+      mode: 'play',
+      provider: 'mock',
+      humanPairIndex: 0,
+      config,
+      now: NOW,
+    });
+    state = apply(state, applyAdvanceDay(state, NOW));
+
+    const opening = getPendingTask(state, NOW + 1_000);
+    if (opening.type !== 'ai_speech_batch') throw new Error('opening batch missing');
+    expect(opening.turns).toHaveLength(2);
+    for (const turn of opening.turns) {
+      state = apply(state, applySpeech(
+        state,
+        turn.pairId,
+        makeEval({}),
+        `message-limit-opening-${turn.pairId}`,
+        { text: '冒頭意見', accusesId: null },
+        NOW + 1_000,
+        turn,
+      ));
+    }
+    expect(getPendingTask(state, NOW + 1_100).type).toBe('start_discussion_response');
+    state = apply(state, applyStartDiscussionResponse(state, NOW + 1_200));
+    state = apply(state, applyAdvice(
+      state,
+      'p1',
+      { kind: 'suspicion', targetId: 'p2' },
+      NOW + 1_300,
+    ));
+    state = apply(state, applyStartDiscussionResponse(state, NOW + 1_400));
+
+    const response = getPendingTask(state, NOW + 1_500);
+    if (response.type !== 'ai_speech_batch') throw new Error('response batch missing');
+    expect(response.turns).toHaveLength(1);
+    const [turn] = response.turns;
+    if (!turn) throw new Error('response turn missing');
+    state = apply(state, applySpeech(
+      state,
+      turn.pairId,
+      makeEval({}),
+      'message-limit-response',
+      { text: '相談後の意見', accusesId: null },
+      NOW + 1_500,
+      turn,
+    ));
+
+    expect(getPendingTask(state, NOW + 1_600)).toEqual({
+      type: 'close_discussion',
+      reason: 'message_limit',
+    });
   });
 
   it('主人なしのLabは明示スキップイベントを残して応答討論へ進める', () => {

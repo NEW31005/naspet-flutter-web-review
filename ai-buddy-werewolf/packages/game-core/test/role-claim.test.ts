@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { MatchEvent, Role } from '@aibw/shared';
+import { ROLE_LABEL } from '@aibw/shared';
 import {
   GameRuleError,
   applyAdvanceDay,
@@ -115,7 +116,7 @@ describe('役職を名乗る相談', () => {
       task.pairId,
       makeEval(Object.fromEntries(candidates.map((pairId) => [pairId, 50]))),
       'call-role-claim',
-      { text: `私は役職を名乗ります`, accusesId: null, declaredRole: claimedRole },
+      { text: `私は${ROLE_LABEL[claimedRole]}と名乗ります`, accusesId: null, declaredRole: claimedRole },
       NOW + 3,
     );
     const declaration = speechEvents.find((event) => event.type === 'role_declared');

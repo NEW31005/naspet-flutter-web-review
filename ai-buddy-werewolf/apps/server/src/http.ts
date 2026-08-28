@@ -73,6 +73,7 @@ export function createServer(rootDir: string, manager: MatchManager): http.Serve
         discussionMode: r.discussionMode,
         discussionDurationSec: r.discussionDurationSec,
         discussionBatchSize: r.discussionBatchSize,
+        discussionAdviceIntervalMessages: r.discussionAdviceIntervalMessages ?? 3,
         discussionRounds: r.discussionRounds,
         advicePerDay: r.advicePerDay,
         otherMastersPolicy: r.otherMastersPolicy,

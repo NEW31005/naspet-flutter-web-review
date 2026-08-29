@@ -152,7 +152,11 @@ export class AiEngine {
         result.usage.outputTokens,
       ),
       retries: result.jsonRetries,
-      jsonErrors: result.jsonRetries + (usedFallback && error?.includes('JsonValidation') ? 1 : 0),
+      jsonErrors:
+        result.jsonRetries +
+        (result.validationRepairs ?? 0) +
+        (usedFallback && error?.includes('JsonValidation') ? 1 : 0),
+      validationRepairs: result.validationRepairs,
       ok,
       usedFallback,
       error,

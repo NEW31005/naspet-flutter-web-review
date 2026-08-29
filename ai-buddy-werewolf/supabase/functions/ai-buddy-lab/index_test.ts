@@ -68,26 +68,31 @@ function openRouterSpeech(): Response {
   });
 }
 
-function openRouterEval(): Response {
+function evalOutput(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    suspicions: [],
+    attackPriorities: [],
+    skillTargetPriorities: [],
+    primaryHypothesis: '仮説',
+    altHypotheses: [],
+    confidence: 10,
+    toShare: [],
+    toWithhold: [],
+    questionTargetId: null,
+    questionTheme: null,
+    voteCandidateId: null,
+    reasonSummary: '理由',
+    ...overrides,
+  };
+}
+
+function openRouterEval(output: Record<string, unknown> = evalOutput()): Response {
   return Response.json({
     model: 'anthropic/claude-sonnet-5',
     usage: { prompt_tokens: 20, completion_tokens: 10 },
     choices: [{
       message: {
-        content: JSON.stringify({
-          suspicions: [],
-          attackPriorities: [],
-          skillTargetPriorities: [],
-          primaryHypothesis: '仮説',
-          altHypotheses: [],
-          confidence: 10,
-          toShare: [],
-          toWithhold: [],
-          questionTargetId: null,
-          questionTheme: null,
-          voteCandidateId: null,
-          reasonSummary: '理由',
-        }),
+        content: JSON.stringify(output),
       },
     }],
   });
@@ -154,6 +159,109 @@ Deno.test('evaluation output uses its separate token cap', async () => {
   const forwarded = forwardedBodies[0];
   assert(forwarded);
   assertEquals(forwarded.max_tokens, COST_GUARD.maxOutputTokens.eval);
+});
+
+Deno.test('one malformed evaluation score entry is dropped and reported without a retry', async () => {
+  const handler = createHandler({
+    envGet: await env(),
+    state: state(),
+    fetch: (async () => openRouterEval(evalOutput({
+      suspicions: [
+        { targetId: 'p2', score: 72 },
+        { targetId: 'p3' },
+      ],
+    }))) as typeof fetch,
+  });
+  const response = await handler(request(speechBody({ callType: 'eval' })));
+  const body = await response.json() as Record<string, unknown>;
+  assertEquals(response.status, 200);
+  assertEquals((body.output as Record<string, unknown>).suspicions, [
+    { targetId: 'p2', score: 72 },
+  ]);
+  assertEquals(body.repair, {
+    scoreEntriesDropped: 1,
+    scoreEntriesNormalized: 0,
+    scoreEntriesDroppedByField: {
+      suspicions: 1,
+      attackPriorities: 0,
+      skillTargetPriorities: 0,
+    },
+    scoreEntriesNormalizedByField: {
+      suspicions: 0,
+      attackPriorities: 0,
+      skillTargetPriorities: 0,
+    },
+  });
+  assertEquals(body.usage, { inputTokens: 20, outputTokens: 10 });
+});
+
+Deno.test('extra evaluation score fields are canonicalized and reported', async () => {
+  const handler = createHandler({
+    envGet: await env(),
+    state: state(),
+    fetch: (async () => openRouterEval(evalOutput({
+      suspicions: [{ targetId: 'p2', score: 64, note: 'remove-me' }],
+    }))) as typeof fetch,
+  });
+  const response = await handler(request(speechBody({ callType: 'eval' })));
+  const body = await response.json() as Record<string, unknown>;
+  assertEquals(response.status, 200);
+  assertEquals((body.output as Record<string, unknown>).suspicions, [
+    { targetId: 'p2', score: 64 },
+  ]);
+  assertEquals(body.repair, {
+    scoreEntriesDropped: 0,
+    scoreEntriesNormalized: 1,
+    scoreEntriesDroppedByField: {
+      suspicions: 0,
+      attackPriorities: 0,
+      skillTargetPriorities: 0,
+    },
+    scoreEntriesNormalizedByField: {
+      suspicions: 1,
+      attackPriorities: 0,
+      skillTargetPriorities: 0,
+    },
+  });
+});
+
+Deno.test('multiple malformed scores and non-score failures remain rejected', async () => {
+  const twoMalformed = createHandler({
+    envGet: await env(),
+    state: state(),
+    fetch: (async () => openRouterEval(evalOutput({
+      suspicions: [{ targetId: 'p2' }, { targetId: 'p3', score: 'high' }],
+    }))) as typeof fetch,
+  });
+  assertEquals(
+    (await twoMalformed(request(speechBody({ callType: 'eval' })))).status,
+    422,
+  );
+
+  const twoNormalizations = createHandler({
+    envGet: await env(),
+    state: state(),
+    fetch: (async () => openRouterEval(evalOutput({
+      suspicions: [
+        { targetId: 'p2', score: 60, note: 'remove-me' },
+        { targetId: 'p3', score: 40, note: 'remove-me-too' },
+      ],
+    }))) as typeof fetch,
+  });
+  assertEquals(
+    (await twoNormalizations(request(speechBody({ callType: 'eval' })))).status,
+    422,
+  );
+
+  const invalidConfidence = createHandler({
+    envGet: await env(),
+    state: state(),
+    fetch: (async () => openRouterEval(evalOutput({ confidence: 'high' }))) as typeof fetch,
+  });
+  assertEquals(
+    (await invalidConfidence(request(speechBody({ callType: 'eval' })))).status,
+    422,
+  );
 });
 
 Deno.test('invalid structured output still returns billable usage for cost accounting', async () => {

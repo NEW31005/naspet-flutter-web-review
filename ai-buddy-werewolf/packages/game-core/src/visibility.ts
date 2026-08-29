@@ -100,6 +100,7 @@ export interface BuddyContext {
     targetName: string | null;
     replyToId?: PairId | null;
     replyToName?: string | null;
+    afterMasterAdvice?: boolean;
     theme: QuestionTheme | null;
   };
   /** 主人から共有された確定情報のみ(未共有の占い・霊媒結果は含まれない) */
@@ -252,6 +253,7 @@ export function buildBuddyContext(
           targetName: turnQuestion ? getPair(state, turnQuestion.targetId).buddyName : null,
           replyToId: rawTurn.replyToId ?? null,
           replyToName: rawTurn.replyToId ? getPair(state, rawTurn.replyToId).buddyName : null,
+          afterMasterAdvice: rawTurn.afterMasterAdvice === true,
           theme: turnTheme,
         }
       : null,

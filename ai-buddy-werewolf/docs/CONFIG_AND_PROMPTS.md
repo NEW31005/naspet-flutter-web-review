@@ -109,7 +109,7 @@ Web UIでは、よく使うルール・親密度・助言・AIモデル・単価
 
 ## プロンプトバージョン管理方法
 
-`prompts/version.json` の `version` を上げてからプロンプトを編集する。現在の短文ラリー・観点分散・役職を名乗る相談・騎士・霊媒師対応版は `1.0.0-short-rally-diverse-angles.1`。試合作成時に `configSnapshot.promptVersion` / `versions.prompts` として記録され、結果画面・エクスポートJSONで確認できる。どのバージョンのプロンプトで実行された試合かを比較実験の軸にする。
+`prompts/version.json` の `version` を上げてからプロンプトを編集する。現在の短文ラリー・観点分散・公開ログ接地・役職を名乗る相談・騎士・霊媒師対応版は `1.0.0-short-rally-diverse-angles.3`。試合作成時に `configSnapshot.promptVersion` / `versions.prompts` として記録され、結果画面・エクスポートJSONで確認できる。どのバージョンのプロンプトで実行された試合かを比較実験の軸にする。
 
 ## 本番モバイルへ持ち越す方法
 

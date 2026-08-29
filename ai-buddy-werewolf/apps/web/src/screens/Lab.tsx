@@ -207,6 +207,7 @@ export function Lab({ matchId }: { matchId: string }) {
                   {c.outputTokens} ${c.costUsd.toFixed(5)}
                   {c.usedFallback && ' ⚠️代替処理'}
                   {c.jsonErrors > 0 && ` JSONエラー${c.jsonErrors}`}
+                  {(c.validationRepairs ?? 0) > 0 && `（安全補修${c.validationRepairs}）`}
                   {!c.ok && ' ❌'}
                 </summary>
                 {c.error && <div className="errorbox small">{c.error}</div>}

@@ -313,6 +313,92 @@ function validOutput(callType: 'eval' | 'speech', value: unknown): boolean {
     typeof record.reasonSummary === 'string';
 }
 
+interface EvalScoreRepair {
+  output: unknown;
+  scoreEntriesDropped: number;
+  scoreEntriesNormalized: number;
+  scoreEntriesDroppedByField: Record<string, number>;
+  scoreEntriesNormalizedByField: Record<string, number>;
+  rejected: boolean;
+}
+
+/**
+ * OpenRouterがstrict schemaでも稀に1件だけscoreを欠落させるための狭い補修。
+ * 除外と余計fieldの正規化を合わせて2件以上、配列欠落、評価本文側の不正は
+ * 補修せず従来どおり422にする。
+ */
+function repairEvalScoreEntries(value: unknown): EvalScoreRepair {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {
+      output: value,
+      scoreEntriesDropped: 0,
+      scoreEntriesNormalized: 0,
+      scoreEntriesDroppedByField: {},
+      scoreEntriesNormalizedByField: {},
+      rejected: false,
+    };
+  }
+  const source = value as Record<string, unknown>;
+  const output: Record<string, unknown> = { ...source };
+  let dropped = 0;
+  let normalized = 0;
+  const droppedByField: Record<string, number> = {};
+  const normalizedByField: Record<string, number> = {};
+  for (const field of ['suspicions', 'attackPriorities', 'skillTargetPriorities'] as const) {
+    const droppedBefore = dropped;
+    const normalizedBefore = normalized;
+    const entries = source[field];
+    if (!Array.isArray(entries)) {
+      return {
+        output: value,
+        scoreEntriesDropped: 0,
+        scoreEntriesNormalized: 0,
+        scoreEntriesDroppedByField: {},
+        scoreEntriesNormalizedByField: {},
+        rejected: false,
+      };
+    }
+    const clean: { targetId: string; score: number }[] = [];
+    for (const entry of entries) {
+      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+        dropped += 1;
+        continue;
+      }
+      const record = entry as Record<string, unknown>;
+      const targetId = record.targetId;
+      const score = record.score;
+      if (
+        typeof targetId !== 'string' ||
+        targetId.length === 0 ||
+        typeof score !== 'number' ||
+        !Number.isFinite(score) ||
+        score < 0 ||
+        score > 100
+      ) {
+        dropped += 1;
+        continue;
+      }
+      if (
+        Object.keys(record).length !== 2 ||
+        !Object.hasOwn(record, 'targetId') ||
+        !Object.hasOwn(record, 'score')
+      ) normalized += 1;
+      clean.push({ targetId, score });
+    }
+    output[field] = clean;
+    droppedByField[field] = dropped - droppedBefore;
+    normalizedByField[field] = normalized - normalizedBefore;
+  }
+  return {
+    output,
+    scoreEntriesDropped: dropped,
+    scoreEntriesNormalized: normalized,
+    scoreEntriesDroppedByField: droppedByField,
+    scoreEntriesNormalizedByField: normalizedByField,
+    rejected: dropped + normalized > 1,
+  };
+}
+
 function reserveGeneration(deps: HandlerDependencies):
   | { ok: true; remaining: number }
   | { ok: false; reason: 'concurrency' | 'window'; retryAfterSec: number; remaining: number } {
@@ -484,14 +570,25 @@ export function createHandler(overrides: Partial<HandlerDependencies> = {}) {
 
     const choices = payload.choices as { finish_reason?: unknown; message?: { content?: unknown } }[] | undefined;
     const raw = choices?.[0]?.message?.content;
-    const output = parseStructuredOutput(raw);
+    const parsedOutput = parseStructuredOutput(raw);
     const usage = payload.usage as { prompt_tokens?: unknown; completion_tokens?: unknown } | undefined;
     const responseUsage = {
       inputTokens: typeof usage?.prompt_tokens === 'number' ? usage.prompt_tokens : 0,
       outputTokens: typeof usage?.completion_tokens === 'number' ? usage.completion_tokens : 0,
     };
     const responseModel = typeof payload.model === 'string' ? payload.model : model;
-    if (!validOutput(callType, output)) {
+    const repair = callType === 'eval'
+      ? repairEvalScoreEntries(parsedOutput)
+      : {
+          output: parsedOutput,
+          scoreEntriesDropped: 0,
+          scoreEntriesNormalized: 0,
+          scoreEntriesDroppedByField: {},
+          scoreEntriesNormalizedByField: {},
+          rejected: false,
+        };
+    const output = repair.output;
+    if (repair.rejected || !validOutput(callType, output)) {
       const preview = responseText(raw)?.slice(0, 240) ?? '';
       return json({
         error: '構造化出力が指定スキーマに一致しませんでした',
@@ -508,6 +605,16 @@ export function createHandler(overrides: Partial<HandlerDependencies> = {}) {
       output,
       model: responseModel,
       usage: responseUsage,
+      ...(repair.scoreEntriesDropped > 0 || repair.scoreEntriesNormalized > 0
+        ? {
+            repair: {
+              scoreEntriesDropped: repair.scoreEntriesDropped,
+              scoreEntriesNormalized: repair.scoreEntriesNormalized,
+              scoreEntriesDroppedByField: repair.scoreEntriesDroppedByField,
+              scoreEntriesNormalizedByField: repair.scoreEntriesNormalizedByField,
+            },
+          }
+        : {}),
     }, 200, origin, budgetHeaders);
   } catch (error) {
     const message = error instanceof DOMException && error.name === 'AbortError'

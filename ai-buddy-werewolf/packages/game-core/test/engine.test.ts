@@ -1163,13 +1163,40 @@ describe('時間制の独立AI討論', () => {
     if (followUp.type !== 'ai_speech_batch') throw new Error('follow-up missing');
     applyOnlyTurn(followUp.turns[0]!, '受け止め');
 
+    const setQuestionPlan = (pairId: PairId, targetId: PairId) => {
+      state.latestEvals[pairId] = makeEval(
+        Object.fromEntries(
+          state.pairs
+            .filter((pair) => pair.pairId !== pairId)
+            .map((pair) => [pair.pairId, 50]),
+        ),
+        { questionTargetId: targetId, questionTheme: 'most_suspicious' },
+      );
+      state.latestEvalMeta[pairId] = { day: state.day, kind: 'discussion', seq: state.nextSeq };
+    };
+    for (const pairId of ['p3', 'p4', 'p5'] as PairId[]) {
+      setQuestionPlan(pairId, 'p2');
+    }
+
+    // 間に別の質疑を挟んでも、その日に回答済みの相手×テーマは聞き直さない。
+    const noRepeatedQuestion = getPendingTask(structuredClone(state), NOW + 7);
+    expect(noRepeatedQuestion.type).toBe('ai_speech_batch');
+    if (noRepeatedQuestion.type === 'ai_speech_batch') {
+      expect(noRepeatedQuestion.turns).not.toContainEqual(expect.objectContaining({
+        kind: 'question',
+        question: expect.objectContaining({ targetId: 'p2', themeId: 'most_suspicious' }),
+      }));
+    }
+
+    // 別対象を持つ候補がいれば、直前に回答済みのp2への聞き直しを避ける。
+    setQuestionPlan('p5', 'p3');
     const selfQuestion = getPendingTask(state, NOW + 7);
     expect(selfQuestion.type).toBe('ai_speech_batch');
     if (selfQuestion.type !== 'ai_speech_batch') throw new Error('self question missing');
     expect(selfQuestion.turns).toHaveLength(1);
     expect(selfQuestion.turns[0]).toMatchObject({
       kind: 'question',
-      question: { themeId: 'most_suspicious' },
+      question: { targetId: 'p3', themeId: 'most_suspicious' },
     });
     expect(selfQuestion.turns[0]?.pairId).not.toBe('p1');
   });
@@ -1408,6 +1435,32 @@ describe('時間制の独立AI討論', () => {
 
     const next = getPendingTask(state, NOW + 20_200);
     expect(next.type).toBe('ai_speech_batch');
+    if (next.type !== 'ai_speech_batch') throw new Error('advice reaction missing');
+    expect(next.turns).toEqual([{
+      pairId: 'p1',
+      round: 2,
+      kind: 'reaction',
+      afterMasterAdvice: true,
+    }]);
+    const adviceContext = buildBuddyContext(state, 'p1', next.turns[0]);
+    expect(adviceContext.discussionTurn).toMatchObject({ afterMasterAdvice: true });
+    state = apply(state, applySpeech(
+      state,
+      'p1',
+      makeEval({}),
+      'second-advice-reaction',
+      { text: '最新相談を踏まえた見解', accusesId: null },
+      NOW + 20_200,
+      next.turns[0],
+    ));
+
+    const afterReaction = getPendingTask(state, NOW + 20_300);
+    expect(afterReaction.type).toBe('ai_speech_batch');
+    if (afterReaction.type === 'ai_speech_batch') {
+      expect(afterReaction.turns).not.toContainEqual(
+        expect.objectContaining({ afterMasterAdvice: true }),
+      );
+    }
   });
 
   it('発言上限に達した場合は未使用の追加相談を表示せず討論を閉じる', () => {
@@ -1529,6 +1582,13 @@ describe('時間制の独立AI討論', () => {
       stage: 'response',
       masterAdviceDecision: 'skipped',
     });
+    const afterSkip = getPendingTask(state, NOW + 100_001);
+    expect(afterSkip.type).toBe('ai_speech_batch');
+    if (afterSkip.type === 'ai_speech_batch') {
+      expect(afterSkip.turns).not.toContainEqual(
+        expect.objectContaining({ afterMasterAdvice: true }),
+      );
+    }
   });
 
   it('15秒・5発言でも40%と1発言を予約し、人間相談後のresponseを必ず1件通す', () => {

@@ -134,4 +134,55 @@ describe('追加役職のプロンプト', () => {
     expect(speech.user).not.toContain('most_suspicious');
     expect(speech.user).toMatch(/30〜65|45〜85|55〜95/);
   });
+
+  it('初日弁明は並列相手へ触れず、主人相談後は更新した見解を明示的に促す', () => {
+    const ctx = contextFor('medium');
+    const other = ctx.candidates[0];
+    if (!other) throw new Error('討論相手がいません');
+    ctx.discussionFocus = [
+      { pairId: ctx.self.pairId, name: ctx.self.buddyName },
+      { pairId: other.pairId, name: other.name },
+    ];
+    const prompts = { ...roleTestPrompts, speechTemplate: '{{directiveBlock}}' };
+    const evaluation = {
+      suspicions: {},
+      primaryHypothesis: '短い仮説',
+      altHypotheses: [],
+      confidence: 40,
+      toShare: [],
+      toWithhold: [],
+      questionTargetId: null,
+      questionTheme: null,
+      voteCandidateId: other.pairId,
+      reasonSummary: '理由',
+    };
+
+    ctx.discussionTurn = {
+      round: 1,
+      kind: 'opening_defense',
+      askerId: null,
+      askerName: null,
+      targetId: null,
+      targetName: null,
+      theme: null,
+    };
+    const defense = buildSpeechPrompt(ctx, evaluation, prompts).user;
+    expect(defense).toContain('自分が狼憑きではないという説明');
+    expect(defense).toContain('未生成発言や表示順には触れず');
+    expect(defense).not.toContain(`もう一人の対象は${other.name}`);
+
+    ctx.discussionTurn = {
+      round: 2,
+      kind: 'reaction',
+      askerId: null,
+      askerName: null,
+      targetId: null,
+      targetName: null,
+      afterMasterAdvice: true,
+      theme: null,
+    };
+    const afterAdvice = buildSpeechPrompt(ctx, evaluation, prompts).user;
+    expect(afterAdvice).toContain('主人との相談後の見解更新');
+    expect(afterAdvice).toContain('主人の存在は円卓へ明かさず');
+  });
 });

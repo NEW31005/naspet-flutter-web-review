@@ -47,6 +47,8 @@ export interface DiscussionTurn {
   question?: DiscussionQuestionRef;
   /** 名指し・疑いを受けて返答する場合の直前話者。 */
   replyToId?: PairId;
+  /** 主人の最新相談を受けた直後に、バディ本人の見解更新を先に返すターン。 */
+  afterMasterAdvice?: true;
 }
 
 /** 他の主人(非人間)の助言ポリシー */
@@ -363,6 +365,8 @@ export interface AiCallRecord {
   costUsd: number;
   retries: number;
   jsonErrors: number;
+  /** 再通信せず、許可された狭い範囲で構造化評価を正規化した件数。 */
+  validationRepairs?: number;
   ok: boolean;
   usedFallback: boolean;
   error?: string;

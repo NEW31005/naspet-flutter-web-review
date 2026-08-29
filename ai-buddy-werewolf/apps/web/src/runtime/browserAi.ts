@@ -24,6 +24,15 @@ interface ScoreEntry {
   score: number;
 }
 
+type ScoreField = 'suspicions' | 'attackPriorities' | 'skillTargetPriorities';
+
+interface AllowedScoresResult {
+  scores: Record<PairId, number>;
+  dropped: number;
+  normalized: number;
+  conflicted: number;
+}
+
 interface ProxyEvalOutput {
   suspicions: ScoreEntry[];
   attackPriorities: ScoreEntry[];
@@ -43,6 +52,12 @@ interface ProxyResponse {
   output: unknown;
   model: string;
   usage: { inputTokens: number; outputTokens: number };
+  repair?: {
+    scoreEntriesDropped?: number;
+    scoreEntriesNormalized?: number;
+    scoreEntriesDroppedByField?: Partial<Record<ScoreField, number>>;
+    scoreEntriesNormalizedByField?: Partial<Record<ScoreField, number>>;
+  };
 }
 
 class JsonValidationError extends Error {
@@ -60,8 +75,65 @@ class JsonValidationError extends Error {
   }
 }
 
-function toScores(entries: ScoreEntry[]): Record<PairId, number> {
-  return Object.fromEntries(entries.map((entry) => [entry.targetId, entry.score]));
+/**
+ * Edge通過後もBuddyContextの生存候補だけへ絞る最後の防壁。
+ * 同一IDに異なる点数が来た場合は、順序依存のlast-winsにせず候補ごと除外する。
+ */
+export function toAllowedScores(
+  entries: unknown[],
+  allowedIds: ReadonlySet<string>,
+): AllowedScoresResult {
+  const scores: Record<PairId, number> = {};
+  const conflicted = new Set<string>();
+  let dropped = 0;
+  let normalized = 0;
+  for (const entry of entries) {
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+      dropped += 1;
+      continue;
+    }
+    const record = entry as Record<string, unknown>;
+    const targetId = record.targetId;
+    const score = record.score;
+    if (
+      typeof targetId !== 'string' ||
+      !allowedIds.has(targetId) ||
+      typeof score !== 'number' ||
+      !Number.isFinite(score) ||
+      score < 0 ||
+      score > 100
+    ) {
+      dropped += 1;
+      continue;
+    }
+    if (conflicted.has(targetId)) continue;
+    const previous = scores[targetId];
+    if (previous !== undefined && previous !== score) {
+      delete scores[targetId];
+      conflicted.add(targetId);
+      continue;
+    }
+    if (previous === score) {
+      normalized += 1;
+      continue;
+    }
+    scores[targetId] = score;
+  }
+  return { scores, dropped, normalized, conflicted: conflicted.size };
+}
+
+/** 欠落と除外が同じ1件を指す場合は二重計上せず、異なる補修は合算する。 */
+export function countScoreRepairs(
+  filtered: AllowedScoresResult,
+  edgeDropped = 0,
+  edgeNormalized = 0,
+  requiredIds?: ReadonlySet<string>,
+): number {
+  const knownDrops = edgeDropped + filtered.dropped + filtered.conflicted;
+  const missing = requiredIds
+    ? [...requiredIds].filter((id) => filtered.scores[id] === undefined).length
+    : 0;
+  return Math.max(knownDrops, missing) + edgeNormalized + filtered.normalized;
 }
 
 class LabProxyProvider {
@@ -73,7 +145,11 @@ class LabProxyProvider {
 
   async evaluate(ctx: BuddyContext, opts: CallOpts): Promise<ProviderResult<EvalOutput>> {
     const prompts = buildEvalPrompt(ctx, this.prompts);
-    const result = await this.callWithValidation<EvalOutput>('eval', prompts, opts, (value) => {
+    const result = await this.callWithValidation<{
+      output: EvalOutput;
+      validationRepairs: number;
+      validationRepairDetail?: unknown;
+    }>('eval', prompts, opts, (value, response) => {
       if (!value || typeof value !== 'object' || Array.isArray(value)) {
         throw new JsonValidationError('評価出力がオブジェクトではありません');
       }
@@ -82,12 +158,54 @@ class LabProxyProvider {
           !Array.isArray(raw.skillTargetPriorities)) {
         throw new JsonValidationError('評価スコア配列が不足しています');
       }
+      const candidateIds = new Set(ctx.candidates.map((candidate) => candidate.pairId));
+      const wolfPartnerIds = new Set(ctx.wolfPartners.map((partner) => partner.pairId));
+      const attackCandidateIds = new Set(
+        ctx.candidates
+          .filter((candidate) => !wolfPartnerIds.has(candidate.pairId))
+          .map((candidate) => candidate.pairId),
+      );
+      const suspicionScores = toAllowedScores(raw.suspicions, candidateIds);
+      const attackScores = toAllowedScores(raw.attackPriorities, attackCandidateIds);
+      const skillScores = toAllowedScores(raw.skillTargetPriorities, candidateIds);
+      const edgeDropped = response.repair?.scoreEntriesDroppedByField ?? {};
+      const edgeNormalized = response.repair?.scoreEntriesNormalizedByField ?? {};
+      const repairsByField = {
+        suspicions: countScoreRepairs(
+          suspicionScores,
+          edgeDropped.suspicions,
+          edgeNormalized.suspicions,
+          candidateIds,
+        ),
+        attackPriorities: countScoreRepairs(
+          attackScores,
+          edgeDropped.attackPriorities,
+          edgeNormalized.attackPriorities,
+        ),
+        skillTargetPriorities: countScoreRepairs(
+          skillScores,
+          edgeDropped.skillTargetPriorities,
+          edgeNormalized.skillTargetPriorities,
+        ),
+      };
+      const validationRepairs = Object.values(repairsByField)
+        .reduce((sum, count) => sum + count, 0);
+      if (candidateIds.size > 0 && Object.keys(suspicionScores.scores).length === 0) {
+        throw new JsonValidationError('怪しい度が許可候補について1件もありません');
+      }
+      if (validationRepairs > 1) {
+        throw new JsonValidationError('評価スコアの補修が許可上限1件を超えました');
+      }
       const mapped = {
-        suspicions: toScores(raw.suspicions),
+        suspicions: suspicionScores.scores,
         attackPriorities:
-          raw.attackPriorities.length > 0 ? toScores(raw.attackPriorities) : undefined,
+          raw.attackPriorities.length > 0
+            ? attackScores.scores
+            : undefined,
         skillTargetPriorities:
-          raw.skillTargetPriorities.length > 0 ? toScores(raw.skillTargetPriorities) : undefined,
+          raw.skillTargetPriorities.length > 0
+            ? skillScores.scores
+            : undefined,
         primaryHypothesis: raw.primaryHypothesis,
         altHypotheses: raw.altHypotheses,
         confidence: raw.confidence,
@@ -100,15 +218,30 @@ class LabProxyProvider {
       };
       const checked = evalOutputSchema.safeParse(mapped);
       if (!checked.success) throw new JsonValidationError(checked.error.message);
-      return checked.data;
+      return {
+        output: checked.data,
+        validationRepairs,
+        validationRepairDetail: validationRepairs > 0
+          ? { edge: response.repair, browser: repairsByField, total: validationRepairs }
+          : undefined,
+      };
     });
     return {
-      output: result.value,
+      output: result.value.output,
       model: result.response.model,
       usage: result.response.usage,
       jsonRetries: result.retries,
+      validationRepairs: result.value.validationRepairs,
+      validationRepairDetail: result.value.validationRepairDetail,
       rawRequest: { ...prompts, model: this.config.model, evalKind: opts.evalKind },
-      rawResponse: result.rawResponses.length === 1 ? result.rawResponses[0] : result.rawResponses,
+      rawResponse: result.value.validationRepairDetail
+        ? {
+            output: result.rawResponses.length === 1
+              ? result.rawResponses[0]
+              : result.rawResponses,
+            repair: result.value.validationRepairDetail,
+          }
+        : result.rawResponses.length === 1 ? result.rawResponses[0] : result.rawResponses,
     };
   }
 
@@ -142,7 +275,7 @@ class LabProxyProvider {
     callType: 'eval' | 'speech',
     prompts: { system: string; user: string },
     opts: CallOpts,
-    validate: (value: unknown) => T,
+    validate: (value: unknown, response: ProxyResponse) => T,
   ): Promise<{
     value: T;
     response: ProxyResponse;
@@ -160,7 +293,7 @@ class LabProxyProvider {
         outputTokens += response.usage.outputTokens;
         rawResponses.push(response.output);
         return {
-          value: validate(response.output),
+          value: validate(response.output, response),
           response: {
             ...response,
             // JSON再試行も実際の有料コールなので、成功試行だけでなく合算する。
@@ -363,7 +496,11 @@ export class BrowserAiEngine implements AiEngineLike {
         result.usage.outputTokens,
       ),
       retries: result.jsonRetries,
-      jsonErrors: result.jsonRetries + (usedFallback && error?.includes('JsonValidation') ? 1 : 0),
+      jsonErrors:
+        result.jsonRetries +
+        (result.validationRepairs ?? 0) +
+        (usedFallback && error?.includes('JsonValidation') ? 1 : 0),
+      validationRepairs: result.validationRepairs,
       ok,
       usedFallback,
       error,

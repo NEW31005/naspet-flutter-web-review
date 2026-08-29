@@ -433,15 +433,14 @@ function buildDirectiveBlock(ctx: BuddyContext): string {
       '# 今回の会話役割\nこれは冒頭討論。現時点の仮説と根拠を1つ出し、後の相手が反応できる論点を残す。',
     );
   } else if (turn?.kind === 'opening_defense') {
-    const others = ctx.discussionFocus.filter((pair) => pair.pairId !== ctx.self.pairId);
     parts.push(
       '# 今回の会話役割: 初日の弁明',
-      `あなたは初日の討論対象へ抽選された。抽選は狼の証拠ではない。まず自分が狼憑きではないと主張し、今後どんな発言や矛盾を見てほしいかを具体的に1点話す。${others.length > 0 ? `もう一人の対象は${others.map((pair) => pair.name).join('、')}。根拠なく狼と断定しない。` : ''}`,
+      'あなたは初日の討論対象へ抽選された。抽選は狼の証拠ではない。自分が狼憑きではないという説明と、今後自分の何を見て判断してほしいかだけを具体的に1点話す。もう一人の抽選対象の未生成発言や表示順には触れず、相手の出方待ちにも見せない。',
     );
   } else if (turn?.kind === 'opening_opinion') {
     parts.push(
       '# 今回の会話役割: 初日の焦点評価',
-      `討論対象は${ctx.discussionFocus.map((pair) => pair.name).join('、')}。直前までの弁明を比較し、気になった具体的な言葉、納得した点、追加で確かめたい点のうち1つを述べる。抽選された事実そのものは疑いの根拠にしない。`,
+      `討論対象は${ctx.discussionFocus.map((pair) => pair.name).join('、')}。直前までの弁明を比較し、気になった具体的な言葉、納得した点、追加で確かめたい論点のうち1つを述べる。抽選された事実や、並列生成された弁明の表示順・先後は疑いの根拠にしない。すでに直近2人が同じ一文を攻めているなら、その一文は使わず別の観点か反対仮説へ切り替える。`,
     );
   } else if (turn?.kind === 'question' && turn.targetName && turn.theme) {
     parts.push(
@@ -456,9 +455,11 @@ function buildDirectiveBlock(ctx: BuddyContext): string {
       `# 今回の会話役割: 返答の受け止め\n${turn.targetName}の直前の回答を具体的に取り上げ、納得した点か残った矛盾を1つだけ述べる。`,
     );
   } else if (turn?.kind === 'reaction') {
-    parts.push(turn.replyToName
-      ? `# 今回の会話役割: 名指しへの返答\n${turn.replyToName}があなたへ疑いを向けた。まず相手の具体的な主張へ短く答え、そのうえで反論・説明・別の疑いのいずれかを返す。呼びかけ先が分かるよう相手の名前を入れる。`
-      : '# 今回の会話役割: 自発的な応答討論\n直近の会話から具体的な発言を1つ取り上げ、賛成・反論・質問・評価更新のいずれかを示す。ほかのAIと同時に考えているため、同じ論点の言い換えだけにしない。');
+    parts.push(turn.afterMasterAdvice
+      ? '# 今回の会話役割: 主人との相談後の見解更新\n主人から届いた最新の相談を、親密度と自分の推理の両方で検討した直後である。相談内容そのものや主人の存在は円卓へ明かさず、直近の公開会話に結びつけて、更新後の見解を1つ短く話す。'
+      : turn.replyToName
+        ? `# 今回の会話役割: 名指しへの返答\n${turn.replyToName}があなたへ疑いを向けた。まず相手の具体的な主張へ短く答え、そのうえで反論・説明・別の疑いのいずれかを返す。呼びかけ先が分かるよう相手の名前を入れる。`
+        : '# 今回の会話役割: 自発的な応答討論\n直近の会話から具体的な発言を1つ取り上げ、賛成・反論・質問・評価更新のいずれかを示す。ほかのAIと同時に考えているため、同じ論点の言い換えだけにしない。');
   }
   if (ctx.pendingQuestion) {
     parts.push(

@@ -28,6 +28,9 @@ export interface ProviderResult<T> {
   usage: ProviderUsage;
   /** JSON検証失敗などプロバイダー内部での再試行回数 */
   jsonRetries: number;
+  /** 有料再試行とは別に、許可された狭い範囲で正規化した構造要素数。 */
+  validationRepairs?: number;
+  validationRepairDetail?: unknown;
   rawRequest?: unknown;
   rawResponse?: unknown;
 }

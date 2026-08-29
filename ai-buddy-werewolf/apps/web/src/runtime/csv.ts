@@ -38,13 +38,14 @@ export function callsCsv(record: MatchRecord): string {
   const rows: unknown[][] = [[
     'matchId', 'id', 'ts', 'pairId', 'callType', 'evalKind', 'provider', 'model',
     'latencyMs', 'inputTokens', 'outputTokens', 'costUsd', 'retries', 'jsonErrors',
-    'ok', 'usedFallback', 'error',
+    'validationRepairs', 'ok', 'usedFallback', 'error',
   ]];
   for (const call of record.aiCalls) {
     rows.push([
       record.matchId, call.id, call.ts, call.pairId, call.callType, call.evalKind ?? '',
       call.provider, call.model, call.latencyMs, call.inputTokens, call.outputTokens,
-      call.costUsd, call.retries, call.jsonErrors, call.ok, call.usedFallback,
+      call.costUsd, call.retries, call.jsonErrors, call.validationRepairs ?? 0,
+      call.ok, call.usedFallback,
       call.error ?? '',
     ]);
   }

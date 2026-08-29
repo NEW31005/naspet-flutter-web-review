@@ -340,6 +340,25 @@ function timedDiscussionTurns(state: MatchState): DiscussionTurn[] {
   const questionExchange = pendingQuestionExchangeTurn(state, speeches, aliveIds);
   if (questionExchange) return [questionExchange];
 
+  // 質問の往復を完了した後は、主人の最新相談を受けた人間バディ自身が
+  // まず一度だけ見解を更新する。助言で当日の評価が無効化され、発言後に
+  // 再び最新になるため、専用状態を増やさず一度きりにできる。
+  const humanPairId = state.humanPairId;
+  const humanEvalMeta = humanPairId ? state.latestEvalMeta[humanPairId] : null;
+  if (
+    humanPairId &&
+    aliveIds.includes(humanPairId) &&
+    discussion.masterAdviceDecision === 'advice' &&
+    !(humanEvalMeta?.day === state.day && humanEvalMeta.kind === 'discussion')
+  ) {
+    return [{
+      pairId: humanPairId,
+      round: 2,
+      kind: 'reaction',
+      afterMasterAdvice: true,
+    }];
+  }
+
   const counts = Object.fromEntries(
     aliveIds.map((pairId) => [pairId, speeches.filter((speech) => speech.pairId === pairId).length]),
   ) as Record<PairId, number>;
@@ -367,16 +386,43 @@ function timedDiscussionTurns(state: MatchState): DiscussionTurn[] {
     questionThemes.find((theme) => theme.id === 'most_suspicious')?.id ??
     questionThemes.find((theme) => state.day > 1 || theme.id !== 'vote_reason')?.id ??
     null;
+  const resolvedThemeId = (pairId: PairId): string | null => {
+    const requested = state.latestEvals[pairId]?.questionTheme;
+    const available = requested && questionThemes.some((theme) => theme.id === requested)
+      ? requested
+      : fallbackThemeId;
+    return state.day === 1 && available === 'vote_reason' ? fallbackThemeId : available;
+  };
+  const askedQuestionKeys = new Set(
+    speeches
+      .filter((speech) => speech.turnKind === 'question' && speech.question)
+      .map((speech) => `${speech.question?.targetId}\u0000${speech.question?.themeId}`),
+  );
+  const rawSelfQuestionCandidates = aliveIds.filter((pairId) => {
+    if (askedToday.has(pairId) || cooldownIds.has(pairId)) return false;
+    const evaluation = state.latestEvals[pairId];
+    const meta = state.latestEvalMeta[pairId];
+    const themeId = resolvedThemeId(pairId);
+    return meta?.day === state.day && meta.kind === 'discussion' &&
+      !!evaluation?.questionTargetId &&
+      evaluation.questionTargetId !== pairId &&
+      aliveIds.includes(evaluation.questionTargetId) &&
+      !!themeId &&
+      !askedQuestionKeys.has(`${evaluation.questionTargetId}\u0000${themeId}`);
+  });
+  // 直前に完了した質問と同じ相手へ、別AIがほぼ同じ質問を続ける機械的な
+  // 集中を避ける。別対象が一人もいない場合だけ元候補へ戻して討論を止めない。
+  const mostRecentQuestionTarget = [...speeches]
+    .reverse()
+    .find((speech) => speech.turnKind === 'question')
+    ?.question?.targetId ?? null;
+  const targetDiverseCandidates = mostRecentQuestionTarget
+    ? rawSelfQuestionCandidates.filter(
+        (pairId) => state.latestEvals[pairId]?.questionTargetId !== mostRecentQuestionTarget,
+      )
+    : rawSelfQuestionCandidates;
   const selfQuestionCandidates = shuffle(
-    aliveIds.filter((pairId) => {
-      if (askedToday.has(pairId) || cooldownIds.has(pairId)) return false;
-      const evaluation = state.latestEvals[pairId];
-      const meta = state.latestEvalMeta[pairId];
-      return meta?.day === state.day && meta.kind === 'discussion' &&
-        !!evaluation?.questionTargetId &&
-        evaluation.questionTargetId !== pairId &&
-        aliveIds.includes(evaluation.questionTargetId);
-    }),
+    targetDiverseCandidates.length > 0 ? targetDiverseCandidates : rawSelfQuestionCandidates,
     state.seed,
     'timed-self-question',
     state.day,
@@ -387,13 +433,7 @@ function timedDiscussionTurns(state: MatchState): DiscussionTurn[] {
   if (selfQuestioner) {
     const evaluation = state.latestEvals[selfQuestioner];
     const targetId = evaluation?.questionTargetId ?? null;
-    const requestedThemeId = evaluation?.questionTheme &&
-      questionThemes.some((theme) => theme.id === evaluation.questionTheme)
-      ? evaluation.questionTheme
-      : fallbackThemeId;
-    const configuredThemeId = state.day === 1 && requestedThemeId === 'vote_reason'
-      ? fallbackThemeId
-      : requestedThemeId;
+    const configuredThemeId = resolvedThemeId(selfQuestioner);
     if (targetId && configuredThemeId) {
       return [{
         pairId: selfQuestioner,

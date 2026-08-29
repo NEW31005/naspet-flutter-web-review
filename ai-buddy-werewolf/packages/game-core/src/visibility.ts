@@ -65,6 +65,8 @@ export interface BuddyContext {
   };
   self: {
     pairId: PairId;
+    /** 表示名を編集しても人格別の決定論的モックを識別できる設定ID。 */
+    buddyId: string;
     buddyName: string;
     masterName: string;
     role: Role;
@@ -216,6 +218,7 @@ export function buildBuddyContext(
     },
     self: {
       pairId,
+      buddyId: pair.buddyId,
       buddyName: pair.buddyName,
       masterName: pair.masterName,
       role: pair.role,

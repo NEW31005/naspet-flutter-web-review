@@ -24,7 +24,7 @@
 |---|---|---|
 | プリセット | Quick Test(5組/狼1/占1/3日)・Pack Test(8組/狼2/占1/4日) | `config/presets/` |
 | 討論 | 全プリセットを時間制にし（既定150秒）、`opening → awaiting_master_advice → response` を基本に追加相談では `response → awaiting_master_advice → response` を繰り返す。初日は抽選された2人が先に弁明し、他AIの意見まで出たら必ず主人へ返す。相談待ち中は討論時計を停止し、助言または明示的なスキップ後に実残時間で再開する。各AIは個別に処理し、名指し反論と指名質問への短い回答・追加反応を優先。時間切れ後の生成は不採用 | `discussionMode`, `discussionDurationSec`, `discussionMaxMessages`, `discussionBatchSize`, `discussionAdviceIntervalMessages`, `firstDayFocusCount` とプリセット |
-| 公開発言の長さ | 原則1〜2文、プロバイダー境界とゲームコアの両方で最大120文字。指名質問への回答・受け止めでは、当日かつ新しい主人入力より後の討論評価だけを再利用して評価コールを省く | `MAX_PUBLIC_SPEECH_CHARS`, `latestEvalMeta`, `maxTokensSpeech` |
+| 公開発言の長さ | 原則1〜2文、通常52文字以内、プロバイダー境界とゲームコアの両方で絶対上限60文字。結論・直接回答・質問を先頭へ置き、人格は一人称・相手への敬称・最後の語尾のうち1〜2個で残す。指名質問への回答・受け止めでは、当日かつ新しい主人入力より後の討論評価だけを再利用して評価コールを省く | `MAX_PUBLIC_SPEECH_CHARS`, `latestEvalMeta`, `maxTokensSpeech` |
 | 助言 | 本格9組は1日2回、時間制の安全上限は3回。メニュー6種（役職を名乗る相談を含む）、質問テーマ5種、立ち回り4種。定型選択だけではAIコールを発生させない | プリセット + `config/advice.json` |
 | 役職を名乗る相談 | 本当の役職・別役職・今日は名乗らないを主人が選ぶ。相談は秘密で、実際に名乗るかは親密度と盤面を踏まえてバディが決める。公開時も真偽は伏せる | `role_claim`助言 + `role_declared`公開イベント |
 | 標準9組 | 狼憑き2・占い師1・騎士1・霊媒師1・市民4 | `config/presets/standard-nine.json` |

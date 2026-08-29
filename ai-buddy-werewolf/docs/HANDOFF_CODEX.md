@@ -21,7 +21,7 @@
 - 設定・全プロンプトを本番モバイルへ渡すSHA-256付き固定bundleの書き出し/読み込み
 - Live入力は投票等の永続公開イベントを残し、発言本文だけを直近24件へ制限。公開Labの再読込後に保持する生リクエスト/レスポンスは直近30コール（進行中メモリと即時JSON出力は全件）
 - 公開Edgeに要求サイズ・出力token・同時実行・30分件数の上限とLive緊急停止スイッチ（isolate単位のベストエフォート）
-- 自動テスト144件（5役職・役職を名乗る相談/公開宣言/試合後真偽・初日焦点2人の弁明・討論3段階・1日複数相談・相談後の見解更新・同義質問の再発行防止・質疑完了前の割込み防止・相談見送りの残数・Live発言120文字上限・Live評価候補ID制限と補修上限・指名質問の高速回答と評価鮮度・時間切れ終了・Play Testの内部リプレイ境界・公開Labのブラウザ内完走/復元・Live AIと本格9組の初期選択・旧試合の凍結助言・旧v1引継ぎ互換・日本語を含む愛言葉正規化・複数の占い・護衛・霊媒・初日占い・秘密分離を含む）/ ESLint / strict TypeScript
+- 自動テスト154件（5役職・役職を名乗る相談/公開宣言/試合後真偽・初日焦点2人の弁明・討論3段階・1日複数相談・相談後の見解更新・同義質問の再発行防止・質疑完了前の割込み防止・相談見送りの残数・Live発言60文字上限・絵文字/空白境界・短縮時構造化情報破棄・Live評価候補ID制限と補修上限・指名質問の高速回答と評価鮮度・時間切れ終了・Play Testの内部リプレイ境界・公開Labのブラウザ内完走/復元・Live AIと本格9組の初期選択・旧試合の凍結助言・旧v1引継ぎ互換・日本語を含む愛言葉正規化・複数の占い・護衛・霊媒・初日占い・秘密分離を含む）/ ESLint / strict TypeScript
 
 ## 未実装の範囲
 
@@ -171,7 +171,7 @@ npx --yes deno test supabase/functions/ai-buddy-lab/index_test.ts  # 実APIを�
 | 対象 | バージョン |
 |---|---|
 | ルールプリセット | standard-nine `0.2.0-short-rally.1` / quick-test `0.8.1-short-rally.1` / quick-info `0.8.1-short-rally.1` / pack-test `0.5.1-short-rally.1` |
-| advice / abilities / buddies | `0.2.0-role-claim.1` / `0.1.0` / `0.2.0-role-expansion.1` |
-| models | `0.5.0-short-rally.1` |
-| プロンプト | `1.0.0-short-rally-diverse-angles.3` |
+| advice / abilities / buddies | `0.2.0-role-claim.1` / `0.1.0` / `0.2.1-speed-rhythm.1` |
+| models | `0.5.1-speed-rhythm.1` |
+| プロンプト | `1.0.0-short-rally-diverse-angles.4` |
 | 保存スキーマ(`MatchRecord.schemaVersion`) | 1 |

@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { countScoreRepairs, toAllowedScores } from '../src/runtime/browserAi.js';
+import {
+  countScoreRepairs,
+  toAllowedScores,
+  validatePublicSpeechOutput,
+} from '../src/runtime/browserAi.js';
 
 describe('Live評価スコアの候補制限', () => {
   it('許可候補だけを残し、不正値や候補外IDを捨てる', () => {
@@ -58,5 +62,25 @@ describe('Live評価スコアの候補制限', () => {
     const noScores = toAllowedScores([], allowed);
     expect(countScoreRepairs(oneScore, 0, 0, allowed)).toBe(2);
     expect(countScoreRepairs(noScores, 0, 0, allowed)).toBe(3);
+  });
+});
+
+describe('Live公開発言の長さ境界', () => {
+  it('日本語60文字は受理し、61文字は再試行対象の検証エラーにする', () => {
+    expect(validatePublicSpeechOutput({
+      text: '短'.repeat(60),
+      accusesId: null,
+      declaredRole: null,
+    }).text).toHaveLength(60);
+    expect(() => validatePublicSpeechOutput({
+      text: '長'.repeat(61),
+      accusesId: null,
+      declaredRole: null,
+    })).toThrow(/60文字/);
+    expect(() => validatePublicSpeechOutput({
+      text: '  \n ',
+      accusesId: null,
+      declaredRole: null,
+    })).toThrow(/1〜60文字/);
   });
 });

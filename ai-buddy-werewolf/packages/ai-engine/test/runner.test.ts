@@ -349,6 +349,25 @@ describe('モック評価の信頼度・確定情報の扱い', () => {
     );
     expect(withHumanFact.suspicions['p3']).toBeLessThanOrEqual(10);
   });
+
+  it('狼ではない確定情報を人格語尾で曖昧にしない', () => {
+    const ctx = ctxWith(0, (c) => {
+      c.sharedFacts.push({
+        id: 'f-white-speech',
+        day: 1,
+        targetId: 'p3',
+        isWolf: false,
+        source: 'divination',
+      });
+    });
+    const speeches = Array.from({ length: 20 }, (_, index) => {
+      const callOpts = { ...opts, stepLabel: `white-fact-${index}` };
+      return mockSpeak(ctx, mockEvaluate(ctx, callOpts), callOpts).text;
+    });
+    const factSpeech = speeches.find((text) => text.includes('狼ではないと確定している'));
+    expect(factSpeech).toBeDefined();
+    expect(factSpeech).not.toMatch(/かも|かな|じゃないかな|だと思う/);
+  });
 });
 
 describe('モックの役職を名乗る相談', () => {
@@ -648,7 +667,7 @@ describe('2幕討論のモック発言', () => {
     };
     const reaction = mockSpeak(ctx, mockEvaluate(ctx, opts), opts);
     expect(reaction.accusesId).toBeNull();
-    expect(reaction.text).toMatch(/指摘|見方|疑われ/);
+    expect(reaction.text).toMatch(/指摘|見方|疑われ|疑い/);
   });
 
   it('指名質問は対象へ一問だけ送り、回答ターンは質問への返答だけを生成する', () => {
@@ -688,6 +707,59 @@ describe('2幕討論のモック発言', () => {
     expect(answer.text).toContain('今いちばん疑っているのは');
     expect(answer.text).not.toMatch(/^B1への答え/);
     expect(answer.text).not.toContain('?');
+  });
+
+  it('セバスは長い前置きを足さず、最後の一箇所だけ執事口調を残す', () => {
+    const store = makeStore('sebas-brief-style');
+    const ctx = buildBuddyContext(store.state, 'p3');
+    ctx.self.buddyId = 'sebas';
+    ctx.discussionFocus = [
+      { pairId: 'p3', name: ctx.self.buddyName },
+      { pairId: 'p2', name: 'レン' },
+    ];
+    ctx.discussionTurn = {
+      round: 1,
+      kind: 'opening_defense',
+      askerId: null,
+      askerName: null,
+      targetId: null,
+      targetName: null,
+      theme: null,
+    };
+    const defense = mockSpeak(ctx, mockEvaluate(ctx, opts), opts);
+    expect(defense.text).toMatch(/ございません|ください|ですな|存じます/);
+    expect([...defense.text].length).toBeLessThanOrEqual(60);
+
+    const theme = {
+      id: 'most_suspicious',
+      label: '現在最も疑っている相手',
+      mockTemplate: '{target}は今、誰が一番怪しいと思ってる?',
+      promptHint: '相手と理由を尋ねる',
+    };
+    ctx.discussionTurn = {
+      round: 2,
+      kind: 'question',
+      askerId: 'p3',
+      askerName: ctx.self.buddyName,
+      targetId: 'p2',
+      targetName: 'レン',
+      theme,
+    };
+    const question = mockSpeak(ctx, mockEvaluate(ctx, opts), opts);
+    expect(question.text).toBe('レンは今、誰を一番疑っておりますか');
+  });
+
+  it('感嘆符や疑問符の直後へ句点を重ねない', () => {
+    const store = makeStore('mock-punctuation');
+    const ctx = buildBuddyContext(store.state, 'p1');
+    ctx.self.role = 'werewolf';
+    ctx.self.unlockedDeception = [];
+    ctx.self.persona = {
+      ...ctx.self.persona,
+      mockFlavor: { endings: ['ですからね!'], exclamations: [] },
+    };
+    const output = mockSpeak(ctx, mockEvaluate(ctx, opts), opts);
+    expect(output.text).not.toMatch(/[!?！？]。/u);
   });
 });
 

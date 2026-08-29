@@ -257,6 +257,46 @@ function ctxAdviceBonus(ctx: BuddyContext): number {
   return trustBonus(ctx.self.abilities.trust, ctx.trustConfig.subjectiveAdvice);
 }
 
+/** モックでもセバスだけ長い儀礼へ戻さず、最後の一箇所で執事口調を残す。 */
+function applyMockSpeechStyle(text: string, buddyId: string): string {
+  if (buddyId !== 'sebas') return text;
+  const styled = text
+    .replaceAll('狼憑きではない', '狼憑きではございません')
+    .replaceAll('市民側。', '市民側でございます。')
+    .replace(/は今、誰が一番怪しいと思ってる\?$/u, 'は今、誰を一番疑っておりますか')
+    .replace(/は自分の役職を明かすつもりはある\?$/u, 'は役職を明かすおつもりですか')
+    .replace(/、昨日の投票の理由を聞かせて$/u, '、昨日の投票理由をお聞かせください')
+    .replace(/、さっき庇ってたのはどうして\?$/u, '、先ほど庇った理由は何ですか')
+    .replace(/、前と言ってることが違わない\?$/u, '、前と話が違うのはなぜですか');
+  if (/(?:ですな|でございます|かと存じます|ですか|ください|ません|ます)$/u.test(styled)) {
+    return styled;
+  }
+  const endings: readonly [RegExp, string][] = [
+    [/確かめたい$/u, '確かめたいですな'],
+    [/重く見る$/u, '重く見ます'],
+    [/大事$/u, '大事ですな'],
+    [/警戒したい$/u, '警戒します'],
+    [/見てから決めたい$/u, '見てから決めます'],
+    [/決めたい$/u, '決めます'],
+    [/見たい$/u, '見たいですな'],
+    [/比べたい$/u, '比べたいですな'],
+    [/保留する$/u, '保留しますな'],
+    [/決めない$/u, '決めません'],
+    [/を見る$/u, 'を見ます'],
+    [/撤回しない$/u, '撤回しません'],
+    [/挙げてほしい$/u, '挙げてください'],
+    [/比べてほしい$/u, '比べてください'],
+    [/見てほしい$/u, '見てください'],
+    [/予定はない$/u, '予定はございません'],
+    [/役職を明かす$/u, '役職を明かします'],
+    [/として名乗る$/u, 'として名乗ります'],
+  ];
+  for (const [pattern, replacement] of endings) {
+    if (pattern.test(styled)) return styled.replace(pattern, replacement);
+  }
+  return styled;
+}
+
 /** 決定論的な発言生成(人格は語尾・言い回しにのみ反映) */
 export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): SpeechOutput {
   const seed = `${opts.seed}#${opts.nonce}`;
@@ -275,7 +315,10 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
   const exclaim = () =>
     persona.mockFlavor.exclamations.length > 0 &&
     rand(seed, 'exc', opts.stepLabel) < 0.5
-      ? pickOne(persona.mockFlavor.exclamations, seed, 'exc2', opts.stepLabel) + '、'
+      ? `${pickOne(persona.mockFlavor.exclamations, seed, 'exc2', opts.stepLabel).replace(
+          /[、。!?！？]+$/u,
+          '',
+        )}、`
       : '';
 
   const sorted = Object.entries(ev.suspicions).sort((a, b) => b[1] - a[1]);
@@ -283,6 +326,15 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
   const lines: string[] = [];
   let accusesId: PairId | null = null;
   let declaredRole: SpeechOutput['declaredRole'] = null;
+  const present = (
+    text: string,
+    target: PairId | null,
+    role: SpeechOutput['declaredRole'] = null,
+  ): SpeechOutput => ({
+    text: applyMockSpeechStyle(text, self.buddyId).replace(/([!?！？…])。/gu, '$1'),
+    accusesId: target,
+    declaredRole: role,
+  });
   const turn = ctx.discussionTurn;
   const participantIndex = Math.max(
     0,
@@ -347,18 +399,14 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
     const otherFocus = ctx.discussionFocus.find((pair) => pair.pairId !== self.pairId);
     const defenses = isWolf
       ? [
-          `${exclaim()}${persona.firstPerson}は狼憑きではない。抽選だけで決めず、この後に理由なく便乗する人を見てほしい`,
-          `先に言うけれど、${persona.firstPerson}は狼憑きではない。${otherFocus ? `${otherFocus.name}も含めて、` : ''}言葉と次の投票が合うかで判断してほしい`,
+          `${exclaim()}${persona.firstPerson}は狼憑きではない。抽選だけでなく、次の返事を見てほしい`,
+          `先に言う。${persona.firstPerson}は狼憑きではない。${otherFocus ? `${otherFocus.name}と` : ''}説明を比べてほしい`,
         ]
       : [
-          `${exclaim()}${persona.firstPerson}は狼憑きではない。抽選で選ばれただけだから、この後の受け答えと投票まで見て判断してほしい`,
-          `身の潔白を先に話すなら、${persona.firstPerson}は市民側だ。${otherFocus ? `${otherFocus.name}も抽選だけでは決めつけず、` : ''}説明の中身を比べてほしい`,
+          `${exclaim()}${persona.firstPerson}は狼憑きではない。抽選だけでなく、次の返事を見てほしい`,
+          `先に言う。${persona.firstPerson}は市民側。${otherFocus ? `${otherFocus.name}と` : ''}説明を比べてほしい`,
         ];
-    return {
-      text: pickOne(defenses, seed, 'opening-defense', opts.stepLabel),
-      accusesId: null,
-      declaredRole: null,
-    };
+    return present(pickOne(defenses, seed, 'opening-defense', opts.stepLabel), null);
   }
 
   if (turn?.kind === 'opening_opinion' && ctx.discussionFocus.length > 0) {
@@ -380,49 +428,43 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
             `${selected.name}へ早く同意する人が出るか見たい。同意に新しい根拠があるかが大事`,
             `この時点で${selected.name}へ疑いが集まるなら、理由なく流れへ乗る人の方を警戒したい`,
             `${selected.name}の弁明は一応筋が通る。${other ? `${other.name}との違いを` : '次の受け答えを'}見てから決めたい`,
-            `2人の白黒より、この後に疑い先を急に変える人が出るかを見たい`,
+            `2人の正体より、この後に疑い先を急に変える人が出るかを見たい`,
             `同じ意見が続いても、新しい根拠が足されるかを見たい。数だけでは決めない`,
             `${selected.name}への反応が早すぎる人は少し気になる。今は弁明そのものを比べたい`,
             `${other ? `${selected.name}と${other.name}` : selected.name}の言い方より、質問へ正面から答えるかで見たい`,
           ];
-      return {
-        text: opinions[angleIndex % opinions.length] ?? opinions[0] ?? '次の受け答えを見たい',
-        accusesId: clearContradiction ? selected.pairId : null,
-        declaredRole: null,
-      };
+      return present(
+        opinions[angleIndex % opinions.length] ?? opinions[0] ?? '次の受け答えを見たい',
+        clearContradiction ? selected.pairId : null,
+      );
     }
   }
 
   // 2幕討論では役割を先に固定する。指名された回答者が話題をそらさないことを
   // モックでも保証し、Liveと同じ会話構造を検証できるようにする。
   if (turn?.kind === 'question' && turn.theme && turn.targetName) {
-    return {
-      text: turn.theme.mockTemplate.replace('{target}', turn.targetName),
-      accusesId: null,
-      declaredRole: null,
-    };
+    return present(turn.theme.mockTemplate.replace('{target}', turn.targetName), null);
   }
   if (turn?.kind === 'answer' && turn.theme && turn.askerName) {
     const answerByTheme: Record<string, string> = {
       vote_reason:
         ctx.matchInfo.day === 1
           ? 'まだ最初の裁判前だから、昨日の投票はない。今の発言だけで考えている'
-          : `${persona.firstPerson}が昨日選んだ相手は、その時点で一番説明が弱く見えたから${ending()}`,
+          : `昨日その相手を選んだのは、説明が一番弱く見えたのが理由${ending()}`,
       most_suspicious: topId
-        ? `今いちばん疑っているのは${nameOf(topId)}${ending()}。${reason()}のが理由${ending()}`
+        ? `今いちばん疑っているのは${nameOf(topId)}。${reason()}のが理由${ending()}`
         : `今はまだ一人に絞れていない${ending()}`,
       co_plan:
         self.role === 'seer' && !hideRole
-          ? `必要になれば役職は明かす。でも今この場で明かすかは、もう少し発言を見て決める${ending()}`
+          ? `今は役職を明かさない。判断はもう少し発言を見てから${ending()}`
           : `${persona.firstPerson}は今のところ、役職を名乗る予定はない`,
       why_cover: `庇うつもりではなく、今ある発言だけでは決めつけられないと言っただけ${ending()}`,
       why_changed: `直前の発言を聞いて評価を更新した。変えた理由はそこ${ending()}`,
     };
-    return {
-      text: answerByTheme[turn.theme.id] ?? `今ある公開情報だけで答える${ending()}`,
-      accusesId: turn.theme.id === 'most_suspicious' ? topId : null,
-      declaredRole: null,
-    };
+    return present(
+      answerByTheme[turn.theme.id] ?? `今ある公開情報だけで答える${ending()}`,
+      turn.theme.id === 'most_suspicious' ? topId : null,
+    );
   }
   if (turn?.kind === 'follow_up' && turn.targetName) {
     const latestAnswer = [...ctx.publicLog]
@@ -430,16 +472,12 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
       .find((entry) => entry.t === 'speech' && entry.pairId === turn.targetId);
     const reactions = latestAnswer
       ? [
-          `${turn.targetName}の答えは聞いた。理由は分かったけれど、まだ結論は保留する`,
-          `${turn.targetName}の返答で考えは少し整理できた。ただ、その説明だけで白とは決めない`,
-          `${turn.targetName}は質問には答えた。この返しと冒頭の主張が合うかを見たい`,
+          `${turn.targetName}の理由は分かった。ただ、判断はまだ保留する`,
+          `${turn.targetName}は答えたが、狼ではないとはまだ決めない`,
+          `${turn.targetName}の返事と最初の主張が合うかを見る`,
         ]
       : [`${turn.targetName}の返答を待って判断したい`];
-    return {
-      text: pickOne(reactions, seed, 'follow-up', opts.stepLabel),
-      accusesId: null,
-      declaredRole: null,
-    };
+    return present(pickOne(reactions, seed, 'follow-up', opts.stepLabel), null);
   }
 
   // 1) 確定情報の公開(占い役/霊媒師が共有済みの狼情報を持つ場合)
@@ -454,7 +492,7 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
     const sourceRole = wolfFact.source === 'medium' ? '霊媒師' : '占い師';
     const sourceAction = wolfFact.source === 'medium' ? '霊媒' : '占い';
     lines.push(
-      `${exclaim()}${persona.firstPerson}は${sourceRole}${ending()}。${sourceAction}で分かっている、狼憑きは${nameOf(wolfFact.targetId)}${ending()}`,
+      `${exclaim()}${persona.firstPerson}は${sourceRole}。${sourceAction}で狼憑きと分かったのは${nameOf(wolfFact.targetId)}${ending()}`,
     );
     declaredRole = self.role;
     accusesId = wolfFact.targetId;
@@ -464,7 +502,7 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
   const whiteFact = ctx.sharedFacts.find((f) => !f.isWolf);
   if (whiteFact && !hideRole && lines.length === 0 && rand(seed, 'white', opts.stepLabel) < 0.6) {
     const source = whiteFact.source === 'medium' ? '霊媒' : '占い';
-    lines.push(`${nameOf(whiteFact.targetId)}は${source}で白と分かっている${ending()}。疑うだけ無駄${ending()}`);
+    lines.push(`${nameOf(whiteFact.targetId)}は${source}で狼ではないと確定している`);
   }
 
   // 2) 主人からの質問指示(最優先で消化。質問文自体には語尾を付けない)
@@ -477,7 +515,7 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
   }
 
   // 3) メインの発言(役職と虚言力・立ち回り指示で分岐)
-  if (lines.length < 2 || persona.verbosity === 'long') {
+  if (lines.length === 0) {
     if (directive === 'low_profile') {
       lines.push(`今日は聞き役に回るつもり${ending()}`);
     } else if (turn?.kind === 'reaction') {
@@ -491,20 +529,20 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
       if (latest) {
         const reactions = turn.replyToName
           ? [
-              `${turn.replyToName}の指摘は聞いた。どの言葉からそう見えたのか、こちらの理由も返す`,
-              `${turn.replyToName}、疑われたこと自体には反発しない。印象ではなく今の主張を比べてほしい`,
-              `${turn.replyToName}の見方は分かった。今は言い返すより、どこが矛盾して見えたのかを整理したい`,
+              `${turn.replyToName}、その疑いは印象だけに見える。発言を比べてほしい`,
+              `${turn.replyToName}、疑うなら矛盾した言葉を挙げてほしい`,
+              `${turn.replyToName}の疑いには根拠が足りない。私は撤回しない`,
             ]
           : isWolf
           ? [
-              `${latest.name}の今の説明は聞いた。すぐ否定せず、次の受け答えまで保留したい`,
-              `${latest.name}の言いたいことは分かった。ただ、今の主張と投票が合うかは見ておきたい`,
-              `${latest.name}の発言には納得できる部分もある。今は結論を急がない`,
+              `${latest.name}の説明だけでは決めない。次の返事まで保留する`,
+              `${latest.name}の主張と投票が合うかを見る`,
+              `${latest.name}の説明に矛盾はない。今は保留する`,
             ]
           : [
-              `${latest.name}の今の発言は筋が通る部分もある。いったん受け止めて、他の返答とも比べたい`,
-              `${latest.name}の根拠だけではまだ決めきれない。ただ、論点は前より分かりやすくなった`,
-              `${latest.name}の今の発言で考えを少し更新した。ここでは結論を保留する`,
+              `${latest.name}の話は筋が通る。他の返事とも比べたい`,
+              `${latest.name}の根拠だけでは決めきれない。今は保留する`,
+              `${latest.name}の発言で見方を少し変えた。まだ決めない`,
             ];
         lines.push(pickOne(reactions, seed, 'reaction', opts.stepLabel));
       }
@@ -519,12 +557,14 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
       } else if (canMisdirect && topId) {
         lines.push(
           ctx.matchInfo.day === 1
-            ? `${exclaim()}${persona.firstPerson}が引っかかっているのは${nameOf(topId)}の今の誘導${ending()}。疑い先と理由が噛み合っていないのが理由${ending()}`
-            : `${exclaim()}${persona.firstPerson}が引っかかっているのは${nameOf(topId)}の昨日からの動き${ending()}。発言と投票が噛み合っていないのが理由${ending()}`,
+            ? `${exclaim()}${nameOf(topId)}の誘導が気になる。疑い先と理由が噛み合わないのが理由${ending()}`
+            : `${exclaim()}${nameOf(topId)}の動きが気になる。発言と投票が噛み合わないのが理由${ending()}`,
         );
         accusesId = topId;
       } else if (canReason && topId) {
-        lines.push(`${persona.firstPerson}が気になっているのは${nameOf(topId)}${ending()}。理由は、${reason()}から${ending()}`);
+        lines.push(
+          `${persona.firstPerson}が気になるのは${nameOf(topId)}。${reason()}のが理由${ending()}`,
+        );
         accusesId = topId;
       } else {
         lines.push(`正直、まだ五分五分${ending()}。少なくとも${persona.firstPerson}は狼憑きじゃない`);
@@ -540,7 +580,7 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
       if (topId) accusesId = accusesId ?? topId;
     } else if (topId && (directive === 'push_hard' || (ev.confidence >= 48 && sorted.length > 0))) {
       lines.push(
-        `${exclaim()}${persona.firstPerson}が一番怪しいと思うのは${nameOf(topId)}${ending()}。${reason()}のが理由${ending()}`,
+        `${exclaim()}${persona.firstPerson}が一番怪しいと思うのは${nameOf(topId)}。${reason()}のが理由${ending()}`,
       );
       accusesId = accusesId ?? topId;
     } else if (topId) {
@@ -553,5 +593,5 @@ export function mockSpeak(ctx: BuddyContext, ev: EvalOutput, opts: CallOpts): Sp
 
   const maxLines = persona.verbosity === 'short' ? 1 : 2;
   const text = lines.slice(0, maxLines).join(' ');
-  return { text, accusesId, declaredRole };
+  return present(text, accusesId, declaredRole);
 }

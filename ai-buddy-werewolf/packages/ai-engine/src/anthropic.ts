@@ -37,8 +37,16 @@ const evalApiSchema = z.object({
   voteCandidateId: z.string().nullable(),
   reasonSummary: z.string(),
 });
-const speechApiSchema = z.object({
-  text: z.string().min(1).max(MAX_PUBLIC_SPEECH_CHARS),
+export const speechApiSchema = z.object({
+  // ZodのmaxはUTF-16単位なので、絵文字を含む日本語だけ拒否しないよう
+  // Schema側は安全な上限を置き、実際の公開上限はコードポイントで揃える。
+  text: z.string().min(1).max(MAX_PUBLIC_SPEECH_CHARS * 2).refine(
+    (value) => {
+      const length = [...value.trim()].length;
+      return length >= 1 && length <= MAX_PUBLIC_SPEECH_CHARS;
+    },
+    `発言は1〜${MAX_PUBLIC_SPEECH_CHARS}文字にしてください`,
+  ),
   accusesId: z.string().nullable(),
   declaredRole: z.enum(['villager', 'seer', 'guardian', 'medium', 'werewolf']).nullable(),
 });

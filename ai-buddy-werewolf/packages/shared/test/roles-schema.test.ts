@@ -33,6 +33,13 @@ describe('役職宣言のshared契約', () => {
     });
   });
 
+  it('公開発言を絵文字込み60文字まで受理し、空白と61文字を拒否する', () => {
+    const base = { accusesId: null, declaredRole: null };
+    expect(speechOutputSchema.safeParse({ ...base, text: `${'短'.repeat(59)}😀` }).success).toBe(true);
+    expect(speechOutputSchema.safeParse({ ...base, text: `${'長'.repeat(60)}😀` }).success).toBe(false);
+    expect(speechOutputSchema.safeParse({ ...base, text: '  \n ' }).success).toBe(false);
+  });
+
   it('role_claim助言と設定候補を検証する', () => {
     expect(adviceSchema.parse({ kind: 'role_claim', claimedRole: 'guardian' })).toEqual({
       kind: 'role_claim',

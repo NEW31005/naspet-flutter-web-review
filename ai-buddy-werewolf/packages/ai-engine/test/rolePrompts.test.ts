@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildBuddyContext, createMatch } from '@aibw/game-core';
+import { speechApiSchema } from '../src/anthropic.js';
 import { buildEvalPrompt, buildSpeechPrompt, renderPublicLog } from '../src/promptBuilder.js';
 import { makeSnapshot, testPrompts } from './fixtures.js';
 
@@ -7,6 +8,15 @@ const roleTestPrompts = {
   ...testPrompts,
   evalTemplate: '{{factsBlock}}\n{{attackPrioritiesHint}}\n{{skillPrioritiesHint}}\n{{analysisLensBlock}}',
 };
+
+describe('Anthropic公開発言Schema', () => {
+  it('絵文字をUTF-16ではなく画面上の文字数として数える', () => {
+    const base = { accusesId: null, declaredRole: null };
+    expect(speechApiSchema.safeParse({ ...base, text: `${'あ'.repeat(59)}😀` }).success).toBe(true);
+    expect(speechApiSchema.safeParse({ ...base, text: `${'あ'.repeat(60)}😀` }).success).toBe(false);
+    expect(speechApiSchema.safeParse({ ...base, text: '  \n ' }).success).toBe(false);
+  });
+});
 
 function contextFor(role: 'guardian' | 'medium' | 'werewolf') {
   const config = makeSnapshot({
@@ -132,7 +142,72 @@ describe('追加役職のプロンプト', () => {
     }, prompts);
     expect(speech.user).toContain('現在最も疑っている相手');
     expect(speech.user).not.toContain('most_suspicious');
-    expect(speech.user).toMatch(/30〜65|45〜85|55〜95/);
+    expect(speech.user).toMatch(/34文字以内|44文字以内|52文字以内/);
+  });
+
+  it('公開発言は会話役割ごとの短い目安と60文字の絶対上限を持つ', () => {
+    const ctx = contextFor('medium');
+    ctx.discussionTurn = {
+      round: 2,
+      kind: 'answer',
+      askerId: 'p2',
+      askerName: 'レン',
+      targetId: ctx.self.pairId,
+      targetName: ctx.self.buddyName,
+      theme: {
+        id: 'most_suspicious',
+        label: '現在最も疑っている相手',
+        mockTemplate: '{target}はいま誰を疑っている?',
+        promptHint: '相手と理由を聞く',
+      },
+    };
+    const prompts = {
+      ...roleTestPrompts,
+      speechTemplate: '{{verbosityHint}}\n{{lengthLimit}}',
+    };
+    const speech = buildSpeechPrompt(ctx, {
+      suspicions: {},
+      primaryHypothesis: '短い仮説',
+      altHypotheses: [],
+      confidence: 40,
+      toShare: [],
+      toWithhold: [],
+      questionTargetId: null,
+      questionTheme: null,
+      voteCandidateId: 'p2',
+      reasonSummary: '理由',
+    }, prompts);
+    expect(speech.user).toContain('答えだけを1文、40文字以内');
+    expect(speech.user).toContain('絶対に60文字を超えない');
+  });
+
+  it('セバス型の長め人格でも敬語を残しつつ52文字目安へ抑える', () => {
+    const ctx = contextFor('medium');
+    ctx.self.persona = {
+      ...ctx.self.persona,
+      name: 'セバス',
+      speechStyle: '短い執事敬語。敬称と最後の語尾だけで礼節を出す。',
+      verbosity: 'long',
+    };
+    const prompts = {
+      ...roleTestPrompts,
+      speechTemplate: '{{speechStyle}}\n{{verbosityHint}}\n{{lengthLimit}}',
+    };
+    const speech = buildSpeechPrompt(ctx, {
+      suspicions: {},
+      primaryHypothesis: '短い仮説',
+      altHypotheses: [],
+      confidence: 40,
+      toShare: [],
+      toWithhold: [],
+      questionTargetId: null,
+      questionTheme: null,
+      voteCandidateId: 'p2',
+      reasonSummary: '理由',
+    }, prompts);
+    expect(speech.user).toContain('短い執事敬語');
+    expect(speech.user).toContain('52文字以内');
+    expect(speech.user).toContain('日本語60文字以下');
   });
 
   it('初日弁明は並列相手へ触れず、主人相談後は更新した見解を明示的に促す', () => {

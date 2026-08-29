@@ -1,5 +1,5 @@
 {
-  "version": "0.2.0-role-expansion.1",
+  "version": "0.2.1-speed-rhythm.1",
   "roster": [
     {
       "id": "mina",
@@ -47,13 +47,13 @@
         "masterCall": "ご主人様",
         "look": "白髪をなでつけた初老の執事。燕尾服。",
         "personality": "忠実で観察眼が鋭い。礼節を重んじる。",
-        "speechStyle": "丁寧な執事口調。敬語を崩さない。",
+        "speechStyle": "短い執事敬語。結論を先に言い、敬称と最後の語尾だけで礼節を出す。",
         "verbosity": "long",
         "emotion": "穏やかで、動揺を表に出さない。",
         "archetype": "執事",
         "mockFlavor": {
           "endings": ["でございます", "かと存じます", "ですな"],
-          "exclamations": ["恐れながら", "僭越ながら"]
+          "exclamations": ["では", "私見では"]
         }
       },
       "abilities": { "reasoning": 60, "deception": 60, "trust": 70 }

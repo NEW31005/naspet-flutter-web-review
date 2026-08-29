@@ -332,7 +332,7 @@ describe('公開Web Labブラウザ内バックエンド', () => {
       firstNightDivination: 'white',
     });
     expect(JSON.parse(readStaticFile('prompt', 'version.json'))).toEqual({
-      version: '1.0.0-short-rally-diverse-angles.3',
+      version: '1.0.0-short-rally-diverse-angles.4',
     });
     expect(localStorage.getItem('aibw.lab.matches.v1')).toBe(JSON.stringify(['keep-this-match']));
   });

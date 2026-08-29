@@ -4,7 +4,11 @@
  * - 外部設定ファイルの検証
  */
 import { z } from 'zod';
-import { MOBILE_HANDOFF_FILE_PATHS, MOBILE_HANDOFF_V1_FILE_PATHS } from './types.js';
+import {
+  MAX_PUBLIC_SPEECH_CHARS,
+  MOBILE_HANDOFF_FILE_PATHS,
+  MOBILE_HANDOFF_V1_FILE_PATHS,
+} from './types.js';
 
 const score = z.number().min(0).max(100);
 const roleSchema = z.enum(['villager', 'seer', 'guardian', 'medium', 'werewolf']);
@@ -25,7 +29,10 @@ export const evalOutputSchema = z.object({
 });
 
 export const speechOutputSchema = z.object({
-  text: z.string().min(1).max(1200),
+  text: z.string().min(1).max(MAX_PUBLIC_SPEECH_CHARS * 2).refine((value) => {
+    const length = [...value.trim()].length;
+    return length >= 1 && length <= MAX_PUBLIC_SPEECH_CHARS;
+  }, `発言は1〜${MAX_PUBLIC_SPEECH_CHARS}文字にしてください`),
   accusesId: z.string().nullable(),
   declaredRole: roleSchema.nullable().default(null),
 });

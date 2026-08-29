@@ -23,7 +23,7 @@ export const COST_GUARD = {
   maxUserChars: 48_000,
   maxOutputTokens: {
     eval: 1_200,
-    speech: 400,
+    speech: 200,
   },
   // Pack Testの裁判は最大8バディを並列評価するため、正常系を落とさない上限。
   defaultMaxConcurrent: 8,
@@ -96,7 +96,7 @@ const evalSchema = {
 const speechSchema = {
   type: 'object',
   properties: {
-    text: { type: 'string', minLength: 1, maxLength: 120 },
+    text: { type: 'string', minLength: 1, maxLength: 60 },
     accusesId: { type: ['string', 'null'] },
     declaredRole: {
       type: ['string', 'null'],
@@ -294,7 +294,7 @@ function validOutput(callType: 'eval' | 'speech', value: unknown): boolean {
   const record = value as Record<string, unknown>;
   if (callType === 'speech') {
     return typeof record.text === 'string' &&
-      [...record.text.trim()].length > 0 && [...record.text.trim()].length <= 120 &&
+      [...record.text.trim()].length > 0 && [...record.text.trim()].length <= 60 &&
       (record.accusesId === null || typeof record.accusesId === 'string') &&
       (record.declaredRole === null ||
         (typeof record.declaredRole === 'string' && DECLARABLE_ROLES.has(record.declaredRole)));

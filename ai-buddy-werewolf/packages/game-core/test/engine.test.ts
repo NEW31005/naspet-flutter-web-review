@@ -162,7 +162,7 @@ describe('助言のルール', () => {
 });
 
 describe('公開発言のテンポ', () => {
-  it('Live AIが長文を返しても文末優先で120文字以内に収める', () => {
+  it('Live AIが長文を返しても文末優先で60文字以内に収める', () => {
     let { state } = newMatch('compact-live-speech');
     state = apply(state, applyAdvanceDay(state, NOW));
     const task = getPendingTask(state);
@@ -178,8 +178,27 @@ describe('公開発言のテンポ', () => {
     ));
     const published = state.publicLog.find((entry) => entry.t === 'speech');
     if (!published || published.t !== 'speech') throw new Error('published speech missing');
-    expect([...published.text].length).toBeLessThanOrEqual(120);
+    expect([...published.text].length).toBeLessThanOrEqual(60);
     expect(published.text.endsWith('。')).toBe(true);
+  });
+
+  it('句読点のない長文は60文字目で省略し、会話カードを押し広げない', () => {
+    let { state } = newMatch('compact-live-speech-no-punctuation');
+    state = apply(state, applyAdvanceDay(state, NOW));
+    const task = getPendingTask(state);
+    if (task.type !== 'ai_speech') throw new Error('speech task missing');
+    state = apply(state, applySpeech(
+      state,
+      task.pairId,
+      makeEval({}),
+      'long-live-speech-no-punctuation',
+      { text: '長い前置き'.repeat(30), accusesId: null },
+      NOW,
+    ));
+    const published = state.publicLog.find((entry) => entry.t === 'speech');
+    if (!published || published.t !== 'speech') throw new Error('published speech missing');
+    expect([...published.text].length).toBe(60);
+    expect(published.text.endsWith('…')).toBe(true);
   });
 
   it('短縮で見えなくなった疑い先・役職宣言を構造化イベントだけで残さない', () => {
@@ -196,6 +215,30 @@ describe('公開発言のテンポ', () => {
       'long-structured-speech',
       {
         text: `${'ここでは短い一般論だけを述べます。'.repeat(10)}${target.buddyName}を疑い、占い師と名乗ります。`,
+        accusesId: target.pairId,
+        declaredRole: 'seer',
+      },
+      NOW,
+    );
+    const speech = events.find((event) => event.type === 'speech');
+    expect(speech?.type === 'speech' ? speech.payload.accusesId : 'missing').toBeNull();
+    expect(events.some((event) => event.type === 'role_declared')).toBe(false);
+  });
+
+  it('短縮前半に名前や役職語が残っても構造化イベントを推測で維持しない', () => {
+    let { state } = newMatch('compact-visible-structured-speech');
+    state = apply(state, applyAdvanceDay(state, NOW));
+    const task = getPendingTask(state);
+    if (task.type !== 'ai_speech') throw new Error('speech task missing');
+    const target = state.pairs.find((pair) => pair.pairId !== task.pairId);
+    if (!target) throw new Error('target missing');
+    const events = applySpeech(
+      state,
+      task.pairId,
+      makeEval({}),
+      'long-visible-structured-speech',
+      {
+        text: `${target.buddyName}は狼ではない。占い師の話もまだ信用しない。${'後半の主張を続けます'.repeat(12)}`,
         accusesId: target.pairId,
         declaredRole: 'seer',
       },

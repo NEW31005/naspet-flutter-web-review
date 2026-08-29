@@ -119,7 +119,7 @@ Deno.test('output tokens and reasoning effort are capped at the Edge boundary', 
   assertEquals(response.headers.get('X-AIBW-Budget-Remaining'), '319');
 });
 
-Deno.test('speech longer than 120 characters is rejected at the Edge boundary', async () => {
+Deno.test('speech longer than 60 characters is rejected at the Edge boundary', async () => {
   const handler = createHandler({
     envGet: await env(),
     now: () => 1_000,
@@ -130,7 +130,7 @@ Deno.test('speech longer than 120 characters is rejected at the Edge boundary', 
       choices: [{
         message: {
           content: JSON.stringify({
-            text: '長'.repeat(121),
+            text: '長'.repeat(61),
             accusesId: null,
             declaredRole: null,
           }),

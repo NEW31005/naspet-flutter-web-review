@@ -75,6 +75,19 @@ class JsonValidationError extends Error {
   }
 }
 
+export function validatePublicSpeechOutput(value: unknown): SpeechOutput {
+  const checked = speechOutputSchema.safeParse(value);
+  if (!checked.success) throw new JsonValidationError(checked.error.message);
+  const text = checked.data.text.trim();
+  const length = [...text].length;
+  if (length < 1 || length > MAX_PUBLIC_SPEECH_CHARS) {
+    throw new JsonValidationError(
+      `発言は1〜${MAX_PUBLIC_SPEECH_CHARS}文字にしてください`,
+    );
+  }
+  return { ...checked.data, text };
+}
+
 /**
  * Edge通過後もBuddyContextの生存候補だけへ絞る最後の防壁。
  * 同一IDに異なる点数が来た場合は、順序依存のlast-winsにせず候補ごと除外する。
@@ -252,14 +265,7 @@ class LabProxyProvider {
   ): Promise<ProviderResult<SpeechOutput>> {
     const prompts = buildSpeechPrompt(ctx, evalOutput, this.prompts);
     const result = await this.callWithValidation<SpeechOutput>('speech', prompts, opts, (value) => {
-      const checked = speechOutputSchema.safeParse(value);
-      if (!checked.success) throw new JsonValidationError(checked.error.message);
-      if ([...checked.data.text.trim()].length > MAX_PUBLIC_SPEECH_CHARS) {
-        throw new JsonValidationError(
-          `発言が${MAX_PUBLIC_SPEECH_CHARS}文字を超えています`,
-        );
-      }
-      return checked.data;
+      return validatePublicSpeechOutput(value);
     });
     return {
       output: result.value,

@@ -926,7 +926,7 @@ function compactPublicSpeech(raw: string): string {
   let sentenceEnd = -1;
   for (let index = 0; index < MAX_PUBLIC_SPEECH_CHARS; index++) {
     const char = chars[index];
-    if (index >= 39 && char && '。！？!?'.includes(char)) sentenceEnd = index + 1;
+    if (index >= 17 && char && '。！？!?'.includes(char)) sentenceEnd = index + 1;
   }
   if (sentenceEnd > 0) return chars.slice(0, sentenceEnd).join('');
   return `${chars.slice(0, MAX_PUBLIC_SPEECH_CHARS - 1).join('')}…`;
@@ -960,13 +960,15 @@ export function applySpeech(
   const pair = getPair(state, pairId);
   if (!pair.alive) throw new GameRuleError('死亡した組は発言できません', 'pair_dead');
 
-  const text = compactPublicSpeech(speech.text);
+  const originalText = speech.text.trim();
+  const wasCompacted = [...originalText].length > MAX_PUBLIC_SPEECH_CHARS;
+  const text = compactPublicSpeech(originalText);
   if (!text) throw new GameRuleError('発言が空です', 'empty_speech');
   const accusedPair = speech.accusesId
     ? state.pairs.find((candidate) => candidate.pairId === speech.accusesId && candidate.alive)
     : null;
   const accusesId =
-    accusedPair && text.includes(accusedPair.buddyName)
+    !wasCompacted && accusedPair && text.includes(accusedPair.buddyName)
       ? accusedPair.pairId
       : null;
   // 旧保存データや旧テスト入力にフィールドがない場合は「名乗らない」として扱う。
@@ -975,7 +977,7 @@ export function applySpeech(
     throw new GameRuleError('存在しない役職は名乗れません', 'invalid_declared_role');
   }
   const declaredRole =
-    requestedDeclaredRole !== null && text.includes(ROLE_LABEL[requestedDeclaredRole])
+    !wasCompacted && requestedDeclaredRole !== null && text.includes(ROLE_LABEL[requestedDeclaredRole])
       ? requestedDeclaredRole
       : null;
 

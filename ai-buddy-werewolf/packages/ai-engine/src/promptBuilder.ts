@@ -264,12 +264,23 @@ export function buildSpeechPrompt(
     roleBlock(ctx, prompts);
 
   const verbosityHints = {
-    short: '1文、30〜65文字を目安にする',
-    medium: '1〜2文、45〜85文字を目安にする',
-    long: '1〜2文、55〜95文字を目安にする',
+    short: '1文、34文字以内を目安にする',
+    medium: '1〜2文、44文字以内を目安にする',
+    long: '1〜2文、52文字以内を目安にする',
   } as const;
+  const turnKind = ctx.discussionTurn?.kind;
+  const lengthHint =
+    ctx.pendingQuestion || turnKind === 'question'
+      ? '質問だけを1文、36文字以内にする'
+      : turnKind === 'answer'
+        ? '聞かれたことへの答えだけを1文、40文字以内にする'
+        : turnKind === 'follow_up'
+          ? '回答への判断だけを1〜2文、46文字以内にする'
+          : ctx.roleClaimProposal?.day === ctx.matchInfo.day
+            ? '役職を名乗る場合も1文、48文字以内にする'
+            : verbosityHints[persona.verbosity];
 
-  const user = fill(prompts.speechTemplate, {
+  const renderedTemplate = fill(prompts.speechTemplate, {
     buddyName: persona.name,
     firstPerson: persona.firstPerson,
     masterCall: persona.masterCall,
@@ -278,7 +289,7 @@ export function buildSpeechPrompt(
     speechStyle: persona.speechStyle,
     emotion: persona.emotion,
     archetype: persona.archetype,
-    verbosityHint: verbosityHints[persona.verbosity],
+    verbosityHint: lengthHint,
     primaryHypothesis: ev.primaryHypothesis,
     voteCandidateName: nameOf(ev.voteCandidateId),
     toShare: ev.toShare.join(' / ') || 'なし',
@@ -295,9 +306,15 @@ export function buildSpeechPrompt(
     analysisLensBlock: analysisLens,
     echoGuardBlock: buildEchoGuard(ctx),
     recentLogBlock: renderPublicLog(ctx.publicLog, 20),
-    lengthLimit: verbosityHints[persona.verbosity],
+    lengthLimit: `${lengthHint}。絶対に60文字を超えない`,
     candidateIds: ctx.candidates.map((c) => `${c.pairId}=${c.name}`).join(', '),
   });
+  // 公開Labは利用者が編集した旧プロンプトをlocalStorageへ保持する。
+  // 速度と用語の契約だけはテンプレート外にも置き、旧設定のままでも長文化させない。
+  const user = `${renderedTemplate}\n\n# 公開発言の固定契約
+- 日本語60文字以下、原則1〜2文。最初の15文字ほどで結論・直接回答・質問を出す。
+- 1発言1論点、公開根拠は1つ。挨拶・内容のない相づち・儀礼的な共感・礼儀だけの前置き・自己説明・今後の抱負は削る。判断が変わった理由になる同意や納得は残す。
+- 人格は一人称・相手への敬称・最後の語尾のうち1〜2個で残す。専門用語のCO・白・黒・盤面・吊る・ロラ・ライン・視点漏れ・身内切り・村目・狼目・グレー・縄・精査・囲いは普通の日本語へ置き換える。`;
   return { system, user };
 }
 

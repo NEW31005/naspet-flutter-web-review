@@ -177,8 +177,8 @@ export interface SpeechOutput {
   declaredRole?: Role | null;
 }
 
-/** 公開討論で許可するAI発言の最大文字数。短いラリーを全プロバイダーで揃える。 */
-export const MAX_PUBLIC_SPEECH_CHARS = 120;
+/** 390px画面で約2〜3行に収める公開発言の絶対上限。全プロバイダー共通。 */
+export const MAX_PUBLIC_SPEECH_CHARS = 60;
 
 export type EvalKind = 'discussion' | 'vote' | 'night';
 

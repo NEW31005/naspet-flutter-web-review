@@ -645,17 +645,17 @@ function LogEntry({
       const self = entry.pairId === selfPairId;
       const turnLabel =
         entry.turnKind === 'opening_defense'
-          ? '初日弁明'
+          ? '最初の説明'
           : entry.turnKind === 'opening_opinion'
-            ? '焦点評価'
+            ? '意見'
             : entry.turnKind === 'question'
-          ? '指名質問'
+          ? '質問'
           : entry.turnKind === 'answer'
-            ? '単独回答'
+            ? '返事'
             : entry.turnKind === 'follow_up'
-              ? '受け止め'
+              ? '反応'
               : entry.turnKind === 'reaction'
-                ? '応答'
+                ? '反応'
                 : null;
       return (
         <div className={`bubble ${self ? 'self' : ''} ${entry.replyToId ? 'reply' : ''}`}>

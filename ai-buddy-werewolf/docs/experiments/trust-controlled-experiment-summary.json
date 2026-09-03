@@ -1,0 +1,162 @@
+[
+  {
+    "focus": "ミナ(信頼50)",
+    "maxBonus": 20,
+    "effBonus": 10,
+    "mode": "reasonable",
+    "trials": 90,
+    "followRate": 0.389,
+    "reversalRate": 0.3,
+    "nonObedience": 0.611
+  },
+  {
+    "focus": "ミナ(信頼50)",
+    "maxBonus": 20,
+    "effBonus": 10,
+    "mode": "bad",
+    "trials": 89,
+    "followRate": 0.18,
+    "reversalRate": 0.146,
+    "nonObedience": 0.82
+  },
+  {
+    "focus": "ミナ(信頼50)",
+    "maxBonus": 25,
+    "effBonus": 12.5,
+    "mode": "reasonable",
+    "trials": 90,
+    "followRate": 0.422,
+    "reversalRate": 0.333,
+    "nonObedience": 0.578
+  },
+  {
+    "focus": "ミナ(信頼50)",
+    "maxBonus": 25,
+    "effBonus": 12.5,
+    "mode": "bad",
+    "trials": 89,
+    "followRate": 0.202,
+    "reversalRate": 0.169,
+    "nonObedience": 0.798
+  },
+  {
+    "focus": "ミナ(信頼50)",
+    "maxBonus": 32,
+    "effBonus": 16,
+    "mode": "reasonable",
+    "trials": 89,
+    "followRate": 0.483,
+    "reversalRate": 0.393,
+    "nonObedience": 0.517
+  },
+  {
+    "focus": "ミナ(信頼50)",
+    "maxBonus": 32,
+    "effBonus": 16,
+    "mode": "bad",
+    "trials": 89,
+    "followRate": 0.303,
+    "reversalRate": 0.258,
+    "nonObedience": 0.697
+  },
+  {
+    "focus": "ミナ(信頼50)",
+    "maxBonus": 40,
+    "effBonus": 20,
+    "mode": "reasonable",
+    "trials": 87,
+    "followRate": 0.609,
+    "reversalRate": 0.517,
+    "nonObedience": 0.391
+  },
+  {
+    "focus": "ミナ(信頼50)",
+    "maxBonus": 40,
+    "effBonus": 20,
+    "mode": "bad",
+    "trials": 91,
+    "followRate": 0.418,
+    "reversalRate": 0.374,
+    "nonObedience": 0.582
+  },
+  {
+    "focus": "タク(信頼80)",
+    "maxBonus": 20,
+    "effBonus": 16,
+    "mode": "reasonable",
+    "trials": 91,
+    "followRate": 0.571,
+    "reversalRate": 0.516,
+    "nonObedience": 0.429
+  },
+  {
+    "focus": "タク(信頼80)",
+    "maxBonus": 20,
+    "effBonus": 16,
+    "mode": "bad",
+    "trials": 91,
+    "followRate": 0.231,
+    "reversalRate": 0.209,
+    "nonObedience": 0.769
+  },
+  {
+    "focus": "タク(信頼80)",
+    "maxBonus": 25,
+    "effBonus": 20,
+    "mode": "reasonable",
+    "trials": 90,
+    "followRate": 0.678,
+    "reversalRate": 0.622,
+    "nonObedience": 0.322
+  },
+  {
+    "focus": "タク(信頼80)",
+    "maxBonus": 25,
+    "effBonus": 20,
+    "mode": "bad",
+    "trials": 91,
+    "followRate": 0.363,
+    "reversalRate": 0.341,
+    "nonObedience": 0.637
+  },
+  {
+    "focus": "タク(信頼80)",
+    "maxBonus": 32,
+    "effBonus": 25.6,
+    "mode": "reasonable",
+    "trials": 89,
+    "followRate": 0.831,
+    "reversalRate": 0.787,
+    "nonObedience": 0.169
+  },
+  {
+    "focus": "タク(信頼80)",
+    "maxBonus": 32,
+    "effBonus": 25.6,
+    "mode": "bad",
+    "trials": 90,
+    "followRate": 0.556,
+    "reversalRate": 0.533,
+    "nonObedience": 0.444
+  },
+  {
+    "focus": "タク(信頼80)",
+    "maxBonus": 40,
+    "effBonus": 32,
+    "mode": "reasonable",
+    "trials": 88,
+    "followRate": 0.898,
+    "reversalRate": 0.852,
+    "nonObedience": 0.102
+  },
+  {
+    "focus": "タク(信頼80)",
+    "maxBonus": 40,
+    "effBonus": 32,
+    "mode": "bad",
+    "trials": 92,
+    "followRate": 0.696,
+    "reversalRate": 0.674,
+    "nonObedience": 0.304
+  }
+]

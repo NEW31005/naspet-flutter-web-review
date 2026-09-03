@@ -1,0 +1,27 @@
+{
+  "version": "0.8.0-human-turn.1",
+  "presetId": "quick-test",
+  "label": "クイックテスト（5組・初日白情報あり・勝率調整用）",
+  "pairCount": 5,
+  "roleSetup": { "werewolf": 1, "seer": 1 },
+  "maxDays": 3,
+  "firstNightDivination": "white",
+  "firstDayFocusCount": 2,
+  "discussionMode": "timed",
+  "discussionDurationSec": 150,
+  "discussionMaxMessages": 30,
+  "discussionBatchSize": 2,
+  "discussionRounds": 2,
+  "speechesPerBuddyPerRound": 1,
+  "advicePerDay": 1,
+  "tieBreak": "random",
+  "revealRoleOnDeath": false,
+  "wolfAttackIntegration": { "method": "sumNormalized", "tieBreak": "random" },
+  "trust": {
+    "trialChoice": { "type": "linear", "maxBonus": 32 },
+    "nightProposal": { "type": "linear", "maxBonus": 25 },
+    "skillProposal": { "type": "linear", "maxBonus": 30 },
+    "subjectiveAdvice": { "type": "linear", "maxBonus": 20 }
+  },
+  "otherMastersPolicy": "simple"
+}

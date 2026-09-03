@@ -1,0 +1,13 @@
+{
+  "name": "@aibw/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@aibw/ai-engine": "*",
+    "@aibw/game-core": "*",
+    "@aibw/shared": "*",
+    "zod": "^3.25.76"
+  }
+}

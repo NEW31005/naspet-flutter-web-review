@@ -1,0 +1,34 @@
+{
+  "name": "ai-buddy-werewolf",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:server": "tsx watch apps/server/src/index.ts",
+    "dev:web": "npm run dev -w @aibw/web",
+    "start": "tsx apps/server/src/index.ts",
+    "simulate": "tsx apps/server/src/cli/simulate.ts",
+    "analyze:intimacy": "tsx apps/server/src/cli/analyzeIntimacy.ts",
+    "analyze:matches": "node scripts/analyze-matches.mjs",
+    "typecheck": "tsc --noEmit -p packages/shared && tsc --noEmit -p packages/game-core && tsc --noEmit -p packages/ai-engine && tsc --noEmit -p apps/server && tsc --noEmit -p apps/web",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "build": "npm run typecheck && npm run build -w @aibw/web",
+    "build:lab": "npm run typecheck && npm run build -w @aibw/web -- --mode lab"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.20.0",
+    "@typescript-eslint/parser": "^8.20.0",
+    "eslint": "^9.18.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.20.0",
+    "vitest": "^3.0.0"
+  }
+}

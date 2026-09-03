@@ -1,0 +1,27 @@
+{
+  "version": "0.5.0-human-turn.1",
+  "presetId": "pack-test",
+  "label": "群れ統合テスト（8組・狼2組・勝率調整対象外）",
+  "pairCount": 8,
+  "roleSetup": { "werewolf": 2, "seer": 1 },
+  "maxDays": 4,
+  "firstNightDivination": "white",
+  "firstDayFocusCount": 2,
+  "discussionMode": "timed",
+  "discussionDurationSec": 150,
+  "discussionMaxMessages": 48,
+  "discussionBatchSize": 3,
+  "discussionRounds": 2,
+  "speechesPerBuddyPerRound": 1,
+  "advicePerDay": 1,
+  "tieBreak": "random",
+  "revealRoleOnDeath": false,
+  "wolfAttackIntegration": { "method": "sumNormalized", "tieBreak": "random" },
+  "trust": {
+    "trialChoice": { "type": "linear", "maxBonus": 25 },
+    "nightProposal": { "type": "linear", "maxBonus": 25 },
+    "skillProposal": { "type": "linear", "maxBonus": 30 },
+    "subjectiveAdvice": { "type": "linear", "maxBonus": 20 }
+  },
+  "otherMastersPolicy": "simple"
+}

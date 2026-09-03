@@ -1,0 +1,44 @@
+{
+  "version": "0.4.0-focus.1",
+  "defaultProvider": "mock",
+  "providers": {
+    "mock": {
+      "type": "mock",
+      "simulatedLatencyMs": 0
+    },
+    "anthropic": {
+      "type": "anthropic",
+      "apiKeyEnv": "ANTHROPIC_API_KEY",
+      "model": "claude-opus-5",
+      "temperature": null,
+      "maxTokensEval": 2000,
+      "maxTokensSpeech": 800,
+      "effort": "low",
+      "timeoutMs": 90000,
+      "maxRetries": 2,
+      "jsonRetries": 2,
+      "prices": {
+        "claude-opus-5": { "inputPerMTok": 5, "outputPerMTok": 25 },
+        "claude-sonnet-5": { "inputPerMTok": 2, "outputPerMTok": 10 },
+        "claude-haiku-4-5": { "inputPerMTok": 1, "outputPerMTok": 5 },
+        "claude-fable-5": { "inputPerMTok": 10, "outputPerMTok": 50 }
+      }
+    },
+    "lab-live": {
+      "type": "labProxy",
+      "endpoint": "https://viqeghtpluzxevxqafam.supabase.co/functions/v1/ai-buddy-lab",
+      "model": "anthropic/claude-sonnet-5",
+      "temperature": null,
+      "maxTokensEval": 1200,
+      "maxTokensSpeech": 350,
+      "effort": "low",
+      "timeoutMs": 90000,
+      "jsonRetries": 1,
+      "prices": {
+        "anthropic/claude-sonnet-5": { "inputPerMTok": 2, "outputPerMTok": 10 },
+        "anthropic/claude-opus-4.8": { "inputPerMTok": 5, "outputPerMTok": 25 },
+        "anthropic/claude-haiku-4.5": { "inputPerMTok": 1, "outputPerMTok": 5 }
+      }
+    }
+  }
+}
